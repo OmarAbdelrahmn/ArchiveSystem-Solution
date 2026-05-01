@@ -16,7 +16,6 @@
     <Folder Include="Themes\" />
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Dialogs\" />
-    <Folder Include="Views\Pages\" />
   </ItemGroup>
 
   <ItemGroup>

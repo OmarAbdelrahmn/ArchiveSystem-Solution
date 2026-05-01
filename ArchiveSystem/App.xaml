@@ -6,10 +6,12 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+
+                <!-- ✅ In version 5.x this one line is enough -->
                 <materialDesign:BundledTheme BaseTheme="Light"
                                              PrimaryColor="Teal"
                                              SecondaryColor="Teal"/>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml"/>
+
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
