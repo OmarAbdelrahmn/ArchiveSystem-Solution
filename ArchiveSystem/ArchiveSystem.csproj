@@ -11,7 +11,6 @@
   <ItemGroup>
     <Folder Include="Assets\" />
     <Folder Include="Core\Helpers\" />
-    <Folder Include="Core\Services\" />
     <Folder Include="Themes\" />
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Dialogs\" />

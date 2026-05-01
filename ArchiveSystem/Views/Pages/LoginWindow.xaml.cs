@@ -1,0 +1,127 @@
+﻿using System.Windows;
+using System.Windows.Input;
+using ArchiveSystem.Core.Services;
+
+namespace ArchiveSystem
+{
+    public partial class LoginWindow : Window
+    {
+        private readonly AuthService _authService;
+        private bool _isFirstRun = false;
+
+        public LoginWindow()
+        {
+            InitializeComponent();
+            _authService = new AuthService(App.Database);
+            Loaded += LoginWindow_Loaded;
+        }
+
+        private void LoginWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Check if this is first run (no users exist)
+            _isFirstRun = !_authService.HasUsers();
+
+            if (_isFirstRun)
+            {
+                SetupBorder.Visibility = Visibility.Visible;
+                FullNameBox.Visibility = Visibility.Visible;
+                LoginButton.Content = "إنشاء الحساب وتسجيل الدخول";
+            }
+
+            // Show last backup time
+            var lastBackup = _authService.GetLastBackupTime();
+            LastBackupText.Text = lastBackup != null
+                ? $"آخر نسخة احتياطية: {lastBackup}"
+                : "لا توجد نسخة احتياطية بعد";
+
+            UsernameBox.Focus();
+        }
+
+        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            DoLogin();
+        }
+
+        private void Input_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) DoLogin();
+        }
+
+        private void DoLogin()
+        {
+            HideError();
+
+            string username = UsernameBox.Text.Trim();
+            string password = PasswordBox.Password;
+
+            // Basic validation
+            if (string.IsNullOrEmpty(username))
+            {
+                ShowError("يرجى إدخال اسم المستخدم.");
+                UsernameBox.Focus();
+                return;
+            }
+
+            if (string.IsNullOrEmpty(password))
+            {
+                ShowError("يرجى إدخال كلمة المرور.");
+                PasswordBox.Focus();
+                return;
+            }
+
+            // First run — create admin account first
+            if (_isFirstRun)
+            {
+                string fullName = FullNameBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(fullName))
+                {
+                    ShowError("يرجى إدخال الاسم الكامل.");
+                    FullNameBox.Focus();
+                    return;
+                }
+
+                if (password.Length < 6)
+                {
+                    ShowError("كلمة المرور يجب أن تكون 6 أحرف على الأقل.");
+                    PasswordBox.Focus();
+                    return;
+                }
+
+                bool created = _authService.CreateFirstAdmin(fullName, username, password);
+                if (!created)
+                {
+                    ShowError("تعذر إنشاء الحساب. يرجى إعادة المحاولة.");
+                    return;
+                }
+            }
+
+            // Attempt login
+            var user = _authService.Login(username, password);
+
+            if (user == null)
+            {
+                ShowError("اسم المستخدم أو كلمة المرور غير صحيحة.");
+                PasswordBox.Clear();
+                PasswordBox.Focus();
+                return;
+            }
+
+            // ✅ Login successful — open main window
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
+            Close();
+        }
+
+        private void ShowError(string message)
+        {
+            ErrorText.Text = message;
+            ErrorBorder.Visibility = Visibility.Visible;
+        }
+
+        private void HideError()
+        {
+            ErrorBorder.Visibility = Visibility.Collapsed;
+        }
+    }
+}
