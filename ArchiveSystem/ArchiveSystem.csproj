@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <Folder Include="Assets\" />
-    <Folder Include="Core\Models\" />
     <Folder Include="Core\Helpers\" />
     <Folder Include="Core\Services\" />
     <Folder Include="Themes\" />
