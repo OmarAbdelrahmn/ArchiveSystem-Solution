@@ -1,7 +1,5 @@
-﻿using System.Configuration;
-using System.Windows;
+﻿using System.Windows;
 using ArchiveSystem.Views.Pages;
-
 
 namespace ArchiveSystem
 {
@@ -10,7 +8,6 @@ namespace ArchiveSystem
         public MainWindow()
         {
             InitializeComponent();
-            // open on search page by default
             MainFrame.Navigate(new SearchPage());
         }
 
