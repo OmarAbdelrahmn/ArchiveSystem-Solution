@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace ArchiveSystem.Core.Services
 {
-    // ── Warning type constants ────────────────────────────────────────────────
+    // ── Warning type constants ─────────────────────────────────────────────────
     public static class ImportWarningTypes
     {
         public const string MissingDossierMetadata = "MissingDossierMetadata";
@@ -29,7 +29,6 @@ namespace ArchiveSystem.Core.Services
         public const string SheetNameTitleMismatch = "SheetNameTitleMismatch";
     }
 
-    // ── UI display model for a staged dossier ─────────────────────────────────
     public class StagedDossierView
     {
         public int StagingDossierId { get; set; }
@@ -50,7 +49,6 @@ namespace ArchiveSystem.Core.Services
         };
     }
 
-    // ── UI display model for a warning row ────────────────────────────────────
     public class ImportWarningView
     {
         public int WarningId { get; set; }
@@ -64,7 +62,6 @@ namespace ArchiveSystem.Core.Services
         public string RowDisplay => RowNumber.HasValue ? RowNumber.ToString()! : "-";
     }
 
-    // ── Batch summary returned after staging ─────────────────────────────────
     public class StagingResult
     {
         public int BatchId { get; set; }
@@ -84,8 +81,6 @@ namespace ArchiveSystem.Core.Services
     {
         private readonly DatabaseContext _db = db;
 
-        // Regex for parsing the title row
-        // Handles: دوسية رقم (506) شهر 8 لعام 1446هـ عدد (17) ملف سجين
         private static readonly Regex TitleRegex = new(
             @"دوسية\s*رقم\s*\(?\s*(\d+)\s*\)?" +
             @".*?شهر\s*\(?\s*(\d+)\s*\)?" +
@@ -93,21 +88,13 @@ namespace ArchiveSystem.Core.Services
             @".*?عدد\s*\(?\s*(\d+)\s*\)?",
             RegexOptions.Singleline);
 
-        // Required headers (all must be present)
         private static readonly string[] RequiredHeaders =
             ["تسلسل", "اسم السجين", "رقم السجين"];
 
         // ── STAGE BATCH ───────────────────────────────────────────────────────
-        /// <summary>
-        /// Reads the workbook and writes all data into staging tables.
-        /// Returns a summary. Does NOT write to final tables.
-        /// </summary>
         public StagingResult StageBatch(string filePath)
         {
-            var result = new StagingResult
-            {
-                FileName = Path.GetFileName(filePath)
-            };
+            var result = new StagingResult { FileName = Path.GetFileName(filePath) };
 
             try
             {
@@ -118,7 +105,6 @@ namespace ArchiveSystem.Core.Services
                 string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
 
-                // Create ImportBatch record
                 int batchId = conn.ExecuteScalar<int>(@"
                     INSERT INTO ImportBatches
                         (FileName, Status, TotalSheets, CreatedByUserId, CreatedAt)
@@ -128,12 +114,10 @@ namespace ArchiveSystem.Core.Services
 
                 result.BatchId = batchId;
 
-                // Track all prisoner numbers seen in this import
                 var seenInImport = new HashSet<string>();
-
-                // Get existing prisoner numbers from DB for dup check
-                var existingPrisoners = conn.Query<string>(
-                    "SELECT PrisonerNumber FROM Records WHERE DeletedAt IS NULL", transaction: tx)
+                var existingPrisoners = conn
+                    .Query<string>("SELECT PrisonerNumber FROM Records WHERE DeletedAt IS NULL",
+                        transaction: tx)
                     .ToHashSet();
 
                 int totalSheets = workbook.Worksheets.Count;
@@ -155,17 +139,13 @@ namespace ArchiveSystem.Core.Services
                         needsReviewSheets++;
                 }
 
-                // Update batch totals
-                string batchStatus = needsReviewSheets > 0
-                    ? "ReadyForReview" : "ReadyForReview";
-
                 conn.Execute(@"
                     UPDATE ImportBatches
                     SET TotalSheets   = @Sheets,
                         TotalDossiers = @Dossiers,
                         TotalRecords  = @Records,
                         WarningCount  = @Warnings,
-                        Status        = @Status
+                        Status        = 'ReadyForReview'
                     WHERE ImportBatchId = @Id",
                     new
                     {
@@ -173,7 +153,6 @@ namespace ArchiveSystem.Core.Services
                         Dossiers = totalDossiers,
                         Records = totalRecords,
                         Warnings = totalWarnings,
-                        Status = batchStatus,
                         Id = batchId
                     }, tx);
 
@@ -209,9 +188,9 @@ namespace ArchiveSystem.Core.Services
         {
             string sheetName = ws.Name;
             int warnings = 0, duplicates = 0;
-            var sheetStatus = "Ready";
+            string sheetStatus = "Ready";
 
-            // ── 1. Parse title row (scan first 5 rows) ───────────────────────
+            // ── 1. Parse title row ────────────────────────────────────────────
             int? dossierNumber = null, hijriMonth = null, hijriYear = null, expectedCount = null;
             bool titleParsed = false;
 
@@ -227,34 +206,68 @@ namespace ArchiveSystem.Core.Services
                     expectedCount = int.Parse(m.Groups[4].Value);
                     titleParsed = true;
 
-                    // Check sheet name vs title
+                    // FIX: SheetNameTitleMismatch — was detected but AddWarning was never called
                     string sheetDigits = Regex.Replace(sheetName, @"\D", "");
                     if (!string.IsNullOrEmpty(sheetDigits) &&
                         int.TryParse(sheetDigits, out int sheetNum) &&
                         sheetNum != dossierNumber)
                     {
-                        // warn but continue
+                        // Now we actually add the warning (previously a "// warn but continue" stub)
+                        int tempDossId = conn.ExecuteScalar<int>(@"
+                            INSERT INTO ImportStagingDossiers
+                                (ImportBatchId, SheetName, DossierNumber, HijriMonth,
+                                 HijriYear, ExpectedFileCount, Status)
+                            VALUES (@BatchId, @Sheet, @DNum, @Month, @Year, @Expected, 'Pending');
+                            SELECT last_insert_rowid();",
+                            new
+                            {
+                                BatchId = batchId,
+                                Sheet = sheetName,
+                                DNum = dossierNumber,
+                                Month = hijriMonth,
+                                Year = hijriYear,
+                                Expected = expectedCount
+                            }, tx);
+
+                        AddWarning(conn, tx, batchId, tempDossId, null,
+                            ImportWarningTypes.SheetNameTitleMismatch,
+                            $"اسم الشيت '{sheetName}' لا يتطابق مع رقم الدوسية {dossierNumber} في العنوان",
+                            "تحقق من الشيت الصحيح أو صحح رقم الدوسية");
+                        warnings++;
                     }
                     break;
                 }
             }
 
-            // ── 2. Insert staging dossier ────────────────────────────────────
-            int stagingDossierId = conn.ExecuteScalar<int>(@"
-                INSERT INTO ImportStagingDossiers
-                    (ImportBatchId, SheetName, DossierNumber, HijriMonth,
-                     HijriYear, ExpectedFileCount, Status)
-                VALUES (@BatchId, @Sheet, @DNum, @Month, @Year, @Expected, 'Pending');
-                SELECT last_insert_rowid();",
-                new
-                {
-                    BatchId = batchId,
-                    Sheet = sheetName,
-                    DNum = dossierNumber,
-                    Month = hijriMonth,
-                    Year = hijriYear,
-                    Expected = expectedCount
-                }, tx);
+            // ── 2. Insert staging dossier (if not already inserted above) ────
+            int stagingDossierId;
+            var existingStaging = conn.ExecuteScalar<int?>(@"
+                SELECT StagingDossierId FROM ImportStagingDossiers
+                WHERE ImportBatchId = @B AND SheetName = @S",
+                new { B = batchId, S = sheetName }, tx);
+
+            if (existingStaging.HasValue)
+            {
+                stagingDossierId = existingStaging.Value;
+            }
+            else
+            {
+                stagingDossierId = conn.ExecuteScalar<int>(@"
+                    INSERT INTO ImportStagingDossiers
+                        (ImportBatchId, SheetName, DossierNumber, HijriMonth,
+                         HijriYear, ExpectedFileCount, Status)
+                    VALUES (@BatchId, @Sheet, @DNum, @Month, @Year, @Expected, 'Pending');
+                    SELECT last_insert_rowid();",
+                    new
+                    {
+                        BatchId = batchId,
+                        Sheet = sheetName,
+                        DNum = dossierNumber,
+                        Month = hijriMonth,
+                        Year = hijriYear,
+                        Expected = expectedCount
+                    }, tx);
+            }
 
             // ── 3. Handle missing title ───────────────────────────────────────
             if (!titleParsed)
@@ -269,8 +282,7 @@ namespace ArchiveSystem.Core.Services
 
             // ── 4. Find header row ────────────────────────────────────────────
             int headerRow = -1;
-            var colMap = new Dictionary<string, int>(); // header → column index
-
+            var colMap = new Dictionary<string, int>();
             int lastRow = ws.LastRowUsed()?.RowNumber() ?? 10;
 
             for (int r = 1; r <= Math.Min(10, lastRow); r++)
@@ -283,9 +295,7 @@ namespace ArchiveSystem.Core.Services
                     if (!string.IsNullOrEmpty(txt))
                         cellTexts[txt] = cell.Address.ColumnNumber;
                 }
-
-                bool hasAll = RequiredHeaders.All(h => cellTexts.ContainsKey(h));
-                if (hasAll)
+                if (RequiredHeaders.All(h => cellTexts.ContainsKey(h)))
                 {
                     headerRow = r;
                     colMap = cellTexts;
@@ -332,18 +342,15 @@ namespace ArchiveSystem.Core.Services
                 string rawName = nameCol > 0 ? row.Cell(nameCol).GetString().Trim() : "";
                 string rawNum = numCol > 0 ? row.Cell(numCol).GetString().Trim() : "";
 
-                // Stop on fully empty rows
                 if (string.IsNullOrEmpty(rawSeq) &&
                     string.IsNullOrEmpty(rawName) &&
                     string.IsNullOrEmpty(rawNum)) continue;
 
-                // Read location
                 int? hall = hallCol > 0 ? ParseInt(row.Cell(hallCol).GetString()) : null;
                 int? cab = cabCol > 0 ? ParseInt(row.Cell(cabCol).GetString()) : null;
                 int? shelf = shelfCol > 0 ? ParseInt(row.Cell(shelfCol).GetString()) : null;
                 locationValues.Add((hall, cab, shelf));
 
-                // Insert staging record
                 int stagingRecordId = conn.ExecuteScalar<int>(@"
                     INSERT INTO ImportStagingRecords
                         (ImportBatchId, StagingDossierId, SequenceNumber,
@@ -370,21 +377,19 @@ namespace ArchiveSystem.Core.Services
                 bool rowHasWarning = false;
                 string rowStatus = "Ready";
 
-                // ── Sequence validation ───────────────────────────────────────
+                // Sequence validation
                 if (string.IsNullOrEmpty(rawSeq))
                 {
                     AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
                         ImportWarningTypes.MissingSequence,
-                        $"تسلسل مفقود في الصف {r}",
-                        "يرجى إضافة رقم التسلسل");
+                        $"تسلسل مفقود في الصف {r}", "يرجى إضافة رقم التسلسل");
                     warnings++; rowHasWarning = true; rowStatus = "HasWarning";
                 }
                 else if (!int.TryParse(rawSeq, out int seqVal))
                 {
                     AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
                         ImportWarningTypes.InvalidSequence,
-                        $"تسلسل غير رقمي '{rawSeq}' في الصف {r}",
-                        "يرجى تصحيح رقم التسلسل");
+                        $"تسلسل غير رقمي '{rawSeq}' في الصف {r}", "يرجى تصحيح رقم التسلسل");
                     warnings++; rowHasWarning = true; rowStatus = "HasWarning";
                 }
                 else
@@ -393,8 +398,7 @@ namespace ArchiveSystem.Core.Services
                     {
                         AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
                             ImportWarningTypes.DuplicateSequence,
-                            $"تسلسل مكرر {seqVal} في الصف {r}",
-                            "يرجى مراجعة أرقام التسلسل");
+                            $"تسلسل مكرر {seqVal} في الصف {r}", "يرجى مراجعة أرقام التسلسل");
                         warnings++; rowHasWarning = true; rowStatus = "HasWarning";
                     }
                     else
@@ -412,32 +416,29 @@ namespace ArchiveSystem.Core.Services
                     }
                 }
 
-                // ── Name validation ───────────────────────────────────────────
+                // Name validation
                 if (string.IsNullOrEmpty(rawName))
                 {
                     AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
                         ImportWarningTypes.MissingName,
-                        $"اسم مفقود في الصف {r}",
-                        "يرجى إكمال الاسم");
+                        $"اسم مفقود في الصف {r}", "يرجى إكمال الاسم");
                     warnings++; rowHasWarning = true; rowStatus = "HasWarning";
                 }
                 else if (rawName.Length < 3)
                 {
                     AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
                         ImportWarningTypes.SuspiciousName,
-                        $"اسم قصير جداً '{rawName}' في الصف {r}",
-                        "يرجى التحقق من الاسم");
+                        $"اسم قصير جداً '{rawName}' في الصف {r}", "يرجى التحقق من الاسم");
                     warnings++;
                 }
 
-                // ── Prisoner number validation ────────────────────────────────
+                // Prisoner number validation
                 string cleanNum = Regex.Replace(rawNum, @"\s", "");
                 if (string.IsNullOrEmpty(cleanNum))
                 {
                     AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
                         ImportWarningTypes.MissingPrisonerNumber,
-                        $"رقم السجين مفقود في الصف {r}",
-                        "يرجى إدخال رقم السجين");
+                        $"رقم السجين مفقود في الصف {r}", "يرجى إدخال رقم السجين");
                     warnings++; rowHasWarning = true; rowStatus = "HasWarning";
                 }
                 else if (cleanNum.Length != 10 || !cleanNum.All(char.IsDigit))
@@ -446,8 +447,7 @@ namespace ArchiveSystem.Core.Services
                         ImportWarningTypes.InvalidPrisonerNumber,
                         $"رقم السجين غير صحيح '{cleanNum}' في الصف {r} (يجب أن يكون 10 أرقام)",
                         "يرجى تصحيح الرقم");
-                    warnings++; rowHasWarning = true; rowStatus = "HasWarning";
-                    duplicates++;
+                    warnings++; rowHasWarning = true; rowStatus = "HasWarning"; duplicates++;
                 }
                 else
                 {
@@ -457,8 +457,7 @@ namespace ArchiveSystem.Core.Services
                             ImportWarningTypes.DuplicateInSheet,
                             $"رقم السجين {cleanNum} مكرر داخل نفس الشيت في الصف {r}",
                             "يرجى مراجعة الأرقام المكررة");
-                        warnings++; rowHasWarning = true; rowStatus = "HasWarning";
-                        duplicates++;
+                        warnings++; rowHasWarning = true; rowStatus = "HasWarning"; duplicates++;
                     }
                     else if (seenInImport.Contains(cleanNum))
                     {
@@ -466,8 +465,7 @@ namespace ArchiveSystem.Core.Services
                             ImportWarningTypes.DuplicateInImport,
                             $"رقم السجين {cleanNum} مكرر في ملف الاستيراد (صف {r})",
                             "يرجى مراجعة الأرقام المكررة عبر الشيتات");
-                        warnings++; rowHasWarning = true; rowStatus = "HasWarning";
-                        duplicates++;
+                        warnings++; rowHasWarning = true; rowStatus = "HasWarning"; duplicates++;
                     }
                     else if (existingInDb.Contains(cleanNum))
                     {
@@ -475,8 +473,7 @@ namespace ArchiveSystem.Core.Services
                             ImportWarningTypes.DuplicateInDatabase,
                             $"رقم السجين {cleanNum} موجود مسبقاً في قاعدة البيانات (صف {r})",
                             "يرجى مراجعة: السجل موجود مسبقاً");
-                        warnings++; rowHasWarning = true; rowStatus = "HasWarning";
-                        duplicates++;
+                        warnings++; rowHasWarning = true; rowStatus = "HasWarning"; duplicates++;
                     }
                     else
                     {
@@ -487,7 +484,6 @@ namespace ArchiveSystem.Core.Services
 
                 if (rowHasWarning) hasWarnings = true;
 
-                // Update staging record status
                 conn.Execute(
                     "UPDATE ImportStagingRecords SET Status = @S WHERE StagingRecordId = @Id",
                     new { S = rowStatus, Id = stagingRecordId }, tx);
@@ -511,7 +507,6 @@ namespace ArchiveSystem.Core.Services
                 }
                 else
                 {
-                    // Use most common location
                     var most = validLocs
                         .GroupBy(l => l)
                         .OrderByDescending(g => g.Count())
@@ -522,9 +517,27 @@ namespace ArchiveSystem.Core.Services
 
                     AddWarning(conn, tx, batchId, stagingDossierId, null,
                         ImportWarningTypes.MixedLocationInDossier,
-                        $"مواقع مختلفة في الشيت '{sheetName}'. سيُستخدم الموقع الأكثر تكراراً: ممر {finalHall} - كبينة {finalCab} - رف {finalShelf}",
+                        $"مواقع مختلفة في الشيت '{sheetName}'. سيُستخدم: ممر {finalHall} - كبينة {finalCab} - رف {finalShelf}",
                         "يرجى التحقق من الموقع الصحيح");
                     warnings++; hasWarnings = true;
+                }
+
+                // FIX: InvalidLocation — was silently ignored; now we warn if location doesn't exist
+                if (finalHall.HasValue && finalCab.HasValue && finalShelf.HasValue)
+                {
+                    int locExists = conn.ExecuteScalar<int>(@"
+                        SELECT COUNT(*) FROM Locations
+                        WHERE HallwayNumber = @H AND CabinetNumber = @C AND ShelfNumber = @S",
+                        new { H = finalHall, C = finalCab, S = finalShelf }, tx);
+
+                    if (locExists == 0)
+                    {
+                        AddWarning(conn, tx, batchId, stagingDossierId, null,
+                            ImportWarningTypes.InvalidLocation,
+                            $"الموقع ممر {finalHall} - كبينة {finalCab} - رف {finalShelf} غير موجود في النظام",
+                            "سيتم إنشاء الموقع تلقائياً عند الاعتماد، أو يرجى إنشاؤه مسبقاً");
+                        warnings++; hasWarnings = true;
+                    }
                 }
             }
 
@@ -538,16 +551,16 @@ namespace ArchiveSystem.Core.Services
                 warnings++; hasWarnings = true;
             }
 
-            // ── 8. Update staging dossier with final data ─────────────────────
+            // ── 8. Update staging dossier ─────────────────────────────────────
             string finalStatus = hasWarnings ? "NeedsReview" : "Ready";
 
             conn.Execute(@"
                 UPDATE ImportStagingDossiers
-                SET HallwayNumber   = @Hall,
-                    CabinetNumber   = @Cab,
-                    ShelfNumber     = @Shelf,
-                    ActualRowCount  = @Count,
-                    Status          = @Status
+                SET HallwayNumber  = @Hall,
+                    CabinetNumber  = @Cab,
+                    ShelfNumber    = @Shelf,
+                    ActualRowCount = @Count,
+                    Status         = @Status
                 WHERE StagingDossierId = @Id",
                 new
                 {
@@ -562,11 +575,58 @@ namespace ArchiveSystem.Core.Services
             return new SheetProcessResult(recordCount, warnings, duplicates, finalStatus);
         }
 
+        // ── MANUAL UPDATE of staging dossier metadata ─────────────────────────
+        /// <summary>
+        /// Allows the manager to manually set metadata when title parsing failed.
+        /// </summary>
+        public string? UpdateStagingDossier(int stagingDossierId,
+            int dossierNumber, int hijriMonth, int hijriYear, int? expectedCount)
+        {
+            if (dossierNumber <= 0) return "رقم الدوسية غير صحيح.";
+            if (hijriMonth < 1 || hijriMonth > 12) return "الشهر يجب أن يكون بين 1 و 12.";
+            if (hijriYear < 1400 || hijriYear > 1600) return "السنة الهجرية غير صحيحة.";
+
+            using var conn = _db.CreateConnection();
+
+            // Resolve the MissingDossierMetadata warning for this staging dossier
+            conn.Execute(@"
+                UPDATE ImportWarnings
+                SET IsResolved = 1, ResolvedByUserId = @UserId, ResolvedAt = @Now
+                WHERE StagingDossierId = @Id
+                AND WarningType = 'MissingDossierMetadata'
+                AND IsResolved = 0",
+                new
+                {
+                    UserId = UserSession.CurrentUser?.UserId,
+                    Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    Id = stagingDossierId
+                });
+
+            conn.Execute(@"
+                UPDATE ImportStagingDossiers
+                SET DossierNumber     = @DNum,
+                    HijriMonth        = @Month,
+                    HijriYear         = @Year,
+                    ExpectedFileCount = @Expected,
+                    Status            = 'NeedsReview'
+                WHERE StagingDossierId = @Id",
+                new
+                {
+                    DNum = dossierNumber,
+                    Month = hijriMonth,
+                    Year = hijriYear,
+                    Expected = expectedCount,
+                    Id = stagingDossierId
+                });
+
+            return null;
+        }
+
         // ── GET STAGED DOSSIERS ───────────────────────────────────────────────
         public List<StagedDossierView> GetStagedDossiers(int batchId)
         {
             using var conn = _db.CreateConnection();
-            var dossiers = conn.Query<StagedDossierView>(@"
+            return conn.Query<StagedDossierView>(@"
                 SELECT
                     sd.StagingDossierId,
                     sd.SheetName,
@@ -579,13 +639,11 @@ namespace ArchiveSystem.Core.Services
                     COUNT(iw.WarningId) AS WarningCount
                 FROM ImportStagingDossiers sd
                 LEFT JOIN ImportWarnings iw
-                    ON iw.StagingDossierId = sd.StagingDossierId
-                    AND iw.IsResolved = 0
+                    ON iw.StagingDossierId = sd.StagingDossierId AND iw.IsResolved = 0
                 WHERE sd.ImportBatchId = @BatchId
                 GROUP BY sd.StagingDossierId
                 ORDER BY sd.DossierNumber",
                 new { BatchId = batchId }).AsList();
-            return dossiers;
         }
 
         // ── GET WARNINGS ──────────────────────────────────────────────────────
@@ -603,53 +661,51 @@ namespace ArchiveSystem.Core.Services
                     COALESCE(iw.SuggestedAction, '') AS SuggestedAction,
                     iw.IsResolved
                 FROM ImportWarnings iw
-                LEFT JOIN ImportStagingDossiers sd
-                    ON sd.StagingDossierId = iw.StagingDossierId
-                LEFT JOIN ImportStagingRecords sr
-                    ON sr.StagingRecordId = iw.StagingRecordId
+                LEFT JOIN ImportStagingDossiers sd ON sd.StagingDossierId = iw.StagingDossierId
+                LEFT JOIN ImportStagingRecords  sr ON sr.StagingRecordId  = iw.StagingRecordId
                 WHERE iw.ImportBatchId = @BatchId
                 ORDER BY sd.DossierNumber, sr.RowNumber",
                 new { BatchId = batchId }).AsList();
         }
 
         // ── CAN APPROVE ───────────────────────────────────────────────────────
-        /// <summary>
-        /// Returns null if the batch can be approved, or an Arabic error message.
-        /// Blockers per spec: missing metadata, missing headers, unresolved duplicates,
-        /// invalid prisoner numbers, missing names, invalid locations.
-        /// </summary>
         public string? CanApprove(int batchId)
         {
             using var conn = _db.CreateConnection();
-
             var blockers = conn.Query<string>(@"
                 SELECT DISTINCT WarningType
                 FROM ImportWarnings
-                WHERE ImportBatchId = @BatchId
-                AND IsResolved = 0
+                WHERE ImportBatchId = @BatchId AND IsResolved = 0
                 AND WarningType IN (
-                    'MissingDossierMetadata',
-                    'MissingHeaderRow',
-                    'MissingPrisonerNumber',
-                    'InvalidPrisonerNumber',
+                    'MissingDossierMetadata','MissingHeaderRow',
+                    'MissingPrisonerNumber','InvalidPrisonerNumber',
                     'DuplicatePrisonerNumberInSheet',
                     'DuplicatePrisonerNumberInImport',
                     'DuplicatePrisonerNumberInDatabase',
-                    'MissingName',
-                    'InvalidLocation'
+                    'MissingName'
                 )",
                 new { BatchId = batchId }).ToList();
 
             if (blockers.Count == 0) return null;
-
             return "لا يمكن الاعتماد بسبب تحذيرات غير محلولة:\n" +
                    string.Join("\n", blockers.Select(TranslateWarningType));
         }
 
+        // ── CHECK FOR EDITED RECORDS (for rollback warning) ───────────────────
+        /// <summary>Returns count of records from this batch that were edited after import.</summary>
+        public int CountEditedRecords(int batchId)
+        {
+            using var conn = _db.CreateConnection();
+            return conn.ExecuteScalar<int>(@"
+                SELECT COUNT(*) FROM Records
+                WHERE ImportBatchId = @BatchId
+                  AND DeletedAt IS NULL
+                  AND UpdatedAt IS NOT NULL",
+                new { BatchId = batchId });
+        }
+
         // ── APPROVE BATCH ─────────────────────────────────────────────────────
-        /// <summary>
-        /// Full import transaction. Returns null on success or an error string.
-        /// </summary>
+        /// <summary>NOTE: caller must run backup BEFORE calling this.</summary>
         public string? ApproveBatch(int batchId)
         {
             using var conn = _db.CreateConnection();
@@ -660,18 +716,14 @@ namespace ArchiveSystem.Core.Services
                 string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
 
-                // Load all staged dossiers (only Ready or NeedsReview with resolved critical warnings)
                 var stagedDossiers = conn.Query(@"
                     SELECT * FROM ImportStagingDossiers
-                    WHERE ImportBatchId = @BatchId
-                    AND Status != 'Rejected'",
+                    WHERE ImportBatchId = @BatchId AND Status != 'Rejected'",
                     new { BatchId = batchId }, tx).ToList();
 
-                // Load all staged records
                 var stagedRecords = conn.Query(@"
                     SELECT * FROM ImportStagingRecords
-                    WHERE ImportBatchId = @BatchId
-                    AND Status != 'Rejected'",
+                    WHERE ImportBatchId = @BatchId AND Status != 'Rejected'",
                     new { BatchId = batchId }, tx).ToList();
 
                 var recordsByStagingDossier = stagedRecords
@@ -682,26 +734,16 @@ namespace ArchiveSystem.Core.Services
                 {
                     int stagingDossierId = (int)sd.StagingDossierId;
 
-                    // Get or create location
                     int? locationId = null;
                     if (sd.HallwayNumber != null && sd.CabinetNumber != null && sd.ShelfNumber != null)
-                    {
-                        locationId = GetOrCreateLocation(
-                            conn, tx,
-                            (int)sd.HallwayNumber,
-                            (int)sd.CabinetNumber,
-                            (int)sd.ShelfNumber,
-                            now);
-                    }
+                        locationId = GetOrCreateLocation(conn, tx,
+                            (int)sd.HallwayNumber, (int)sd.CabinetNumber, (int)sd.ShelfNumber, now);
 
-                    // Check if dossier already exists
                     int existingDossierId = 0;
                     if (sd.DossierNumber != null)
-                    {
                         existingDossierId = conn.ExecuteScalar<int>(
                             "SELECT COALESCE((SELECT DossierId FROM Dossiers WHERE DossierNumber = @N), 0)",
                             new { N = (int)sd.DossierNumber }, tx);
-                    }
 
                     int dossierId;
                     if (existingDossierId > 0)
@@ -710,9 +752,8 @@ namespace ArchiveSystem.Core.Services
                     }
                     else
                     {
-                        // Create dossier
                         if (sd.DossierNumber == null || sd.HijriMonth == null || sd.HijriYear == null)
-                            continue; // skip incomplete dossiers
+                            continue;
 
                         dossierId = conn.ExecuteScalar<int>(@"
                             INSERT INTO Dossiers
@@ -729,15 +770,14 @@ namespace ArchiveSystem.Core.Services
                                 DNum = (int)sd.DossierNumber,
                                 Month = (int)sd.HijriMonth,
                                 Year = (int)sd.HijriYear,
-                                Expected = sd.ExpectedFileCount == null ? (int?)null : (int)sd.ExpectedFileCount,
-                                LocId = locationId,
+                                Expected = sd.ExpectedFileCount == null ? (object)DBNull.Value : (int)sd.ExpectedFileCount,
+                                LocId = locationId.HasValue ? (object)locationId.Value : DBNull.Value,
                                 UserId = userId,
                                 Now = now,
                                 BatchId = batchId
                             }, tx);
                     }
 
-                    // Insert records for this dossier
                     if (!recordsByStagingDossier.TryGetValue(stagingDossierId, out var records))
                         continue;
 
@@ -747,10 +787,8 @@ namespace ArchiveSystem.Core.Services
                             continue;
 
                         string pNum = ((string?)rec.PrisonerNumber ?? "").Trim();
-                        if (pNum.Length != 10 || !pNum.All(char.IsDigit))
-                            continue;
+                        if (pNum.Length != 10 || !pNum.All(char.IsDigit)) continue;
 
-                        // Skip duplicates in DB
                         int dupCheck = conn.ExecuteScalar<int>(
                             "SELECT COUNT(*) FROM Records WHERE PrisonerNumber = @P AND DeletedAt IS NULL",
                             new { P = pNum }, tx);
@@ -759,12 +797,10 @@ namespace ArchiveSystem.Core.Services
                         conn.Execute(@"
                             INSERT INTO Records
                                 (DossierId, SequenceNumber, PersonName,
-                                 PrisonerNumber, Status,
-                                 CreatedByUserId, CreatedAt, ImportBatchId)
+                                 PrisonerNumber, Status, CreatedByUserId, CreatedAt, ImportBatchId)
                             VALUES
                                 (@DossId, @Seq, @Name,
-                                 @PNum, 'Active',
-                                 @UserId, @Now, @BatchId)",
+                                 @PNum, 'Active', @UserId, @Now, @BatchId)",
                             new
                             {
                                 DossId = dossierId,
@@ -778,7 +814,6 @@ namespace ArchiveSystem.Core.Services
                     }
                 }
 
-                // Audit
                 var batch = conn.QuerySingle(
                     "SELECT * FROM ImportBatches WHERE ImportBatchId = @Id",
                     new { Id = batchId }, tx);
@@ -796,12 +831,9 @@ namespace ArchiveSystem.Core.Services
                         Now = now
                     }, tx);
 
-                // Mark batch imported
                 conn.Execute(@"
                     UPDATE ImportBatches
-                    SET Status = 'Imported',
-                        ApprovedByUserId = @UserId,
-                        ApprovedAt = @Now
+                    SET Status = 'Imported', ApprovedByUserId = @UserId, ApprovedAt = @Now
                     WHERE ImportBatchId = @Id",
                     new { UserId = userId, Now = now, Id = batchId }, tx);
 
@@ -811,25 +843,14 @@ namespace ArchiveSystem.Core.Services
             catch (Exception ex)
             {
                 tx.Rollback();
-
-                // Mark batch failed
-                try
-                {
-                    conn.Execute(
-                        "UPDATE ImportBatches SET Status = 'Failed' WHERE ImportBatchId = @Id",
-                        new { Id = batchId });
-                }
+                try { conn.Execute("UPDATE ImportBatches SET Status = 'Failed' WHERE ImportBatchId = @Id", new { Id = batchId }); }
                 catch { /* ignore */ }
-
                 return $"خطأ أثناء الاعتماد: {ex.Message}";
             }
         }
 
         // ── ROLLBACK BATCH ────────────────────────────────────────────────────
-        /// <summary>
-        /// Removes all records and dossiers imported from this batch.
-        /// Preserves audit log. Returns null on success.
-        /// </summary>
+        /// <summary>NOTE: caller must run backup BEFORE calling this.</summary>
         public string? RollbackBatch(int batchId)
         {
             using var conn = _db.CreateConnection();
@@ -840,16 +861,12 @@ namespace ArchiveSystem.Core.Services
                 string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
 
-                // Soft-delete imported records
                 conn.Execute(@"
                     UPDATE Records
-                    SET DeletedAt       = @Now,
-                        DeletedByUserId = @UserId,
-                        Status          = 'Deleted'
+                    SET DeletedAt = @Now, DeletedByUserId = @UserId, Status = 'Deleted'
                     WHERE ImportBatchId = @BatchId AND DeletedAt IS NULL",
                     new { Now = now, UserId = userId, BatchId = batchId }, tx);
 
-                // Delete imported dossiers (only if no manually-added records)
                 var importedDossierIds = conn.Query<int>(
                     "SELECT DossierId FROM Dossiers WHERE ImportBatchId = @BatchId",
                     new { BatchId = batchId }, tx).ToList();
@@ -868,7 +885,6 @@ namespace ArchiveSystem.Core.Services
                             new { Did = did }, tx);
                 }
 
-                // Mark batch rolled back
                 conn.Execute(
                     "UPDATE ImportBatches SET Status = 'RolledBack' WHERE ImportBatchId = @Id",
                     new { Id = batchId }, tx);
@@ -901,8 +917,7 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
             return conn.Query<ImportBatch>(@"
                 SELECT * FROM ImportBatches
-                ORDER BY CreatedAt DESC
-                LIMIT @Limit",
+                ORDER BY CreatedAt DESC LIMIT @Limit",
                 new { Limit = limit }).AsList();
         }
 
@@ -912,9 +927,7 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
             conn.Execute(@"
                 UPDATE ImportWarnings
-                SET IsResolved = 1,
-                    ResolvedByUserId = @UserId,
-                    ResolvedAt = @Now
+                SET IsResolved = 1, ResolvedByUserId = @UserId, ResolvedAt = @Now
                 WHERE WarningId = @Id",
                 new
                 {
@@ -991,9 +1004,9 @@ namespace ArchiveSystem.Core.Services
             ImportWarningTypes.InvalidPrisonerNumber => "رقم سجين غير صحيح",
             ImportWarningTypes.DuplicateInSheet => "رقم سجين مكرر في الشيت",
             ImportWarningTypes.DuplicateInImport => "رقم سجين مكرر في الاستيراد",
-            ImportWarningTypes.DuplicateInDatabase => "رقم سجين موجود مسبقاً في قاعدة البيانات",
+            ImportWarningTypes.DuplicateInDatabase => "رقم سجين موجود في قاعدة البيانات",
             ImportWarningTypes.MissingName => "اسم مفقود",
-            ImportWarningTypes.InvalidLocation => "موقع غير صحيح",
+            ImportWarningTypes.InvalidLocation => "موقع غير موجود في النظام",
             _ => t
         };
     }
