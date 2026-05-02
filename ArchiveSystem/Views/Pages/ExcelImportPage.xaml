@@ -204,7 +204,7 @@
 
                         </UniformGrid>
 
-                        <!-- Blocker warning (shown when approval is blocked) -->
+                        <!-- Blocker warning -->
                         <Border x:Name="BlockerBorder"
                                 Background="#FFEBEE" BorderBrush="#EF9A9A"
                                 BorderThickness="1" CornerRadius="4"
@@ -242,6 +242,7 @@
 
                         <!-- Staged Dossiers -->
                         <TabItem Header="الدوسيات المُرحَّلة">
+                            <!-- FIX: MouseDoubleClick wired to DossiersGrid_DoubleClick -->
                             <DataGrid x:Name="DossiersGrid"
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
@@ -251,27 +252,27 @@
                                       RowBackground="White"
                                       AlternatingRowBackground="#F9FBF9"
                                       Margin="0,12,0,0"
-                                      MaxHeight="380">
+                                      MaxHeight="380"
+                                      MouseDoubleClick="DossiersGrid_DoubleClick">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="الشيت"
-                                        Binding="{Binding SheetName}"     Width="110"/>
+                                        Binding="{Binding SheetName}"      Width="110"/>
                                     <DataGridTextColumn Header="رقم الدوسية"
-                                        Binding="{Binding DossierNumber}" Width="100"/>
+                                        Binding="{Binding DossierNumber}"  Width="100"/>
                                     <DataGridTextColumn Header="الشهر"
-                                        Binding="{Binding HijriMonth}"    Width="65"/>
+                                        Binding="{Binding HijriMonth}"     Width="65"/>
                                     <DataGridTextColumn Header="السنة"
-                                        Binding="{Binding HijriYear}"     Width="75"/>
+                                        Binding="{Binding HijriYear}"      Width="75"/>
                                     <DataGridTextColumn Header="المتوقع"
-                                        Binding="{Binding ExpectedCount}" Width="75"/>
+                                        Binding="{Binding ExpectedCount}"  Width="75"/>
                                     <DataGridTextColumn Header="الفعلي"
                                         Binding="{Binding ActualRowCount}" Width="70"/>
                                     <DataGridTextColumn Header="تحذيرات"
-                                        Binding="{Binding WarningCount}"  Width="75"/>
+                                        Binding="{Binding WarningCount}"   Width="75"/>
                                     <DataGridTextColumn Header="الحالة"
-                                        Binding="{Binding StatusDisplay}" Width="*"/>
+                                        Binding="{Binding StatusDisplay}"  Width="*"/>
                                 </DataGrid.Columns>
 
-                                <!-- Colour-code rows by status -->
                                 <DataGrid.RowStyle>
                                     <Style TargetType="DataGridRow">
                                         <Style.Triggers>
@@ -288,6 +289,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </DataGrid.RowStyle>
+
                             </DataGrid>
                         </TabItem>
 
@@ -309,15 +311,14 @@
                                           AlternatingRowBackground="#FFFDE7"
                                           MaxHeight="360">
                                     <DataGrid.Columns>
-
                                         <DataGridTextColumn Header="الشيت"
-                                            Binding="{Binding SheetName}"      Width="90"/>
+                                            Binding="{Binding SheetName}"       Width="90"/>
                                         <DataGridTextColumn Header="صف"
-                                            Binding="{Binding RowDisplay}"     Width="45"/>
+                                            Binding="{Binding RowDisplay}"      Width="45"/>
                                         <DataGridTextColumn Header="النوع"
-                                            Binding="{Binding WarningType}"    Width="190"/>
+                                            Binding="{Binding WarningType}"     Width="190"/>
                                         <DataGridTextColumn Header="الرسالة"
-                                            Binding="{Binding WarningMessage}" Width="*"/>
+                                            Binding="{Binding WarningMessage}"  Width="*"/>
                                         <DataGridTextColumn Header="الإجراء المقترح"
                                             Binding="{Binding SuggestedAction}" Width="170"/>
 
@@ -325,19 +326,19 @@
                                         <DataGridTemplateColumn Header="إجراء" Width="90">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                                            <Button Tag="{Binding WarningId}"
-                                            Click="ResolveWarning_Click"
-                                            Height="28" Padding="6,0">
-                                                                                <Button.Style>
-                                                                                    <Style TargetType="Button"
-                                                   BasedOn="{StaticResource MaterialDesignFlatButton}">
-                                                                                        <Setter Property="Content"    Value="✔ حل"/>
-                                                                                        <Setter Property="Foreground" Value="#1a7a60"/>
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding IsResolved}" Value="True">
-                                                                                                <Setter Property="Content"    Value="✔ مُحلول"/>
-                                                                                                <Setter Property="IsEnabled"  Value="False"/>
-                                                                        <Setter Property="Opacity"    Value="0.4"/>
+                                                    <Button Tag="{Binding WarningId}"
+                                                            Click="ResolveWarning_Click"
+                                                            Height="28" Padding="6,0">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button"
+                                                                   BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                                                <Setter Property="Content"    Value="✔ حل"/>
+                                                                <Setter Property="Foreground" Value="#1a7a60"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsResolved}" Value="True">
+                                                                        <Setter Property="Content"   Value="✔ مُحلول"/>
+                                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                                        <Setter Property="Opacity"   Value="0.4"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -390,17 +391,17 @@
                                   MouseDoubleClick="RecentBatch_DoubleClick">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="اسم الملف"
-                                    Binding="{Binding FileName}"      Width="*"/>
+                                    Binding="{Binding FileName}"     Width="*"/>
                                 <DataGridTextColumn Header="شيتات"
-                                    Binding="{Binding TotalSheets}"   Width="70"/>
+                                    Binding="{Binding TotalSheets}"  Width="70"/>
                                 <DataGridTextColumn Header="سجلات"
-                                    Binding="{Binding TotalRecords}"  Width="80"/>
+                                    Binding="{Binding TotalRecords}" Width="80"/>
                                 <DataGridTextColumn Header="تحذيرات"
-                                    Binding="{Binding WarningCount}"  Width="75"/>
+                                    Binding="{Binding WarningCount}" Width="75"/>
                                 <DataGridTextColumn Header="الحالة"
-                                    Binding="{Binding Status}"        Width="120"/>
+                                    Binding="{Binding Status}"       Width="120"/>
                                 <DataGridTextColumn Header="التاريخ"
-                                    Binding="{Binding CreatedAt}"     Width="150"/>
+                                    Binding="{Binding CreatedAt}"    Width="150"/>
                             </DataGrid.Columns>
 
                             <DataGrid.RowStyle>

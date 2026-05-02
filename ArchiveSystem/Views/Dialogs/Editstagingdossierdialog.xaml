@@ -1,14 +1,114 @@
-﻿<Page x:Class="ArchiveSystem.Views.Dialogs.Editstagingdossierdialog"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:ArchiveSystem.Views.Dialogs"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="Editstagingdossierdialog">
+﻿<Window x:Class="ArchiveSystem.Views.Dialogs.EditStagingDossierDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="تعديل بيانات الدوسية"
+        Height="420" Width="440"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        FlowDirection="RightToLeft"
+        FontFamily="Segoe UI"
+        Background="#F5F5F5">
 
-    <Grid>
-        
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0"
+                   Text="تعديل بيانات الدوسية"
+                   FontSize="18" FontWeight="Bold"
+                   Foreground="#1a7a60"
+                   Margin="0,0,0,6"/>
+
+        <!-- Sheet info -->
+        <TextBlock Grid.Row="1"
+                   x:Name="SheetNameText"
+                   FontSize="12" Foreground="#888"
+                   Margin="0,0,0,4"/>
+
+        <TextBlock Grid.Row="2"
+                   x:Name="ActualCountText"
+                   FontSize="12" Foreground="#555"
+                   Margin="0,0,0,16"/>
+
+        <!-- Error -->
+        <Border Grid.Row="3"
+                x:Name="ErrorBorder"
+                Background="#FFEBEE" BorderBrush="#EF9A9A"
+                BorderThickness="1" CornerRadius="4"
+                Padding="10,6" Margin="0,0,0,12"
+                Visibility="Collapsed">
+            <TextBlock x:Name="ErrorText"
+                       Foreground="#C62828" FontSize="12"
+                       TextWrapping="Wrap"/>
+        </Border>
+
+        <!-- Dossier Number -->
+        <TextBox Grid.Row="4"
+                 x:Name="DossierNumberBox"
+                 materialDesign:HintAssist.Hint="رقم الدوسية *"
+                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 Margin="0,0,0,14"/>
+
+        <!-- Hijri Month + Year -->
+        <Grid Grid.Row="5" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+                     x:Name="HijriMonthBox"
+                     materialDesign:HintAssist.Hint="الشهر الهجري (1-12) *"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+
+            <TextBox Grid.Column="2"
+                     x:Name="HijriYearBox"
+                     materialDesign:HintAssist.Hint="السنة الهجرية *"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+        </Grid>
+
+        <!-- Expected Count -->
+        <TextBox Grid.Row="6"
+                 x:Name="ExpectedCountBox"
+                 materialDesign:HintAssist.Hint="عدد الملفات المتوقع (اختياري)"
+                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 Margin="0,0,0,4"/>
+
+        <!-- Hint text -->
+        <TextBlock Grid.Row="7"
+                   Text="يمكن ترك عدد الملفات فارغاً إذا لم يكن معروفاً."
+                   FontSize="11" Foreground="#999"
+                   Margin="0,0,0,0"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="9"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    Margin="0,20,0,0">
+            <Button Content="حفظ"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Background="#1a7a60" Foreground="White"
+                    Width="100" Height="38"
+                    Margin="0,0,10,0"
+                    Click="Save_Click"/>
+            <Button Content="إلغاء"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Width="100" Height="38"
+                    Click="Cancel_Click"/>
+        </StackPanel>
+
     </Grid>
-</Page>
+</Window>
