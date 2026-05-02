@@ -1,10 +1,253 @@
 ﻿<Page x:Class="ArchiveSystem.Views.Pages.EntryPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="إدخال بيانات" Background="White">
-    <Grid Margin="40,32">
-        <TextBlock Text="➕  إدخال بيانات"
-                   FontSize="26" FontWeight="Bold"
-                   Foreground="#1a7a60" VerticalAlignment="Top"/>
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      Title="إدخال بيانات"
+      Background="#F5F5F5"
+      FlowDirection="RightToLeft">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White"
+                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
+            <TextBlock Text="➕  إدخال بيانات"
+                       FontSize="22" FontWeight="Bold"
+                       Foreground="#1a7a60"
+                       VerticalAlignment="Center"
+                       Margin="32,0"/>
+        </Border>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="40,28,40,40"
+                        MaxWidth="700">
+
+                <!-- ══ DOSSIER SECTION ══ -->
+                <Border Background="White"
+                        CornerRadius="8"
+                        Padding="24"
+                        Margin="0,0,0,20">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08"
+                                          ShadowDepth="2"/>
+                    </Border.Effect>
+                    <StackPanel>
+
+                        <TextBlock Text="بيانات الدوسية"
+                                   FontSize="15" FontWeight="Bold"
+                                   Foreground="#1a7a60"
+                                   Margin="0,0,0,16"/>
+
+                        <!-- Dossier Number + auto suggest -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="DossierNumberBox"
+                                     materialDesign:HintAssist.Hint="رقم الدوسية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                            <Button Grid.Column="1"
+                                    Content="تلقائي"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="40" Width="80"
+                                    Margin="8,0,0,0"
+                                    ToolTip="اقتراح رقم الدوسية التالي"
+                                    Click="AutoDossierNumber_Click"/>
+                        </Grid>
+
+                        <!-- Hijri Month + Year -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="HijriMonthBox"
+                                     materialDesign:HintAssist.Hint="الشهر الهجري (1-12) *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                            <TextBox Grid.Column="2"
+                                     x:Name="HijriYearBox"
+                                     materialDesign:HintAssist.Hint="السنة الهجرية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                        </Grid>
+
+                        <!-- Expected file count -->
+                        <TextBox x:Name="ExpectedCountBox"
+                                 materialDesign:HintAssist.Hint="عدد الملفات المتوقع (اختياري)"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Margin="0,0,0,14"
+                                 PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                        <!-- Location -->
+                        <TextBlock Text="الموقع الفيزيائي"
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Foreground="#555"
+                                   Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="HallwayBox"
+                                     materialDesign:HintAssist.Hint="ممر *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                            <TextBox Grid.Column="2"
+                                     x:Name="CabinetBox"
+                                     materialDesign:HintAssist.Hint="كبينة *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                            <TextBox Grid.Column="4"
+                                     x:Name="ShelfBox"
+                                     materialDesign:HintAssist.Hint="رف *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ══ RECORD SECTION ══ -->
+                <Border Background="White"
+                        CornerRadius="8"
+                        Padding="24"
+                        Margin="0,0,0,20">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08"
+                                          ShadowDepth="2"/>
+                    </Border.Effect>
+                    <StackPanel>
+
+                        <TextBlock Text="بيانات السجين"
+                                   FontSize="15" FontWeight="Bold"
+                                   Foreground="#1a7a60"
+                                   Margin="0,0,0,16"/>
+
+                        <!-- Sequence -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="SequenceBox"
+                                     materialDesign:HintAssist.Hint="رقم التسلسل *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                            <Button Grid.Column="1"
+                                    Content="تلقائي"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="40" Width="80"
+                                    Margin="8,0,0,0"
+                                    Click="AutoSequence_Click"/>
+                        </Grid>
+
+                        <!-- Person name -->
+                        <TextBox x:Name="PersonNameBox"
+                                 materialDesign:HintAssist.Hint="اسم السجين *"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Margin="0,0,0,14"/>
+
+                        <!-- Prisoner number -->
+                        <TextBox x:Name="PrisonerNumberBox"
+                                 materialDesign:HintAssist.Hint="رقم السجين (10 أرقام) *"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 MaxLength="10"
+                                 Margin="0,0,0,14"
+                                 PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                        <!-- Notes -->
+                        <TextBox x:Name="NotesBox"
+                                 materialDesign:HintAssist.Hint="ملاحظات (اختياري)"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 AcceptsReturn="True"
+                                 Height="80"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,0,0,4"/>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ══ ERROR + SAVE ══ -->
+                <Border x:Name="ErrorBorder"
+                        Background="#FFEBEE"
+                        BorderBrush="#EF9A9A"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="14,10"
+                        Margin="0,0,0,14"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="ErrorText"
+                               Foreground="#C62828"
+                               FontSize="13"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <Border x:Name="SuccessBorder"
+                        Background="#E8F5E9"
+                        BorderBrush="#A5D6A7"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="14,10"
+                        Margin="0,0,0,14"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="SuccessText"
+                               Foreground="#2E7D32"
+                               FontSize="13"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="1"
+                            Content="مسح الحقول"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Height="42" Width="130"
+                            Margin="0,0,12,0"
+                            Click="ClearRecord_Click"/>
+
+                    <Button Grid.Column="2"
+                            Content="💾  حفظ السجل"
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Background="#1a7a60"
+                            Foreground="White"
+                            FontSize="14"
+                            Height="42" Width="150"
+                            Click="SaveRecord_Click"/>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>
