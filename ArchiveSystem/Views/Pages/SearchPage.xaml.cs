@@ -8,6 +8,7 @@ namespace ArchiveSystem.Views.Pages
     public partial class SearchPage : Page
     {
         private readonly RecordService _recordService;
+        private System.Windows.Threading.DispatcherTimer? _searchTimer;
 
         public SearchPage()
         {
@@ -21,6 +22,21 @@ namespace ArchiveSystem.Views.Pages
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter) DoSearch();
+        }
+
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _searchTimer?.Stop();
+            _searchTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(350)
+            };
+            _searchTimer.Tick += (s, _) =>
+            {
+                _searchTimer.Stop();
+                DoSearch();
+            };
+            _searchTimer.Start();
         }
 
         private void DoSearch()
@@ -44,7 +60,6 @@ namespace ArchiveSystem.Views.Pages
         {
             if (ResultsGrid.SelectedItem is not SearchResult result) return;
 
-            // navigate to dossier details
             NavigationService?.Navigate(
                 new DossierDetailsPage(result.DossierId));
         }

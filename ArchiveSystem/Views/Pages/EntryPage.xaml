@@ -51,11 +51,11 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox Grid.Column="0"
-                             x:Name="DossierNumberBox"
-                             materialDesign:HintAssist.Hint="رقم الدوسية *"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             PreviewTextInput="NumberOnly_PreviewTextInput"
-                             LostFocus="DossierNumberBox_LostFocus"/>
+                                     x:Name="DossierNumberBox"
+                                     materialDesign:HintAssist.Hint="رقم الدوسية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"
+                                     TextChanged="DossierNumberBox_TextChanged"/>
 
                             <Button Grid.Column="1"
                                     Content="تلقائي"
@@ -66,12 +66,12 @@
                                     Click="AutoDossierNumber_Click"/>
                         </Grid>
 
-                        <!-- Add this right after the DossierNumber Grid -->
+                        <!-- Status text -->
                         <TextBlock x:Name="DossierStatusText"
-                        FontSize="12"
-                        Margin="0,-8,0,10"
-                        Foreground="#888"/>
-                        
+                                   FontSize="12"
+                                   Margin="0,-8,0,10"
+                                   Foreground="#888"/>
+
                         <!-- Hijri Month + Year -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
@@ -187,6 +187,12 @@
                                  MaxLength="10"
                                  Margin="0,0,0,14"
                                  PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                        <!-- Nationality -->
+                        <TextBox x:Name="NationalityBox"
+                                 materialDesign:HintAssist.Hint="الجنسية (اختياري)"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Margin="0,0,0,14"/>
 
                         <!-- Notes -->
                         <TextBox x:Name="NotesBox"

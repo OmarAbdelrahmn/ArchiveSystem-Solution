@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using ArchiveSystem.Core.Services;
+using Dapper;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -14,6 +15,8 @@ namespace ArchiveSystem.Views.Pages
 
         private int _currentDossierId = 0;
         private bool _isExistingDossier = false;
+
+        private System.Windows.Threading.DispatcherTimer? _dossierCheckTimer;
 
         public EntryPage()
         {
@@ -62,18 +65,39 @@ namespace ArchiveSystem.Views.Pages
             SequenceBox.Text = "1";
         }
 
-        // ── DETECT EXISTING DOSSIER ON LEAVE ─────────
+        // ── REAL-TIME DOSSIER CHECK ───────────────────
 
-        private void DossierNumberBox_LostFocus(object sender, RoutedEventArgs e)
+        private void DossierNumberBox_TextChanged(object sender,
+            TextChangedEventArgs e)
+        {
+            _dossierCheckTimer?.Stop();
+            _dossierCheckTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(400)
+            };
+            _dossierCheckTimer.Tick += (s, _) =>
+            {
+                _dossierCheckTimer.Stop();
+                CheckDossierNumber();
+            };
+            _dossierCheckTimer.Start();
+        }
+
+        private void CheckDossierNumber()
         {
             if (!int.TryParse(DossierNumberBox.Text, out int dossierNumber))
+            {
+                DossierStatusText.Text = string.Empty;
+                _currentDossierId = 0;
+                _isExistingDossier = false;
+                UnlockDossierFields();
                 return;
+            }
 
             var existing = _dossierService.GetDossierByNumber(dossierNumber);
 
             if (existing != null)
             {
-                // fill and lock dossier fields
                 _currentDossierId = existing.DossierId;
                 _isExistingDossier = true;
 
@@ -90,10 +114,8 @@ namespace ArchiveSystem.Views.Pages
 
                 LockDossierFields();
 
-                // show current record count
                 int currentCount = _recordService
                     .GetRecordsByDossier(_currentDossierId).Count;
-
                 int? expected = existing.ExpectedFileCount;
                 string countInfo = expected.HasValue
                     ? $"{currentCount} من {expected} ملف"
@@ -101,22 +123,18 @@ namespace ArchiveSystem.Views.Pages
 
                 DossierStatusText.Text = $"✅ دوسية موجودة — {countInfo}";
                 DossierStatusText.Foreground = new SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(30, 120, 80));
+                    Color.FromRgb(30, 120, 80));
 
-                // auto suggest next sequence
                 int nextSeq = _recordService.GetNextSequenceNumber(_currentDossierId);
                 SequenceBox.Text = nextSeq.ToString();
             }
             else
             {
-                // new dossier
                 _currentDossierId = 0;
                 _isExistingDossier = false;
-
                 DossierStatusText.Text = "🆕 دوسية جديدة";
                 DossierStatusText.Foreground = new SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(100, 100, 100));
-
+                    Color.FromRgb(100, 100, 100));
                 UnlockDossierFields();
             }
         }
@@ -211,21 +229,45 @@ namespace ArchiveSystem.Views.Pages
             }
 
             // ── Add record ────────────────────────────
-            var (recordError, _) = _recordService.AddRecord(
+            var (recordError, newRecordId) = _recordService.AddRecord(
                 _currentDossierId, sequence,
                 personName, prisonerNumber, notes);
 
             if (recordError != null) { ShowError(recordError); return; }
+
+            // ── Save nationality custom field ─────────
+            if (!string.IsNullOrWhiteSpace(NationalityBox.Text))
+            {
+                using var conn = App.Database.CreateConnection();
+                var fieldId = conn.ExecuteScalar<int?>(
+                    "SELECT CustomFieldId FROM CustomFields WHERE FieldKey = 'nationality'");
+                if (fieldId.HasValue)
+                {
+                    conn.Execute(@"
+                        INSERT INTO RecordCustomFieldValues
+                            (RecordId, CustomFieldId, ValueText, UpdatedAt)
+                        VALUES (@RecordId, @FieldId, @Value, @Now)
+                        ON CONFLICT(RecordId, CustomFieldId)
+                        DO UPDATE SET ValueText = @Value, UpdatedAt = @Now",
+                        new
+                        {
+                            RecordId = newRecordId,
+                            FieldId = fieldId.Value,
+                            Value = NationalityBox.Text.Trim(),
+                            Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
+                        });
+                }
+            }
 
             // ── Success ───────────────────────────────
             int newCount = _recordService
                 .GetRecordsByDossier(_currentDossierId).Count;
 
             var dossier = _dossierService.GetDossierById(_currentDossierId);
-            int? expected = dossier?.ExpectedFileCount;
+            int? expectedFinal = dossier?.ExpectedFileCount;
 
-            string countMsg = expected.HasValue
-                ? $"{newCount} من {expected} ملف"
+            string countMsg = expectedFinal.HasValue
+                ? $"{newCount} من {expectedFinal} ملف"
                 : $"{newCount} ملف مسجل";
 
             ShowSuccess(
@@ -235,12 +277,10 @@ namespace ArchiveSystem.Views.Pages
                 $"الرقم: {prisonerNumber}\n" +
                 $"إجمالي الدوسية: {countMsg}");
 
-            // update status label
             DossierStatusText.Text = $"✅ دوسية موجودة — {countMsg}";
 
             ClearRecordFields();
 
-            // auto next sequence
             int nextSeq = _recordService.GetNextSequenceNumber(_currentDossierId);
             SequenceBox.Text = nextSeq.ToString();
         }
@@ -257,6 +297,7 @@ namespace ArchiveSystem.Views.Pages
         {
             PersonNameBox.Text = string.Empty;
             PrisonerNumberBox.Text = string.Empty;
+            NationalityBox.Text = string.Empty;
             NotesBox.Text = string.Empty;
             PersonNameBox.Focus();
         }
@@ -266,8 +307,7 @@ namespace ArchiveSystem.Views.Pages
         private void NumberOnly_PreviewTextInput(object sender,
             TextCompositionEventArgs e)
         {
-            e.Handled = !System.Text.RegularExpressions.Regex.IsMatch(
-                e.Text, @"^\d+$");
+            e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
         }
 
         // ── UI HELPERS ────────────────────────────────

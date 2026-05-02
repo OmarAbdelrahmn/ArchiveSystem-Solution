@@ -40,7 +40,8 @@
                              "ابحث باسم السجين أو رقمه أو رقم الدوسية..."
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          FontSize="14"
-                         KeyDown="SearchBox_KeyDown"/>
+                         KeyDown="SearchBox_KeyDown"
+                         TextChanged="SearchBox_TextChanged"/>
 
                 <Button Grid.Column="1"
                         Content="بحث"
