@@ -5,7 +5,7 @@ using Dapper;
 namespace ArchiveSystem.Core.Services
 {
     // ── Filter parameters DTO ─────────────────────────────────────────────────
-    public class AllDataFilter
+    public record AllDataFilter
     {
         public string? NameQuery { get; set; }
         public string? PrisonerNumber { get; set; }
@@ -108,6 +108,12 @@ namespace ArchiveSystem.Core.Services
 
             int offset = (filter.Page - 1) * filter.PageSize;
 
+
+            var queryParams = new DynamicParameters(p);
+            queryParams.Add("PageSize", filter.PageSize);
+            queryParams.Add("Offset", offset);
+
+
             var rows = conn.Query<AllDataRow>($@"
                 SELECT
                     r.RecordId,
@@ -129,7 +135,7 @@ namespace ArchiveSystem.Core.Services
                 {where}
                 ORDER BY {orderBy} {dir}
                 LIMIT @PageSize OFFSET @Offset",
-                new DynamicParameters(p) { { "PageSize", filter.PageSize }, { "Offset", offset } }).AsList();
+                queryParams).AsList();
 
             // Attach custom field values for this page
             if (rows.Count > 0)

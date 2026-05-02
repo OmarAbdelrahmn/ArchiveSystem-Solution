@@ -1,10 +1,217 @@
 ﻿<Page x:Class="ArchiveSystem.Views.Pages.ReportsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="التقارير" Background="White">
-    <Grid Margin="40,32">
-        <TextBlock Text="🖨️  التقارير"
-                   FontSize="26" FontWeight="Bold"
-                   Foreground="#1a7a60" VerticalAlignment="Top"/>
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      Title="التقارير"
+      Background="#F5F5F5"
+      FlowDirection="RightToLeft">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Background="White"
+                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
+            <TextBlock Text="🖨️  التقارير"
+                       FontSize="22" FontWeight="Bold"
+                       Foreground="#1a7a60"
+                       VerticalAlignment="Center"
+                       Margin="32,0"/>
+        </Border>
+
+        <!-- CONTENT -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="32,28,32,40" MaxWidth="900">
+
+                <!-- ══ DOSSIER FACE ═══════════════════════════════════════════ -->
+                <Border Background="White" CornerRadius="8" Padding="24"
+                        Margin="0,0,0,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="واجهة الدوسية (طباعة)"
+                                   FontSize="15" FontWeight="Bold"
+                                   Foreground="#1a7a60"
+                                   Margin="0,0,0,6"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="تطبع جدول السجناء لدوسية محددة بالترتيب الصحيح ليُلصق على الغلاف الفيزيائي."
+                                   FontSize="12" Foreground="#666"
+                                   Margin="0,0,0,16"/>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="DossierFaceNumberBox"
+                                     materialDesign:HintAssist.Hint="رقم الدوسية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Height="44"
+                                     PreviewTextInput="NumberOnly"/>
+
+                            <Button Grid.Column="2"
+                                    Content="🔍 معاينة"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="44" Width="110"
+                                    Click="PreviewDossierFace_Click"/>
+
+                            <Button Grid.Column="4"
+                                    Content="💾 حفظ PDF"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#1a7a60" Foreground="White"
+                                    Height="44" Width="120"
+                                    Click="SaveDossierFacePdf_Click"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- ══ MONTHLY REPORT ═════════════════════════════════════════ -->
+                <Border Background="White" CornerRadius="8" Padding="24"
+                        Margin="0,0,0,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="تقرير شهري"
+                                   FontSize="15" FontWeight="Bold"
+                                   Foreground="#1a7a60"
+                                   Margin="0,0,0,6"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="جميع الدوسيات والملفات لشهر هجري محدد."
+                                   FontSize="12" Foreground="#666"
+                                   Margin="0,0,0,16"/>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="MonthlyMonthBox"
+                                     materialDesign:HintAssist.Hint="الشهر (1-12) *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Height="44"
+                                     PreviewTextInput="NumberOnly"/>
+
+                            <TextBox Grid.Column="2"
+                                     x:Name="MonthlyYearBox"
+                                     materialDesign:HintAssist.Hint="السنة الهجرية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Height="44"
+                                     PreviewTextInput="NumberOnly"/>
+
+                            <Button Grid.Column="4"
+                                    Content="🔍 معاينة"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="44" Width="110"
+                                    Click="PreviewMonthly_Click"/>
+
+                            <Button Grid.Column="6"
+                                    Content="💾 حفظ PDF"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#1a7a60" Foreground="White"
+                                    Height="44" Width="120"
+                                    Click="SaveMonthlyPdf_Click"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- ══ YEARLY REPORT ══════════════════════════════════════════ -->
+                <Border Background="White" CornerRadius="8" Padding="24"
+                        Margin="0,0,0,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="تقرير سنوي"
+                                   FontSize="15" FontWeight="Bold"
+                                   Foreground="#1a7a60"
+                                   Margin="0,0,0,6"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="ملخص سنوي لجميع الدوسيات."
+                                   FontSize="12" Foreground="#666"
+                                   Margin="0,0,0,16"/>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="YearlyYearBox"
+                                     materialDesign:HintAssist.Hint="السنة الهجرية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Height="44"
+                                     PreviewTextInput="NumberOnly"/>
+
+                            <Button Grid.Column="2"
+                                    Content="🔍 معاينة"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="44" Width="110"
+                                    Click="PreviewYearly_Click"/>
+
+                            <Button Grid.Column="4"
+                                    Content="💾 حفظ PDF"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#1a7a60" Foreground="White"
+                                    Height="44" Width="120"
+                                    Click="SaveYearlyPdf_Click"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- ══ ERROR / STATUS ═════════════════════════════════════════ -->
+                <Border x:Name="MsgBorder"
+                        CornerRadius="6" Padding="14,10"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="MsgText"
+                               FontSize="13" TextWrapping="Wrap"/>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

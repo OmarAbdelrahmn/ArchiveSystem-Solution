@@ -58,15 +58,14 @@ namespace ArchiveSystem.Core.Services
         public DossierFaceData? LoadDossierFaceData(int dossierId)
         {
             using var conn = _db.CreateConnection();
-
-            var dossier = conn.QuerySingleOrDefault<Dossier, Location, Dossier>(@"
+            var dossier = conn.Query<Dossier, Location, Dossier>(@"
                 SELECT d.*, l.*
                 FROM Dossiers d
                 LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
                 WHERE d.DossierId = @Id",
-                (d, l) => { d.CurrentLocation = l; return d; },
-                new { Id = dossierId },
-                splitOn: "LocationId");
+                            (d, l) => { d.CurrentLocation = l; return d; },
+                            new { Id = dossierId },
+                            splitOn: "LocationId").FirstOrDefault();
 
             if (dossier == null) return null;
 
