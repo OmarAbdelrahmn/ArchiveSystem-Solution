@@ -11,8 +11,8 @@ namespace ArchiveSystem.Views.Pages
     public partial class ExcelImportPage : Page
     {
         private readonly ExcelImportService _importService;
+        private readonly BackupService _backupService;
 
-        // Tracks whichever batch is currently being reviewed
         private int _currentBatchId;
         private string? _filePath;
 
@@ -20,6 +20,7 @@ namespace ArchiveSystem.Views.Pages
         {
             InitializeComponent();
             _importService = new ExcelImportService(App.Database);
+            _backupService = new BackupService(App.Database, App.DbPath);
             Loaded += (s, e) => LoadRecentBatches();
         }
 
@@ -38,12 +39,11 @@ namespace ArchiveSystem.Views.Pages
             _filePath = dlg.FileName;
             FilePathBox.Text = _filePath;
 
-            // Reset any previous review session
             CollapseReviewPanels();
             _currentBatchId = 0;
         }
 
-        // ── STAGE (process the workbook into staging tables) ──────────────────
+        // ── STAGE ─────────────────────────────────────────────────────────────
 
         private async void StageFile_Click(object sender, RoutedEventArgs e)
         {
@@ -54,7 +54,6 @@ namespace ArchiveSystem.Views.Pages
                 return;
             }
 
-            // --- UI: show busy state ---
             StageButton.IsEnabled = false;
             BusyPanel.Visibility = Visibility.Visible;
             CollapseReviewPanels();
@@ -62,7 +61,6 @@ namespace ArchiveSystem.Views.Pages
             StagingResult result;
             try
             {
-                // Heavy file-read runs off the UI thread
                 result = await Task.Run(() => _importService.StageBatch(_filePath));
             }
             finally
@@ -85,7 +83,7 @@ namespace ArchiveSystem.Views.Pages
             LoadRecentBatches();
         }
 
-        // ── RENDER SUMMARY CARD ───────────────────────────────────────────────
+        // ── SUMMARY CARD ──────────────────────────────────────────────────────
 
         private void ShowStagingResult(StagingResult result)
         {
@@ -105,7 +103,6 @@ namespace ArchiveSystem.Views.Pages
             RefreshBlockerBanner();
         }
 
-        // Repopulate dossiers grid, warnings grid, and the blocker banner
         private void RefreshReviewData()
         {
             if (_currentBatchId <= 0) return;
@@ -143,13 +140,12 @@ namespace ArchiveSystem.Views.Pages
             }
         }
 
-        // ── APPROVE ───────────────────────────────────────────────────────────
+        // ── APPROVE (FIX: backup first) ───────────────────────────────────────
 
         private void Approve_Click(object sender, RoutedEventArgs e)
         {
             if (_currentBatchId <= 0) return;
 
-            // Final pre-check (user might have resolved warnings since the banner last updated)
             var blocker = _importService.CanApprove(_currentBatchId);
             if (blocker != null)
             {
@@ -159,11 +155,21 @@ namespace ArchiveSystem.Views.Pages
             }
 
             var confirm = MessageBox.Show(
-                "سيتم إضافة جميع السجلات والدوسيات الصحيحة إلى قاعدة البيانات.\n\nهل تريد المتابعة؟",
+                "سيتم إنشاء نسخة احتياطية أولاً، ثم إضافة جميع السجلات والدوسيات الصحيحة.\n\nهل تريد المتابعة؟",
                 "تأكيد اعتماد الاستيراد",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (confirm != MessageBoxResult.Yes) return;
+
+            // FIX: Step 1 — backup before any data change
+            var (backupError, backupPath) = _backupService.CreateBackup(null, "BeforeImport");
+            if (backupError != null)
+            {
+                var continueAnyway = MessageBox.Show(
+                    $"فشل إنشاء النسخة الاحتياطية:\n{backupError}\n\nهل تريد المتابعة بدون نسخة احتياطية؟",
+                    "تحذير", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (continueAnyway != MessageBoxResult.Yes) return;
+            }
 
             ApproveButton.IsEnabled = false;
 
@@ -177,25 +183,44 @@ namespace ArchiveSystem.Views.Pages
                 return;
             }
 
-            MessageBox.Show("✅ تم اعتماد الاستيراد وإضافة البيانات بنجاح.",
+            string backupMsg = backupPath != null
+                ? $"\n✅ نسخة احتياطية: {System.IO.Path.GetFileName(backupPath)}"
+                : "";
+            MessageBox.Show($"✅ تم اعتماد الاستيراد وإضافة البيانات بنجاح.{backupMsg}",
                 "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
 
             ResetToIdle();
             LoadRecentBatches();
         }
 
-        // ── ROLLBACK / CANCEL BATCH ───────────────────────────────────────────
+        // ── ROLLBACK (FIX: backup first + warn if records were edited) ─────────
 
         private void Rollback_Click(object sender, RoutedEventArgs e)
         {
             if (_currentBatchId <= 0) return;
 
+            // FIX: Warn if edited records exist after import
+            int editedCount = _importService.CountEditedRecords(_currentBatchId);
+            string editWarning = editedCount > 0
+                ? $"\n\n⚠️ تحذير: {editedCount} سجل تم تعديله بعد الاستيراد — سيتم حذفه أيضاً!"
+                : "";
+
             var confirm = MessageBox.Show(
-                "سيتم إلغاء هذه الدفعة وحذف أي بيانات تم استيرادها منها.\n\nهل تريد المتابعة؟",
+                $"سيتم إنشاء نسخة احتياطية أولاً، ثم حذف جميع البيانات المستوردة من هذه الدفعة.{editWarning}\n\nهل تريد المتابعة؟",
                 "تأكيد الإلغاء",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (confirm != MessageBoxResult.Yes) return;
+
+            // FIX: Step 1 — backup before rollback
+            var (backupError, _) = _backupService.CreateBackup(null, "BeforeImport");
+            if (backupError != null)
+            {
+                var continueAnyway = MessageBox.Show(
+                    $"فشل إنشاء النسخة الاحتياطية:\n{backupError}\n\nهل تريد المتابعة بدون نسخة احتياطية؟",
+                    "تحذير", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (continueAnyway != MessageBoxResult.Yes) return;
+            }
 
             var error = _importService.RollbackBatch(_currentBatchId);
 
@@ -213,7 +238,7 @@ namespace ArchiveSystem.Views.Pages
             LoadRecentBatches();
         }
 
-        // ── RESOLVE A SINGLE WARNING ──────────────────────────────────────────
+        // ── RESOLVE WARNING ───────────────────────────────────────────────────
 
         private void ResolveWarning_Click(object sender, RoutedEventArgs e)
         {
@@ -221,8 +246,38 @@ namespace ArchiveSystem.Views.Pages
             if (btn.Tag is not int warningId) return;
 
             _importService.ResolveWarning(warningId);
+            RefreshReviewData();
+        }
 
-            // Refresh the warnings grid and re-evaluate the approve button
+        // ── EDIT STAGING DOSSIER METADATA (FIX: was missing) ─────────────────
+        // Double-click on a dossier row in the Dossiers tab to edit its metadata
+
+        private void DossiersGrid_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DossiersGrid.SelectedItem is not StagedDossierView staged) return;
+
+            // Only allow editing dossiers that have missing metadata or need review
+            var dlg = new Dialogs.EditStagingDossierDialog(staged)
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            if (dlg.ShowDialog() != true) return;
+
+            // Apply the changes
+            var error = _importService.UpdateStagingDossier(
+                staged.StagingDossierId,
+                dlg.DossierNumber,
+                dlg.HijriMonth,
+                dlg.HijriYear,
+                dlg.ExpectedCount);
+
+            if (error != null)
+            {
+                MessageBox.Show(error, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             RefreshReviewData();
         }
 
@@ -233,12 +288,10 @@ namespace ArchiveSystem.Views.Pages
             RecentGrid.ItemsSource = _importService.GetRecentBatches(10);
         }
 
-        // Double-clicking a "ReadyForReview" row in the recent list reopens it
         private void RecentBatch_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (RecentGrid.SelectedItem is not ImportBatch batch) return;
 
-            // Only allow re-opening batches that are still staged / awaiting approval
             if (batch.Status is "Imported" or "RolledBack" or "Failed")
             {
                 MessageBox.Show(
@@ -251,7 +304,6 @@ namespace ArchiveSystem.Views.Pages
             _filePath = null;
             FilePathBox.Text = batch.FileName;
 
-            // Populate summary numbers from the stored batch record
             StagingTitleText.Text = $"مراجعة دفعة:  {batch.FileName}";
             StagingSubText.Text = $"الحالة الحالية: {batch.Status}";
             SumSheets.Text = batch.TotalSheets.ToString("N0");
@@ -266,7 +318,7 @@ namespace ArchiveSystem.Views.Pages
             RefreshReviewData();
         }
 
-        // ── REFRESH BUTTON ────────────────────────────────────────────────────
+        // ── REFRESH ───────────────────────────────────────────────────────────
 
         private void Refresh_Click(object sender, RoutedEventArgs e)
         {
