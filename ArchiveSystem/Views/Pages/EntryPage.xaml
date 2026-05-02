@@ -51,10 +51,11 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox Grid.Column="0"
-                                     x:Name="DossierNumberBox"
-                                     materialDesign:HintAssist.Hint="رقم الدوسية *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                             x:Name="DossierNumberBox"
+                             materialDesign:HintAssist.Hint="رقم الدوسية *"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             PreviewTextInput="NumberOnly_PreviewTextInput"
+                             LostFocus="DossierNumberBox_LostFocus"/>
 
                             <Button Grid.Column="1"
                                     Content="تلقائي"
@@ -65,6 +66,12 @@
                                     Click="AutoDossierNumber_Click"/>
                         </Grid>
 
+                        <!-- Add this right after the DossierNumber Grid -->
+                        <TextBlock x:Name="DossierStatusText"
+                        FontSize="12"
+                        Margin="0,-8,0,10"
+                        Foreground="#888"/>
+                        
                         <!-- Hijri Month + Year -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
