@@ -15,6 +15,10 @@ namespace ArchiveSystem.Core.Services
         public int? HallwayNumber { get; set; }
         public int? CabinetNumber { get; set; }
         public int? ShelfNumber { get; set; }
+
+        /// <summary>"Active" | "Deleted" | "All"</summary>
+        public string StatusFilter { get; set; } = "Active";
+
         public string? SortColumn { get; set; } = "DossierNumber";
         public bool SortAscending { get; set; } = true;
         public int Page { get; set; } = 1;
@@ -40,6 +44,7 @@ namespace ArchiveSystem.Core.Services
         public int? ShelfNumber { get; set; }
         public string? UpdatedAt { get; set; }
         public string? CreatedAt { get; set; }
+        public string? DeletedAt { get; set; }
 
         // filled after the base query by a separate join
         public Dictionary<int, string?> CustomValues { get; set; } = new();
@@ -50,6 +55,8 @@ namespace ArchiveSystem.Core.Services
                 : "غير محدد";
 
         public string HijriDisplay => $"{HijriMonth}/{HijriYear}هـ";
+
+        public string StatusDisplay => DeletedAt == null ? "نشط" : "محذوف";
     }
 
     // ── Paged result ──────────────────────────────────────────────────────────
@@ -102,17 +109,15 @@ namespace ArchiveSystem.Core.Services
                 "HijriYear" => "d.HijriYear, d.HijriMonth",
                 "Location" => "l.HallwayNumber, l.CabinetNumber, l.ShelfNumber",
                 "UpdatedAt" => "COALESCE(r.UpdatedAt, r.CreatedAt)",
+                "Status" => "r.DeletedAt",
                 _ => "d.DossierNumber"
             };
             string dir = filter.SortAscending ? "ASC" : "DESC";
-
             int offset = (filter.Page - 1) * filter.PageSize;
-
 
             var queryParams = new DynamicParameters(p);
             queryParams.Add("PageSize", filter.PageSize);
             queryParams.Add("Offset", offset);
-
 
             var rows = conn.Query<AllDataRow>($@"
                 SELECT
@@ -128,7 +133,8 @@ namespace ArchiveSystem.Core.Services
                     l.CabinetNumber,
                     l.ShelfNumber,
                     r.UpdatedAt,
-                    r.CreatedAt
+                    r.CreatedAt,
+                    r.DeletedAt
                 FROM Records r
                 JOIN  Dossiers  d ON d.DossierId  = r.DossierId
                 LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
@@ -192,17 +198,9 @@ namespace ArchiveSystem.Core.Services
                             ValueText       = @Value,
                             UpdatedAt       = @Now,
                             UpdatedByUserId = @UserId",
-                        new
-                        {
-                            RecordId = rid,
-                            FieldId = customFieldId,
-                            Value = value,
-                            Now = now,
-                            UserId = userId
-                        }, tx);
+                        new { RecordId = rid, FieldId = customFieldId, Value = value, Now = now, UserId = userId }, tx);
                 }
 
-                // audit
                 var fieldLabel = conn.ExecuteScalar<string>(
                     "SELECT ArabicLabel FROM CustomFields WHERE CustomFieldId = @Id",
                     new { Id = customFieldId }, tx) ?? customFieldId.ToString();
@@ -219,19 +217,11 @@ namespace ArchiveSystem.Core.Services
                         Now = now
                     }, tx);
 
-                // BulkFieldUpdateBatches record
                 conn.Execute(@"
                     INSERT INTO BulkFieldUpdateBatches
                         (CustomFieldId, NewValue, RecordCount, ExecutedByUserId, ExecutedAt)
                     VALUES (@FieldId, @Value, @Count, @UserId, @Now)",
-                    new
-                    {
-                        FieldId = customFieldId,
-                        Value = value,
-                        Count = recordIds.Count,
-                        UserId = userId,
-                        Now = now
-                    }, tx);
+                    new { FieldId = customFieldId, Value = value, Count = recordIds.Count, UserId = userId, Now = now }, tx);
 
                 tx.Commit();
                 return (null, recordIds.Count);
@@ -261,7 +251,6 @@ namespace ArchiveSystem.Core.Services
         // ── Export to list (for CSV export) ───────────────────────────────────
         public List<AllDataRow> GetAllForExport(AllDataFilter filter)
         {
-            // remove pagination
             var unlimitedFilter = filter with { Page = 1, PageSize = 99_999 };
             return GetFiltered(unlimitedFilter).Items;
         }
@@ -278,8 +267,20 @@ namespace ArchiveSystem.Core.Services
         // ── WHERE clause builder ──────────────────────────────────────────────
         private (string Sql, DynamicParameters Params) BuildWhere(AllDataFilter f)
         {
-            var conditions = new List<string> { "r.DeletedAt IS NULL" };
+            var conditions = new List<string>();
             var p = new DynamicParameters();
+
+            // ── Status filter (replaces the old hard-coded DeletedAt IS NULL) ──
+            switch (f.StatusFilter)
+            {
+                case "Active":
+                    conditions.Add("r.DeletedAt IS NULL");
+                    break;
+                case "Deleted":
+                    conditions.Add("r.DeletedAt IS NOT NULL");
+                    break;
+                    // "All" → no condition
+            }
 
             if (!string.IsNullOrWhiteSpace(f.NameQuery))
             {

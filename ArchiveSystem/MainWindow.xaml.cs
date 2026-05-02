@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using ArchiveSystem.Core.Services;
 using ArchiveSystem.Views.Pages;
 
 namespace ArchiveSystem
@@ -8,6 +9,10 @@ namespace ArchiveSystem
         public MainWindow()
         {
             InitializeComponent();
+
+            // Show logged-in user name in the sidebar footer
+            CurrentUserText.Text = UserSession.CurrentUser?.FullName ?? "مدير الأرشيف";
+
             MainFrame.Navigate(new SearchPage());
         }
 
@@ -28,6 +33,9 @@ namespace ArchiveSystem
 
         private void NavReports_Click(object sender, RoutedEventArgs e)
             => MainFrame.Navigate(new ReportsPage());
+
+        private void NavAuditLog_Click(object sender, RoutedEventArgs e)
+            => MainFrame.Navigate(new AuditLogPage());
 
         private void NavSettings_Click(object sender, RoutedEventArgs e)
             => MainFrame.Navigate(new SettingsPage());

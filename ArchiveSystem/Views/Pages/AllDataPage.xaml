@@ -56,6 +56,17 @@
                 Padding="20,14">
             <WrapPanel x:Name="FilterPanel">
 
+                <!-- Status -->
+                <ComboBox x:Name="StatusCombo"
+                          materialDesign:HintAssist.Hint="الحالة"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Width="130" Height="40" Margin="0,0,10,6"
+                          SelectionChanged="Filter_Changed">
+                    <ComboBoxItem Content="نشط"     Tag="Active"/>
+                    <ComboBoxItem Content="محذوف"   Tag="Deleted"/>
+                    <ComboBoxItem Content="الكل"    Tag="All"/>
+                </ComboBox>
+
                 <!-- Name -->
                 <TextBox x:Name="NameBox"
                          materialDesign:HintAssist.Hint="الاسم"
@@ -175,6 +186,7 @@
                         <ComboBoxItem Content="السنة الهجرية" Tag="HijriYear"/>
                         <ComboBoxItem Content="الموقع"        Tag="Location"/>
                         <ComboBoxItem Content="آخر تعديل"     Tag="UpdatedAt"/>
+                        <ComboBoxItem Content="الحالة"        Tag="Status"/>
                     </ComboBox>
                     <Button x:Name="SortDirBtn"
                             Content="↑ تصاعدي"
@@ -200,7 +212,8 @@
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling"
                   EnableRowVirtualization="True"
-                  Margin="12,0,12,0">
+                  Margin="12,0,12,0"
+                  LoadingRow="DataGrid_LoadingRow">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="دوسية"       Binding="{Binding DossierNumber}"  Width="75"/>
@@ -209,6 +222,7 @@
                 <DataGridTextColumn Header="رقم السجين"  Binding="{Binding PrisonerNumber}" Width="130"/>
                 <DataGridTextColumn Header="التاريخ"     Binding="{Binding HijriDisplay}"   Width="95"/>
                 <DataGridTextColumn Header="الموقع"      Binding="{Binding LocationDisplay}" Width="190"/>
+                <DataGridTextColumn Header="الحالة"      Binding="{Binding StatusDisplay}"  Width="75"/>
                 <!-- custom field columns injected in code-behind -->
             </DataGrid.Columns>
 

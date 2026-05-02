@@ -23,6 +23,7 @@
         <Border Grid.Column="0" Background="#1a7a60">
             <DockPanel>
 
+                <!-- App title -->
                 <StackPanel DockPanel.Dock="Top" Margin="0,24,0,24">
                     <TextBlock Text="أرشيف الملفات"
                                Foreground="White"
@@ -36,7 +37,9 @@
                                Margin="0,4,0,0"/>
                 </StackPanel>
 
+                <!-- Nav buttons -->
                 <StackPanel DockPanel.Dock="Top" Margin="8,0">
+
                     <Button Content="🔍   البحث"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
@@ -79,19 +82,29 @@
                             Height="46" Margin="0,2"
                             Click="NavReports_Click"/>
 
+                    <Button Content="📜   سجل المراجعة"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Foreground="White" FontSize="14"
+                            HorizontalContentAlignment="Right"
+                            Height="46" Margin="0,2"
+                            Click="NavAuditLog_Click"/>
+
                     <Button Content="⚙️   الإعدادات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
                             Height="46" Margin="0,2"
                             Click="NavSettings_Click"/>
+
                 </StackPanel>
 
+                <!-- Logged-in user footer -->
                 <Border DockPanel.Dock="Bottom"
                         BorderThickness="0,1,0,0"
                         BorderBrush="#2a8a70"
                         Padding="12,10">
-                    <TextBlock Text="مدير الأرشيف"
+                    <TextBlock x:Name="CurrentUserText"
+                               Text="مدير الأرشيف"
                                Foreground="#ccffee"
                                FontSize="12"
                                HorizontalAlignment="Center"/>

@@ -22,6 +22,8 @@ namespace ArchiveSystem.Core.Services
         private readonly DatabaseContext _db = db;
         private readonly string _dbPath = dbPath;
 
+        // ── CREATE BACKUP ─────────────────────────────────────────────────────
+
         /// <summary>Creates a backup copy of the SQLite database file.</summary>
         public (string? Error, string? BackupPath) CreateBackup(
             string? backupFolder = null, string backupType = "Manual")
@@ -62,7 +64,7 @@ namespace ArchiveSystem.Core.Services
                     new
                     {
                         UserId = UserSession.CurrentUser?.UserId,
-                        Desc = $"نسخة احتياطية: {System.IO.Path.GetFileName(destPath)}",
+                        Desc = $"نسخة احتياطية ({backupType}): {System.IO.Path.GetFileName(destPath)}",
                         Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                     });
 
@@ -70,22 +72,82 @@ namespace ArchiveSystem.Core.Services
             }
             catch (Exception ex)
             {
+                // Record failure in Backups table
+                try
+                {
+                    using var conn = _db.CreateConnection();
+                    conn.Execute(@"
+                        INSERT INTO Backups
+                            (BackupPath, BackupType, Status, CreatedByUserId, CreatedAt, Notes)
+                        VALUES ('', @Type, 'Failed', @UserId, @Now, @Notes)",
+                        new
+                        {
+                            Type = backupType,
+                            UserId = UserSession.CurrentUser?.UserId,
+                            Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                            Notes = ex.Message
+                        });
+                }
+                catch { /* ignore secondary failure */ }
+
                 return ($"خطأ أثناء إنشاء النسخة الاحتياطية: {ex.Message}", null);
             }
         }
+
+        // ── AUTO DAILY BACKUP ─────────────────────────────────────────────────
+
+        /// <summary>
+        /// Called on application startup. Creates an automatic backup if no
+        /// successful backup exists for today's date.  Non-blocking — runs on
+        /// a background thread so the UI is not delayed.
+        /// </summary>
+        public void ScheduleDailyBackupIfNeeded()
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    string todayPrefix = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+                    using var conn = _db.CreateConnection();
+                    int todayCount = conn.ExecuteScalar<int>(@"
+                        SELECT COUNT(*) FROM Backups
+                        WHERE Status = 'Success'
+                        AND   BackupType = 'Automatic'
+                        AND   CreatedAt LIKE @Prefix",
+                        new { Prefix = todayPrefix + "%" });
+
+                    if (todayCount == 0)
+                    {
+                        var backupFolder = GetDefaultBackupFolder();
+                        CreateBackup(backupFolder, "Automatic");
+
+                        // Prune old automatic backups
+                        var retentionDays = GetRetentionDays();
+                        CleanOldBackups(backupFolder, retentionDays);
+                    }
+                }
+                catch { /* silently ignore — app must still start */ }
+            });
+        }
+
+        // ── HISTORY ───────────────────────────────────────────────────────────
 
         public List<BackupRecord> GetBackupHistory(int limit = 20)
         {
             using var conn = _db.CreateConnection();
             return conn.Query<BackupRecord>(@"
                 SELECT b.BackupId, b.BackupPath, b.BackupType, b.Status,
-                       b.FileSizeBytes, b.CreatedAt, u.FullName AS CreatedByName
+                       b.FileSizeBytes, b.CreatedAt,
+                       u.FullName AS CreatedByName
                 FROM Backups b
                 LEFT JOIN Users u ON u.UserId = b.CreatedByUserId
                 ORDER BY b.CreatedAt DESC
                 LIMIT @Limit",
                 new { Limit = limit }).AsList();
         }
+
+        // ── RESTORE ───────────────────────────────────────────────────────────
 
         public string? RestoreBackup(string backupPath)
         {
@@ -118,6 +180,8 @@ namespace ArchiveSystem.Core.Services
             }
         }
 
+        // ── HELPERS ───────────────────────────────────────────────────────────
+
         public string GetDefaultBackupFolder()
         {
             try
@@ -134,7 +198,20 @@ namespace ArchiveSystem.Core.Services
                 "ArchiveBackups");
         }
 
-        /// <summary>Deletes backup files older than retentionDays.</summary>
+        private int GetRetentionDays()
+        {
+            try
+            {
+                using var conn = _db.CreateConnection();
+                var v = conn.ExecuteScalar<string?>(
+                    "SELECT SettingValue FROM AppSettings WHERE SettingKey = 'BackupRetentionDays'");
+                if (v != null && int.TryParse(v, out int days)) return days;
+            }
+            catch { /* ignore */ }
+            return 365;
+        }
+
+        /// <summary>Deletes automatic backup files older than retentionDays.</summary>
         public void CleanOldBackups(string backupFolder, int retentionDays)
         {
             try
