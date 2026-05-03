@@ -75,7 +75,7 @@ namespace ArchiveSystem.Core.Services
             COUNT(r.RecordId) AS RecordCount
         FROM Dossiers d
         LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-        LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL
+        LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
         WHERE r.CreatedAt >= @From AND r.CreatedAt < @To
         GROUP BY d.DossierId
         ORDER BY d.HijriMonth, d.DossierNumber",
@@ -236,7 +236,7 @@ namespace ArchiveSystem.Core.Services
                     COUNT(r.RecordId) AS RecordCount
                 FROM Dossiers d
                 LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-                LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL
+                LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
                 WHERE d.HijriYear = @Year AND d.HijriMonth = @Month
                 GROUP BY d.DossierId
                 ORDER BY d.DossierNumber",
@@ -271,7 +271,7 @@ namespace ArchiveSystem.Core.Services
                     COUNT(r.RecordId) AS RecordCount
                 FROM Dossiers d
                 LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-                LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL
+                LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
                 WHERE d.HijriYear = @Year
                 GROUP BY d.DossierId
                 ORDER BY d.HijriMonth, d.DossierNumber",

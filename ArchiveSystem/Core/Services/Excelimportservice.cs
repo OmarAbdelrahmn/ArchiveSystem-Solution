@@ -763,7 +763,7 @@ namespace ArchiveSystem.Core.Services
                     int existingDossierId = 0;
                     if (sd.DossierNumber != null)
                         existingDossierId = conn.ExecuteScalar<int>(
-                            "SELECT COALESCE((SELECT DossierId FROM Dossiers WHERE DossierNumber = @N), 0)",
+                            "SELECT COALESCE((SELECT DossierId FROM Dossiers WHERE DossierNumber = @N AND DeletedAt IS NULL), 0)",
                             new { N = (int)sd.DossierNumber }, tx);
 
                     int dossierId;

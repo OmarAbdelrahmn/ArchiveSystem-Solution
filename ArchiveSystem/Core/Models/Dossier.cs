@@ -18,5 +18,8 @@
         // joined — not stored in DB
         public Location? CurrentLocation { get; set; }
         public int ActualFileCount { get; set; }
+
+        public string? DeletedAt { get; set; }
+        public int? DeletedByUserId { get; set; }
     }
 }

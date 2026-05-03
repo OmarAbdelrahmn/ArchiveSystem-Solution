@@ -271,7 +271,7 @@ namespace ArchiveSystem.Core.Services
             string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
             string monthStart = DateTime.UtcNow.ToString("yyyy-MM-") + "01";
 
-            int td = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Dossiers");
+            int td = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Dossiers WHERE DeletedAt IS NULL");
             int tr = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL");
             int today_ = conn.ExecuteScalar<int>(
                 "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL AND CreatedAt LIKE @D",
@@ -305,6 +305,7 @@ namespace ArchiveSystem.Core.Services
                 FROM Dossiers d
                 LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
                 LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+                WHERE d.DeletedAt IS NULL
                 GROUP BY d.DossierId
                 ORDER BY LastActivity DESC NULLS LAST
                 LIMIT @Limit",

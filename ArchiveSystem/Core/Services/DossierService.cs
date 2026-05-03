@@ -13,10 +13,11 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<Dossier, Location, Dossier>(@"
-                SELECT d.*, l.*
-                FROM Dossiers d
-                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-                ORDER BY d.DossierNumber DESC",
+        SELECT d.*, l.*
+        FROM Dossiers d
+        LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+        WHERE d.DeletedAt IS NULL          -- add this line
+        ORDER BY d.DossierNumber DESC",
                 (d, l) => { d.CurrentLocation = l; return d; },
                 splitOn: "LocationId").AsList();
         }
@@ -92,7 +93,8 @@ namespace ArchiveSystem.Core.Services
                 SELECT d.*, l.*
                 FROM Dossiers d
                 LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-                WHERE d.DossierNumber = @DossierNumber",
+                WHERE d.DossierNumber = @DossierNumber 
+                AND d.DeletedAt IS NULL",
                 (d, l) => { d.CurrentLocation = l; return d; },
                 new { DossierNumber = dossierNumber },
                 splitOn: "LocationId").FirstOrDefault();

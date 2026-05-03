@@ -70,7 +70,7 @@ namespace ArchiveSystem.Core.Services
             return new ArchiveSummary
             {
                 TotalDossiers = conn.ExecuteScalar<int>(
-                    "SELECT COUNT(*) FROM Dossiers"),
+                    "SELECT COUNT(*) FROM Dossiers WHERE DeletedAt IS NULL"),
 
                 TotalRecords = conn.ExecuteScalar<int>(
                     "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL"),
@@ -114,7 +114,7 @@ namespace ArchiveSystem.Core.Services
             return conn.Query<MonthlyCount>($@"
                 SELECT d.HijriYear, d.HijriMonth, COUNT(r.RecordId) AS Count
                 FROM Dossiers d
-                LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL AND WHERE d.DeletedAt IS NULL
                 WHERE 1=1 {yearFilter}
                 GROUP BY d.HijriYear, d.HijriMonth
                 ORDER BY d.HijriYear DESC, d.HijriMonth DESC
@@ -186,7 +186,7 @@ namespace ArchiveSystem.Core.Services
                            d.ExpectedFileCount,
                            COUNT(r.RecordId) AS ActualCount
                     FROM Dossiers d
-                    LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                    LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
                     GROUP BY d.DossierId, d.ExpectedFileCount
                 ) t
                 GROUP BY Status").AsList();
@@ -214,7 +214,7 @@ namespace ArchiveSystem.Core.Services
                     COUNT(r.RecordId)           AS RecordCount
                 FROM Locations l
                 LEFT JOIN Dossiers d ON d.CurrentLocationId = l.LocationId
-                LEFT JOIN Records  r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                LEFT JOIN Records  r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
                 WHERE l.IsActive = 1
                 GROUP BY l.LocationId, l.HallwayNumber, l.CabinetNumber, l.ShelfNumber
                 ORDER BY DossierCount DESC

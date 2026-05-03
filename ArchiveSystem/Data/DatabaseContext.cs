@@ -22,6 +22,14 @@ namespace ArchiveSystem.Data
             using var conn = CreateConnection();
             RunMigrations(conn);
         }
+       
+        private void Migration_003_DossierSoftDelete(SqliteConnection conn)
+        {
+            conn.Execute(@"
+        ALTER TABLE Dossiers ADD COLUMN DeletedAt TEXT;
+        ALTER TABLE Dossiers ADD COLUMN DeletedByUserId INTEGER;
+    ");
+        }
 
         private void RunMigrations(SqliteConnection conn)
         {
@@ -37,6 +45,11 @@ namespace ArchiveSystem.Data
             {
                 Migration_002_SeedData(conn);
                 RecordMigration(conn, "002", "Seed roles, permissions, default settings, nationality field");
+            }
+            if (!MigrationApplied(conn, "003"))
+            {
+                Migration_003_DossierSoftDelete(conn);
+                RecordMigration(conn, "003", "Add DeletedAt and DeletedByUserId to Dossiers");
             }
         }
 

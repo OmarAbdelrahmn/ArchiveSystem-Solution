@@ -260,8 +260,9 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<int>(@"
-                SELECT DISTINCT HijriYear FROM Dossiers
-                ORDER BY HijriYear DESC").AsList();
+            SELECT DISTINCT HijriYear FROM Dossiers
+            WHERE DeletedAt IS NULL          -- ← ADD THIS LINE
+            ORDER BY HijriYear DESC").AsList();
         }
 
         // ── WHERE clause builder ──────────────────────────────────────────────
@@ -269,6 +270,8 @@ namespace ArchiveSystem.Core.Services
         {
             var conditions = new List<string>();
             var p = new DynamicParameters();
+
+            conditions.Add("d.DeletedAt IS NULL");   // ← ADD THIS LINE
 
             // ── Status filter (replaces the old hard-coded DeletedAt IS NULL) ──
             switch (f.StatusFilter)
