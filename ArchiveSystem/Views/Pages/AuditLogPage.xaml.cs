@@ -41,6 +41,7 @@ namespace ArchiveSystem.Views.Pages
             AuditActions.RoleChanged => "تغيير دور",
             AuditActions.BulkFieldUpdate => "تعبئة جماعية",
             AuditActions.CustomFieldChanged => "تغيير حقل مخصص",
+            AuditActions.DossierDeleted => "حذف دوسية",
             "Logout" => "تسجيل خروج",
             "ImportRolledBack" => "تراجع عن استيراد",
             "ReportPrinted" => "طباعة تقرير",
