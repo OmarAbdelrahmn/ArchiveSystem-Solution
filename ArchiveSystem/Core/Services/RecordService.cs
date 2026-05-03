@@ -242,9 +242,8 @@ namespace ArchiveSystem.Core.Services
                 LIMIT 200", p).AsList();
         }
 
-        // ── Dashboard stats ──────────────────────────
-        public (int TotalDossiers, int TotalRecords, int RecordsToday, int RecordsThisMonth)
-            GetDashboardStats()
+        public (int TotalDossiers, int TotalRecords, int RecordsToday, int RecordsThisMonth, int NationalityCount)
+           GetDashboardStats()
         {
             using var conn = _db.CreateConnection();
             string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
@@ -258,7 +257,19 @@ namespace ArchiveSystem.Core.Services
             int month = conn.ExecuteScalar<int>(
                 "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL AND CreatedAt >= @S",
                 new { S = monthStart });
-            return (td, tr, today_, month);
+
+            // Count distinct non-empty nationality values across active records
+            int natCount = conn.ExecuteScalar<int>(@"
+        SELECT COUNT(DISTINCT rcfv.ValueText)
+        FROM RecordCustomFieldValues rcfv
+        JOIN CustomFields cf ON cf.CustomFieldId = rcfv.CustomFieldId
+        JOIN Records r ON r.RecordId = rcfv.RecordId
+        WHERE cf.FieldKey = 'nationality'
+        AND   r.DeletedAt IS NULL
+        AND   rcfv.ValueText IS NOT NULL
+        AND   rcfv.ValueText != ''");
+
+            return (td, tr, today_, month, natCount);
         }
 
         // ── Recent dossiers (last modified) ──────────

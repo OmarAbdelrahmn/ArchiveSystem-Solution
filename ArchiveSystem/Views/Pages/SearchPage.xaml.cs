@@ -45,7 +45,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void LoadDashboardStats()
         {
-            var (totalDossiers, totalRecords, recordsToday, recordsThisMonth) =
+            var (totalDossiers, totalRecords, recordsToday, recordsThisMonth, nationalityCount) =
                 _recordService.GetDashboardStats();
 
             StatsPanel.Children.Clear();
@@ -57,6 +57,8 @@ namespace ArchiveSystem.Views.Pages
                 recordsToday.ToString("N0"), "#6A1B9A"));
             StatsPanel.Children.Add(MakeStatCard("📆", "مُضاف هذا الشهر",
                 recordsThisMonth.ToString("N0"), "#E65100"));
+            StatsPanel.Children.Add(MakeStatCard("🌍", "عدد الجنسيات",
+                nationalityCount.ToString("N0"), "#00695C"));
         }
 
         private static Border MakeStatCard(string icon, string label, string value, string hexColor)

@@ -36,7 +36,7 @@
         <Border Grid.Row="1" Background="White"
                 BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
                 Padding="24,14">
-            <UniformGrid x:Name="StatsPanel" Columns="4"/>
+            <UniformGrid x:Name="StatsPanel" Columns="5"/>
         </Border>
 
         <!-- ══ SEARCH BAR ══════════════════════════════════════════════════════ -->

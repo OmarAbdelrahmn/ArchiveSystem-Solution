@@ -7,6 +7,18 @@ using System.Windows.Media;
 
 namespace ArchiveSystem.Views.Pages
 {
+    // ── View-model that augments WeeklyCount with a pre-calculated bar width ──
+    // BarWidth is a pixel value (0-200) scaled to the maximum count in the
+    // current data set.  The bar chart ItemsControl binds directly to this.
+    internal class WeeklyBarRow
+    {
+        public int Year { get; init; }
+        public int Week { get; init; }
+        public int Count { get; init; }
+        public double BarWidth { get; init; }   // pixels, 0-200
+        public string Label => $"{Year} - أسبوع {Week:D2}";
+    }
+
     public partial class StatisticsPage : Page
     {
         private readonly StatisticsService _service;
@@ -23,10 +35,12 @@ namespace ArchiveSystem.Views.Pages
         {
             if (PermissionHelper.DenyPage(this, Permissions.ViewStatistics)) return;
             LoadSummaryCards();
-            LoadYearFilter();
+            LoadYearFilter();       // Hijri year filter for monthly grid
             LoadMonthly();
             LoadCompletion();
             LoadLocations();
+            LoadWeeklyYearFilter(); // Gregorian year filter for weekly grid
+            LoadWeekly();
             LoadCustomFieldSelector();
         }
 
@@ -63,33 +77,22 @@ namespace ArchiveSystem.Views.Pages
             };
 
             var sp = new StackPanel();
-
-            var iconText = new TextBlock
-            {
-                Text = icon,
-                FontSize = 26,
-                Margin = new Thickness(0, 0, 0, 6)
-            };
-
-            var valText = new TextBlock
+            sp.Children.Add(new TextBlock { Text = icon, FontSize = 26, Margin = new Thickness(0, 0, 0, 6) });
+            sp.Children.Add(new TextBlock
             {
                 Text = value,
                 FontSize = 28,
                 FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush(color)
-            };
-
-            var lblText = new TextBlock
+            });
+            sp.Children.Add(new TextBlock
             {
                 Text = label,
                 FontSize = 12,
                 Foreground = Brushes.Gray,
                 Margin = new Thickness(0, 4, 0, 0)
-            };
+            });
 
-            sp.Children.Add(iconText);
-            sp.Children.Add(valText);
-            sp.Children.Add(lblText);
             card.Child = sp;
             return card;
         }
@@ -124,6 +127,79 @@ namespace ArchiveSystem.Views.Pages
             if (MonthlyYearCombo.SelectedItem is not ComboBoxItem ci) return;
             int? year = ci.Tag is int y && y > 0 ? y : null;
             LoadMonthly(year);
+        }
+
+        // ── WEEKLY BREAKDOWN ─────────────────────────────────────────────────
+
+        /// <summary>
+        /// Populates the WeeklyYearCombo with the distinct Gregorian years that
+        /// have records, plus an "all years" entry.
+        /// </summary>
+        private void LoadWeeklyYearFilter()
+        {
+            var years = _service.GetDistinctRecordYears();
+
+            WeeklyYearCombo.Items.Clear();
+            WeeklyYearCombo.Items.Add(new ComboBoxItem { Content = "كل السنوات", Tag = 0 });
+            foreach (var y in years)
+                WeeklyYearCombo.Items.Add(new ComboBoxItem { Content = y.ToString(), Tag = y });
+
+            // Default to the current Gregorian year if it is in the list;
+            // otherwise fall back to "all years".
+            int currentYear = DateTime.UtcNow.Year;
+            bool found = false;
+            foreach (ComboBoxItem item in WeeklyYearCombo.Items)
+            {
+                if (item.Tag is int yr && yr == currentYear)
+                {
+                    WeeklyYearCombo.SelectedItem = item;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) WeeklyYearCombo.SelectedIndex = 0;
+        }
+
+        private void LoadWeekly(int? filterYear = null)
+        {
+            var raw = _service.GetWeeklyBreakdown(filterYear, topN: 16);
+
+            if (raw.Count == 0)
+            {
+                WeeklyGrid.ItemsSource = null;
+                WeeklyBarsPanel.ItemsSource = null;
+                WeeklyTotalText.Text = "لا توجد بيانات";
+                return;
+            }
+
+            // Total for the badge
+            int total = raw.Sum(w => w.Count);
+            WeeklyTotalText.Text = $"الإجمالي: {total:N0} سجل";
+
+            // DataGrid source (plain WeeklyCount)
+            WeeklyGrid.ItemsSource = raw;
+
+            // Bar chart source — scale bar widths to the maximum count
+            const double MaxBarPx = 200.0;
+            int maxCount = raw.Max(w => w.Count);
+            double scale = maxCount > 0 ? MaxBarPx / maxCount : 0;
+
+            var barRows = raw.Select(w => new WeeklyBarRow
+            {
+                Year = w.Year,
+                Week = w.Week,
+                Count = w.Count,
+                BarWidth = Math.Round(w.Count * scale, 1)
+            }).ToList();
+
+            WeeklyBarsPanel.ItemsSource = barRows;
+        }
+
+        private void WeeklyYear_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (WeeklyYearCombo.SelectedItem is not ComboBoxItem ci) return;
+            int? year = ci.Tag is int y && y > 0 ? y : null;
+            LoadWeekly(year);
         }
 
         // ── COMPLETION BARS ───────────────────────────────────────────────────

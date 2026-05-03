@@ -24,6 +24,17 @@ namespace ArchiveSystem.Core.Services
         public string Label => $"{HijriMonth}/{HijriYear}";
     }
 
+    // ─── Row for "records by week" chart ───────────────────────────────────────
+    public class WeeklyCount
+    {
+        public int Year { get; set; }
+        public int Week { get; set; }
+        public int Count { get; set; }
+
+        /// <summary>ISO week label shown in the grid, e.g. "2024 - أسبوع 03"</summary>
+        public string Label => $"{Year} - أسبوع {Week:D2}";
+    }
+
     // ─── Row for custom field statistics ────────────────────────────────────────
     public class CustomFieldStat
     {
@@ -109,6 +120,53 @@ namespace ArchiveSystem.Core.Services
                 ORDER BY d.HijriYear DESC, d.HijriMonth DESC
                 LIMIT @TopN",
                 new { TopN = topN }).AsList();
+        }
+
+        // ── Records by Gregorian calendar week ────────────────────────────────
+        /// <summary>
+        /// Returns record counts grouped by ISO calendar week (strftime %W = 00-53).
+        /// <paramref name="topN"/> controls how many of the most-recent weeks are returned.
+        /// Pass <paramref name="filterYear"/> to restrict to a single Gregorian year.
+        /// </summary>
+        public List<WeeklyCount> GetWeeklyBreakdown(int? filterYear = null, int topN = 16)
+        {
+            using var conn = _db.CreateConnection();
+
+            // Build an optional year WHERE clause.
+            // CreatedAt is stored as ISO 8601 text ("yyyy-MM-ddTHH:mm:ss"), so
+            // strftime('%Y', ...) works correctly.
+            string yearFilter = filterYear.HasValue
+                ? $"AND strftime('%Y', CreatedAt) = '{filterYear.Value}'"
+                : string.Empty;
+
+            return conn.Query<WeeklyCount>($@"
+                SELECT
+                    CAST(strftime('%Y', CreatedAt) AS INTEGER) AS Year,
+                    CAST(strftime('%W', CreatedAt) AS INTEGER) AS Week,
+                    COUNT(*)                                    AS Count
+                FROM Records
+                WHERE DeletedAt IS NULL
+                {yearFilter}
+                GROUP BY Year, Week
+                ORDER BY Year DESC, Week DESC
+                LIMIT @TopN",
+                new { TopN = topN }).AsList();
+        }
+
+        /// <summary>
+        /// Returns the distinct Gregorian years present in the Records table,
+        /// newest first.  Used to populate the year filter drop-down for the
+        /// weekly breakdown.
+        /// </summary>
+        public List<int> GetDistinctRecordYears()
+        {
+            using var conn = _db.CreateConnection();
+            return conn.Query<int>(@"
+                SELECT DISTINCT CAST(strftime('%Y', CreatedAt) AS INTEGER) AS Year
+                FROM Records
+                WHERE DeletedAt IS NULL
+                ORDER BY Year DESC")
+                .AsList();
         }
 
         // ── Dossier completion status breakdown ────────────────────────────────

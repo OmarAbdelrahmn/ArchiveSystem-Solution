@@ -61,6 +61,67 @@ namespace ArchiveSystem.Core.Services
         // DATA LOADING
         // ─────────────────────────────────────────────────────────────────────
 
+        public PeriodReportData LoadWeeklyReport(string gregorianDateFrom, string gregorianDateTo)
+        {
+            using var conn = _db.CreateConnection();
+
+            var rows = conn.Query<PeriodReportRow>(@"
+        SELECT
+            d.DossierNumber,
+            d.HijriMonth,
+            d.HijriYear,
+            d.Status,
+            COALESCE(l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber, 'غير محدد') AS LocationDisplay,
+            COUNT(r.RecordId) AS RecordCount
+        FROM Dossiers d
+        LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+        LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL
+        WHERE r.CreatedAt >= @From AND r.CreatedAt < @To
+        GROUP BY d.DossierId
+        ORDER BY d.HijriMonth, d.DossierNumber",
+                new { From = gregorianDateFrom, To = gregorianDateTo }).AsList();
+
+            var reportFields = LoadReportCustomFields(conn);
+            var customValues = LoadCustomValuesForWeek(conn, gregorianDateFrom, gregorianDateTo, reportFields);
+
+            return new PeriodReportData
+            {
+                Title = "تقرير أسبوعي",
+                Period = $"{gregorianDateFrom} — {gregorianDateTo}",
+                TotalDossiers = rows.Count,
+                TotalRecords = rows.Sum(r => r.RecordCount),
+                Rows = rows,
+                ReportCustomFields = reportFields,
+                RecordCustomValues = customValues
+            };
+        }
+
+        private static Dictionary<int, Dictionary<int, string?>> LoadCustomValuesForWeek(
+            Microsoft.Data.Sqlite.SqliteConnection conn,
+            string dateFrom, string dateTo,
+            List<CustomField> fields)
+        {
+            if (fields.Count == 0) return new();
+
+            var fieldIds = string.Join(",", fields.Select(f => f.CustomFieldId));
+            var rawVals = conn.Query<RecordCustomFieldValue>($@"
+        SELECT rcfv.RecordId, rcfv.CustomFieldId, rcfv.ValueText
+        FROM RecordCustomFieldValues rcfv
+        JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
+        WHERE r.CreatedAt >= @From AND r.CreatedAt < @To
+        AND rcfv.CustomFieldId IN ({fieldIds})",
+                new { From = dateFrom, To = dateTo }).AsList();
+
+            var result = new Dictionary<int, Dictionary<int, string?>>();
+            foreach (var v in rawVals)
+            {
+                if (!result.ContainsKey(v.RecordId))
+                    result[v.RecordId] = new();
+                result[v.RecordId][v.CustomFieldId] = v.ValueText;
+            }
+            return result;
+        }
+
         public DossierFaceData? LoadDossierFaceData(int dossierId)
         {
             using var conn = _db.CreateConnection();

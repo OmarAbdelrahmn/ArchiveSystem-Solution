@@ -39,11 +39,87 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(YearlyPreviewBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(YearlySaveBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(YearlyPrintBtn, Permissions.PrintReports, hideInstead: true);
+            // Weekly reports — needs PrintReports
+            PermissionHelper.Apply(WeeklyPreviewBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(WeeklySaveBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(WeeklyPrintBtn, Permissions.PrintReports, hideInstead: true);
         }
 
         // ─────────────────────────────────────────────────────────────────────
         // DOSSIER FACE
         // ─────────────────────────────────────────────────────────────────────
+
+        // ─────────────────────────────────────────────────────────────────────
+        // WEEKLY REPORT
+        // ─────────────────────────────────────────────────────────────────────
+
+        private void PreviewWeekly_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadWeeklyOrError();
+            if (data == null) return;
+
+            string path = TempPdfPath($"weekly_{WeeklyFromBox.Text}_{WeeklyToBox.Text}");
+            var err = _reportService.GeneratePeriodReportPdf(data, path);
+            if (err != null) { ShowError(err); return; }
+
+            OpenFile(path);
+        }
+
+        private void SaveWeeklyPdf_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadWeeklyOrError();
+            if (data == null) return;
+
+            string? path = PickSavePath($"weekly_{WeeklyFromBox.Text}_{WeeklyToBox.Text}");
+            if (path == null) return;
+
+            var err = _reportService.GeneratePeriodReportPdf(data, path);
+            if (err != null) { ShowError(err); return; }
+
+            ShowSuccess($"تم حفظ الملف: {path}");
+            OpenFile(path);
+        }
+
+        private void PrintWeeklyDirect_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadWeeklyOrError();
+            if (data == null) return;
+
+            var err = _reportService.PrintPeriodReportDirect(data);
+            if (err != null) ShowError(err);
+            else ShowSuccess("تم إرسال التقرير الأسبوعي إلى الطابعة.");
+        }
+
+        private PeriodReportData? LoadWeeklyOrError()
+        {
+            HideMsg();
+
+            string fromStr = WeeklyFromBox.Text.Trim();
+            string toStr = WeeklyToBox.Text.Trim();
+
+            if (!DateTime.TryParse(fromStr, out var fromDate))
+            { ShowError("يرجى إدخال تاريخ البداية بصيغة صحيحة (yyyy-MM-dd)."); return null; }
+
+            if (!DateTime.TryParse(toStr, out var toDate))
+            { ShowError("يرجى إدخال تاريخ النهاية بصيغة صحيحة (yyyy-MM-dd)."); return null; }
+
+            if (toDate < fromDate)
+            { ShowError("تاريخ النهاية يجب أن يكون بعد تاريخ البداية."); return null; }
+
+            if ((toDate - fromDate).TotalDays > 31)
+            { ShowError("النطاق الزمني لا يجب أن يتجاوز 31 يوماً للتقرير الأسبوعي."); return null; }
+
+            // dateTo is exclusive end: add 1 day so records ON toDate are included
+            string fromIso = fromDate.ToString("yyyy-MM-dd");
+            string toIso = toDate.AddDays(1).ToString("yyyy-MM-dd");
+
+            var data = _reportService.LoadWeeklyReport(fromIso, toIso);
+
+            if (data.TotalDossiers == 0)
+            { ShowError($"لا توجد سجلات مُضافة بين {fromStr} و{toStr}."); return null; }
+
+            return data;
+        }
 
         private void PreviewDossierFace_Click(object sender, RoutedEventArgs e)
         {
