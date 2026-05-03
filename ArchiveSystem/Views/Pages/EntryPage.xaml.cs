@@ -1,10 +1,10 @@
 ﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
-using Dapper;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -14,28 +14,399 @@ namespace ArchiveSystem.Views.Pages
     {
         private readonly DossierService _dossierService;
         private readonly RecordService _recordService;
+        private readonly CustomFieldService _customFieldService;
 
         private int _currentDossierId = 0;
         private bool _isExistingDossier = false;
 
         private System.Windows.Threading.DispatcherTimer? _dossierCheckTimer;
 
+        // ── Custom-field runtime state ────────────────────────────────────────
+        private List<CustomField> _customFields = new();
+
+        /// <summary>
+        /// Maps CustomFieldId → the primary input control for that field.
+        /// For Text / Number / Date / TextWithSuggestions → TextBox
+        /// For Boolean                                    → CheckBox
+        /// For SingleChoice                               → ComboBox
+        /// For MultiChoice                                → List&lt;CheckBox&gt; stored as tag on a WrapPanel
+        /// </summary>
+        private readonly Dictionary<int, FrameworkElement> _customInputs = new();
+
+        // ─────────────────────────────────────────────────────────────────────
+
         public EntryPage()
         {
             InitializeComponent();
             _dossierService = new DossierService(App.Database);
             _recordService = new RecordService(App.Database);
-            Loaded += (s, e) => SuggestDossierNumber();
+            _customFieldService = new CustomFieldService(App.Database);
 
             Loaded += (s, e) =>
             {
                 if (PermissionHelper.DenyPage(this, Permissions.AddRecord)) return;
+                LoadCustomFields();
                 SuggestDossierNumber();
             };
-
         }
 
-        // ── AUTO SUGGEST ──────────────────────────────
+        // ══════════════════════════════════════════════════════════════════════
+        // CUSTOM FIELD BUILDER
+        // ══════════════════════════════════════════════════════════════════════
+
+        private void LoadCustomFields()
+        {
+            _customFields = _customFieldService.GetActiveEntryFields();
+            _customInputs.Clear();
+            CustomFieldsPanel.Children.Clear();
+
+            foreach (var cf in _customFields)
+                CustomFieldsPanel.Children.Add(BuildFieldControl(cf));
+        }
+
+        /// <summary>
+        /// Returns the WPF control (or wrapper container) for a single custom field.
+        /// </summary>
+        private FrameworkElement BuildFieldControl(CustomField cf)
+        {
+            string hintSuffix = cf.IsRequired ? " *" : " (اختياري)";
+            string hint = cf.ArabicLabel + hintSuffix;
+
+            switch (cf.FieldType)
+            {
+                // ── TextWithSuggestions ───────────────────────────────────────
+                case FieldTypes.TextWithSuggestions:
+                    {
+                        var container = BuildSuggestionsInput(cf, hint);
+                        return container;
+                    }
+
+                // ── Number ────────────────────────────────────────────────────
+                case FieldTypes.Number:
+                    {
+                        var tb = MakeOutlinedTextBox(hint);
+                        tb.PreviewTextInput += (s, e) =>
+                            e.Handled = !Regex.IsMatch(e.Text, @"^[\d\.\-]$");
+                        _customInputs[cf.CustomFieldId] = tb;
+                        return WrapWithMargin(tb);
+                    }
+
+                // ── Boolean ───────────────────────────────────────────────────
+                case FieldTypes.Boolean:
+                    {
+                        var cb = new CheckBox
+                        {
+                            Content = cf.ArabicLabel,
+                            Margin = new Thickness(0, 0, 0, 14),
+                            FontSize = 13,
+                            Foreground = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33))
+                        };
+                        _customInputs[cf.CustomFieldId] = cb;
+                        return cb;
+                    }
+
+                // ── SingleChoice ──────────────────────────────────────────────
+                case FieldTypes.SingleChoice:
+                    {
+                        var combo = new ComboBox
+                        {
+                            Margin = new Thickness(0, 0, 0, 14)
+                        };
+                        MaterialDesignThemes.Wpf.HintAssist.SetHint(combo, hint);
+                        combo.Style = (Style)FindResource("MaterialDesignOutlinedComboBox");
+
+                        // Blank "-- none --" entry so the field can be left empty
+                        combo.Items.Add(new ComboBoxItem { Content = "-- لا شيء --", Tag = "" });
+
+                        var options = _customFieldService.GetFieldOptions(cf.CustomFieldId);
+                        foreach (var opt in options)
+                            combo.Items.Add(new ComboBoxItem
+                            {
+                                Content = opt.ArabicValue,
+                                Tag = opt.ArabicValue
+                            });
+
+                        combo.SelectedIndex = 0;
+                        _customInputs[cf.CustomFieldId] = combo;
+                        return combo;
+                    }
+
+                // ── MultiChoice ───────────────────────────────────────────────
+                case FieldTypes.MultiChoice:
+                    {
+                        var wrapper = new StackPanel { Margin = new Thickness(0, 0, 0, 14) };
+                        wrapper.Children.Add(new TextBlock
+                        {
+                            Text = hint,
+                            FontSize = 12,
+                            Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66)),
+                            Margin = new Thickness(0, 0, 0, 4)
+                        });
+
+                        var checkWrap = new WrapPanel { Orientation = Orientation.Horizontal };
+                        var options = _customFieldService.GetFieldOptions(cf.CustomFieldId);
+                        foreach (var opt in options)
+                        {
+                            var chk = new CheckBox
+                            {
+                                Content = opt.ArabicValue,
+                                Margin = new Thickness(0, 0, 16, 6),
+                                Tag = opt.ArabicValue
+                            };
+                            checkWrap.Children.Add(chk);
+                        }
+
+                        wrapper.Children.Add(checkWrap);
+
+                        // Store the WrapPanel so we can read checked values later
+                        _customInputs[cf.CustomFieldId] = checkWrap;
+                        return wrapper;
+                    }
+
+                // ── Date / plain Text (default) ───────────────────────────────
+                default:
+                    {
+                        var tb = MakeOutlinedTextBox(hint);
+                        _customInputs[cf.CustomFieldId] = tb;
+                        return WrapWithMargin(tb);
+                    }
+            }
+        }
+
+        // ── TextWithSuggestions popup builder ─────────────────────────────────
+
+        /// <summary>
+        /// Builds a Grid containing a TextBox and a Popup with a ListBox of
+        /// suggestions.  The popup appears on focus / text-change and hides
+        /// when focus leaves or a suggestion is clicked.
+        /// </summary>
+        private Grid BuildSuggestionsInput(CustomField cf, string hint)
+        {
+            var container = new Grid { Margin = new Thickness(0, 0, 0, 14) };
+
+            // ── TextBox ──────────────────────────────────────────────────────
+            var tb = MakeOutlinedTextBox(hint);
+            container.Children.Add(tb);
+
+            // ── Popup ────────────────────────────────────────────────────────
+            var popup = new Popup
+            {
+                PlacementTarget = tb,
+                Placement = PlacementMode.Bottom,
+                StaysOpen = false,
+                AllowsTransparency = true,
+                PopupAnimation = PopupAnimation.Fade,
+                MaxWidth = 500,
+                MinWidth = 280
+            };
+
+            var border = new Border
+            {
+                Background = Brushes.White,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0xCC, 0xCC, 0xCC)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(0, 0, 4, 4),
+                Effect = new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    BlurRadius = 8,
+                    Opacity = 0.15,
+                    ShadowDepth = 3,
+                    Direction = 270
+                }
+            };
+
+            var listBox = new ListBox
+            {
+                MaxHeight = 180,
+                BorderThickness = new Thickness(0),
+                Background = Brushes.Transparent
+            };
+            ScrollViewer.SetHorizontalScrollBarVisibility(listBox, ScrollBarVisibility.Disabled);
+
+            border.Child = listBox;
+            popup.Child = border;
+
+            // Register input in map
+            _customInputs[cf.CustomFieldId] = tb;
+
+            // ── Load suggestions helper ───────────────────────────────────────
+            int suggLimit = cf.SuggestionLimit > 0 ? cf.SuggestionLimit : 8;
+
+            void RefreshSuggestions()
+            {
+                var text = tb.Text.Trim();
+                var all = _customFieldService.GetSuggestions(cf.CustomFieldId, suggLimit * 2);
+
+                // Filter by what the user typed (case-insensitive substring)
+                var filtered = string.IsNullOrEmpty(text)
+                    ? all.Take(suggLimit).ToList()
+                    : all.Where(s => s.Contains(text,
+                          StringComparison.OrdinalIgnoreCase))
+                         .Take(suggLimit)
+                         .ToList();
+
+                listBox.Items.Clear();
+                foreach (var s in filtered)
+                    listBox.Items.Add(new ListBoxItem
+                    {
+                        Content = s,
+                        Padding = new Thickness(12, 7, 12, 7),
+                        FontSize = 13
+                    });
+
+                popup.IsOpen = filtered.Count > 0;
+            }
+
+            // ── Wire events ───────────────────────────────────────────────────
+
+            tb.GotFocus += (_, _) => RefreshSuggestions();
+
+            tb.TextChanged += (_, _) =>
+            {
+                if (tb.IsFocused) RefreshSuggestions();
+            };
+
+            tb.LostFocus += (_, _) =>
+            {
+                // Small delay so a click on a list item can fire first
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
+                    () => { if (!listBox.IsKeyboardFocusWithin) popup.IsOpen = false; });
+            };
+
+            tb.PreviewKeyDown += (_, e) =>
+            {
+                if (!popup.IsOpen) return;
+                if (e.Key == Key.Down)
+                {
+                    listBox.Focus();
+                    if (listBox.Items.Count > 0)
+                        listBox.SelectedIndex = 0;
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    popup.IsOpen = false;
+                    e.Handled = true;
+                }
+            };
+
+            listBox.PreviewKeyDown += (_, e) =>
+            {
+                if (e.Key == Key.Enter && listBox.SelectedItem is ListBoxItem li)
+                {
+                    tb.Text = li.Content?.ToString() ?? string.Empty;
+                    tb.CaretIndex = tb.Text.Length;
+                    popup.IsOpen = false;
+                    tb.Focus();
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    popup.IsOpen = false;
+                    tb.Focus();
+                    e.Handled = true;
+                }
+            };
+
+            listBox.MouseLeftButtonUp += (_, _) =>
+            {
+                if (listBox.SelectedItem is ListBoxItem li)
+                {
+                    tb.Text = li.Content?.ToString() ?? string.Empty;
+                    tb.CaretIndex = tb.Text.Length;
+                    popup.IsOpen = false;
+                    tb.Focus();
+                }
+            };
+
+            // Attach popup to container (not to the visual tree — Popup floats)
+            container.Children.Add(popup);
+
+            return container;
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+
+        private TextBox MakeOutlinedTextBox(string hint)
+        {
+            var tb = new TextBox();
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(tb, hint);
+            tb.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+            return tb;
+        }
+
+        private static FrameworkElement WrapWithMargin(FrameworkElement el)
+        {
+            el.Margin = new Thickness(0, 0, 0, 14);
+            return el;
+        }
+
+        /// <summary>
+        /// Reads the current value from any custom field input control.
+        /// Returns null if the field is empty / unchecked / "no selection".
+        /// For MultiChoice returns a comma-joined string of checked items.
+        /// </summary>
+        private string? GetCustomFieldValue(int customFieldId)
+        {
+            if (!_customInputs.TryGetValue(customFieldId, out var ctrl)) return null;
+
+            if (ctrl is TextBox tb)
+                return string.IsNullOrWhiteSpace(tb.Text) ? null : tb.Text.Trim();
+
+            if (ctrl is CheckBox cb)
+                return cb.IsChecked == true ? "true" : null;
+
+            if (ctrl is ComboBox combo)
+            {
+                if (combo.SelectedItem is ComboBoxItem ci
+                    && ci.Tag is string v && !string.IsNullOrEmpty(v))
+                    return v;
+                return null;
+            }
+
+            // MultiChoice — stored as WrapPanel holding CheckBoxes
+            if (ctrl is WrapPanel wp)
+            {
+                var vals = wp.Children.OfType<CheckBox>()
+                             .Where(c => c.IsChecked == true)
+                             .Select(c => c.Tag?.ToString() ?? string.Empty)
+                             .Where(s => !string.IsNullOrEmpty(s))
+                             .ToList();
+                return vals.Count > 0 ? string.Join(",", vals) : null;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Clears all custom field inputs back to their default empty state.
+        /// </summary>
+        private void ClearCustomFields()
+        {
+            foreach (var (cfId, ctrl) in _customInputs)
+            {
+                switch (ctrl)
+                {
+                    case TextBox tb:
+                        tb.Text = string.Empty;
+                        break;
+                    case CheckBox cb:
+                        cb.IsChecked = false;
+                        break;
+                    case ComboBox combo:
+                        combo.SelectedIndex = 0;
+                        break;
+                    case WrapPanel wp:
+                        foreach (var chk in wp.Children.OfType<CheckBox>())
+                            chk.IsChecked = false;
+                        break;
+                }
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // AUTO SUGGEST
+        // ══════════════════════════════════════════════════════════════════════
 
         private void SuggestDossierNumber()
         {
@@ -74,10 +445,11 @@ namespace ArchiveSystem.Views.Pages
             SequenceBox.Text = "1";
         }
 
-        // ── REAL-TIME DOSSIER CHECK ───────────────────
+        // ══════════════════════════════════════════════════════════════════════
+        // REAL-TIME DOSSIER CHECK
+        // ══════════════════════════════════════════════════════════════════════
 
-        private void DossierNumberBox_TextChanged(object sender,
-            TextChangedEventArgs e)
+        private void DossierNumberBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             _dossierCheckTimer?.Stop();
             _dossierCheckTimer = new System.Windows.Threading.DispatcherTimer
@@ -148,43 +520,33 @@ namespace ArchiveSystem.Views.Pages
             }
         }
 
-        // ── LOCK / UNLOCK DOSSIER FIELDS ─────────────
+        // ══════════════════════════════════════════════════════════════════════
+        // LOCK / UNLOCK DOSSIER FIELDS
+        // ══════════════════════════════════════════════════════════════════════
 
         private void LockDossierFields()
         {
-            HijriMonthBox.IsReadOnly = true;
-            HijriYearBox.IsReadOnly = true;
-            ExpectedCountBox.IsReadOnly = true;
-            HallwayBox.IsReadOnly = true;
-            CabinetBox.IsReadOnly = true;
-            ShelfBox.IsReadOnly = true;
-
-            HijriMonthBox.Opacity = 0.6;
-            HijriYearBox.Opacity = 0.6;
-            ExpectedCountBox.Opacity = 0.6;
-            HallwayBox.Opacity = 0.6;
-            CabinetBox.Opacity = 0.6;
-            ShelfBox.Opacity = 0.6;
+            SetDossierFieldsLock(readOnly: true, opacity: 0.6);
         }
 
         private void UnlockDossierFields()
         {
-            HijriMonthBox.IsReadOnly = false;
-            HijriYearBox.IsReadOnly = false;
-            ExpectedCountBox.IsReadOnly = false;
-            HallwayBox.IsReadOnly = false;
-            CabinetBox.IsReadOnly = false;
-            ShelfBox.IsReadOnly = false;
-
-            HijriMonthBox.Opacity = 1;
-            HijriYearBox.Opacity = 1;
-            ExpectedCountBox.Opacity = 1;
-            HallwayBox.Opacity = 1;
-            CabinetBox.Opacity = 1;
-            ShelfBox.Opacity = 1;
+            SetDossierFieldsLock(readOnly: false, opacity: 1.0);
         }
 
-        // ── SAVE ─────────────────────────────────────
+        private void SetDossierFieldsLock(bool readOnly, double opacity)
+        {
+            foreach (var tb in new[] { HijriMonthBox, HijriYearBox, ExpectedCountBox,
+                                        HallwayBox, CabinetBox, ShelfBox })
+            {
+                tb.IsReadOnly = readOnly;
+                tb.Opacity = opacity;
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // SAVE
+        // ══════════════════════════════════════════════════════════════════════
 
         private void SaveRecord_Click(object sender, RoutedEventArgs e)
         {
@@ -201,7 +563,18 @@ namespace ArchiveSystem.Views.Pages
             string? notes = string.IsNullOrWhiteSpace(NotesBox.Text)
                                       ? null : NotesBox.Text.Trim();
 
-            // ── Get or create dossier ──────────────────
+            // Validate required custom fields before touching DB
+            foreach (var cf in _customFields.Where(f => f.IsRequired))
+            {
+                string? val = GetCustomFieldValue(cf.CustomFieldId);
+                if (string.IsNullOrWhiteSpace(val))
+                {
+                    ShowError($"حقل '{cf.ArabicLabel}' مطلوب.");
+                    return;
+                }
+            }
+
+            // ── Get or create dossier ──────────────────────────────────────
             if (_currentDossierId <= 0)
             {
                 if (!int.TryParse(HijriMonthBox.Text, out int hijriMonth))
@@ -237,38 +610,22 @@ namespace ArchiveSystem.Views.Pages
                 _isExistingDossier = false;
             }
 
-            // ── Add record ────────────────────────────
+            // ── Add record ────────────────────────────────────────────────
             var (recordError, newRecordId) = _recordService.AddRecord(
                 _currentDossierId, sequence,
                 personName, prisonerNumber, notes);
 
             if (recordError != null) { ShowError(recordError); return; }
 
-            // ── Save nationality custom field ─────────
-            if (!string.IsNullOrWhiteSpace(NationalityBox.Text))
+            // ── Save all custom field values ───────────────────────────────
+            foreach (var cf in _customFields)
             {
-                using var conn = App.Database.CreateConnection();
-                var fieldId = conn.ExecuteScalar<int?>(
-                    "SELECT CustomFieldId FROM CustomFields WHERE FieldKey = 'nationality'");
-                if (fieldId.HasValue)
-                {
-                    conn.Execute(@"
-                        INSERT INTO RecordCustomFieldValues
-                            (RecordId, CustomFieldId, ValueText, UpdatedAt)
-                        VALUES (@RecordId, @FieldId, @Value, @Now)
-                        ON CONFLICT(RecordId, CustomFieldId)
-                        DO UPDATE SET ValueText = @Value, UpdatedAt = @Now",
-                        new
-                        {
-                            RecordId = newRecordId,
-                            FieldId = fieldId.Value,
-                            Value = NationalityBox.Text.Trim(),
-                            Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
-                        });
-                }
+                string? value = GetCustomFieldValue(cf.CustomFieldId);
+                if (value != null)
+                    _customFieldService.SaveFieldValue(newRecordId, cf.CustomFieldId, value);
             }
 
-            // ── Success ───────────────────────────────
+            // ── Success ───────────────────────────────────────────────────
             int newCount = _recordService
                 .GetRecordsByDossier(_currentDossierId).Count;
 
@@ -294,7 +651,9 @@ namespace ArchiveSystem.Views.Pages
             SequenceBox.Text = nextSeq.ToString();
         }
 
-        // ── CLEAR ─────────────────────────────────────
+        // ══════════════════════════════════════════════════════════════════════
+        // CLEAR
+        // ══════════════════════════════════════════════════════════════════════
 
         private void ClearRecord_Click(object sender, RoutedEventArgs e)
         {
@@ -306,12 +665,14 @@ namespace ArchiveSystem.Views.Pages
         {
             PersonNameBox.Text = string.Empty;
             PrisonerNumberBox.Text = string.Empty;
-            NationalityBox.Text = string.Empty;
             NotesBox.Text = string.Empty;
+            ClearCustomFields();
             PersonNameBox.Focus();
         }
 
-        // ── VALIDATION ────────────────────────────────
+        // ══════════════════════════════════════════════════════════════════════
+        // VALIDATION
+        // ══════════════════════════════════════════════════════════════════════
 
         private void NumberOnly_PreviewTextInput(object sender,
             TextCompositionEventArgs e)
@@ -319,7 +680,9 @@ namespace ArchiveSystem.Views.Pages
             e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
         }
 
-        // ── UI HELPERS ────────────────────────────────
+        // ══════════════════════════════════════════════════════════════════════
+        // UI HELPERS
+        // ══════════════════════════════════════════════════════════════════════
 
         private void ShowError(string msg)
         {

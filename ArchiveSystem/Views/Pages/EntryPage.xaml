@@ -33,8 +33,7 @@
                         Padding="24"
                         Margin="0,0,0,20">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08"
-                                          ShadowDepth="2"/>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
                     </Border.Effect>
                     <StackPanel>
 
@@ -143,8 +142,7 @@
                         Padding="24"
                         Margin="0,0,0,20">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08"
-                                          ShadowDepth="2"/>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
                     </Border.Effect>
                     <StackPanel>
 
@@ -188,12 +186,6 @@
                                  Margin="0,0,0,14"
                                  PreviewTextInput="NumberOnly_PreviewTextInput"/>
 
-                        <!-- Nationality -->
-                        <TextBox x:Name="NationalityBox"
-                                 materialDesign:HintAssist.Hint="الجنسية (اختياري)"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Margin="0,0,0,14"/>
-
                         <!-- Notes -->
                         <TextBox x:Name="NotesBox"
                                  materialDesign:HintAssist.Hint="ملاحظات (اختياري)"
@@ -202,7 +194,15 @@
                                  Height="80"
                                  TextWrapping="Wrap"
                                  VerticalScrollBarVisibility="Auto"
-                                 Margin="0,0,0,4"/>
+                                 Margin="0,0,0,14"/>
+
+                        <!-- ══ DYNAMIC CUSTOM FIELDS ══
+                             All active ShowInEntry custom fields are injected here at runtime.
+                             TextWithSuggestions fields get a suggestion popup.
+                             SingleChoice / MultiChoice fields get a ComboBox / CheckBoxes.
+                             Boolean fields get a CheckBox.
+                             Number fields get a numeric-only TextBox. -->
+                        <StackPanel x:Name="CustomFieldsPanel"/>
 
                     </StackPanel>
                 </Border>
