@@ -23,6 +23,9 @@ namespace ArchiveSystem.Views.Pages
 
         private List<CustomField> _customFields = new();
 
+        // Tracks IDs when the user chooses "select all filtered results"
+        private List<int>? _allFilteredIds = null;
+
         private System.Windows.Threading.DispatcherTimer? _debounce;
 
         public AllDataPage()
@@ -40,6 +43,7 @@ namespace ArchiveSystem.Views.Pages
         private void Initialize()
         {
             if (PermissionHelper.DenyPage(this, Permissions.SearchRecords)) return;
+
             var years = _service.GetDistinctYears();
             YearCombo.Items.Clear();
             YearCombo.Items.Add(new ComboBoxItem { Content = "الكل", Tag = 0 });
@@ -59,7 +63,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddCustomFieldColumns()
         {
-            // keep built-in 7 columns (added Status column)
+            // Keep built-in 7 columns, remove any previously injected custom columns
             while (DataGrid.Columns.Count > 7)
                 DataGrid.Columns.RemoveAt(DataGrid.Columns.Count - 1);
 
@@ -85,7 +89,11 @@ namespace ArchiveSystem.Views.Pages
 
             foreach (var cf in _customFields)
             {
-                var sp = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(0, 0, 10, 6) };
+                var sp = new StackPanel
+                {
+                    Orientation = Orientation.Vertical,
+                    Margin = new Thickness(0, 0, 10, 6)
+                };
 
                 var tb = new TextBox { Width = 130, Height = 40, Tag = cf.CustomFieldId };
                 MaterialDesignThemes.Wpf.HintAssist.SetHint(tb, cf.ArabicLabel);
@@ -106,19 +114,24 @@ namespace ArchiveSystem.Views.Pages
             _totalCount = result.TotalCount;
 
             DataGrid.ItemsSource = result.Items;
-            ColorDeletedRows(result.Items);
 
             ResultCountText.Text = _totalCount == 0
                 ? "لا توجد نتائج تطابق شروط الفرز الحالية."
                 : $"{_totalCount:N0} ملف يطابق شروط الفرز الحالية";
 
             PageText.Text = $"صفحة {result.Page} من {result.TotalPages}  |  عرض {result.Items.Count} من {_totalCount:N0}";
-        }
 
-        // Give deleted rows a reddish tint via row style after binding
-        private void ColorDeletedRows(List<AllDataRow> rows)
-        {
-            // Applied via DataGrid.LoadingRow event (simpler approach)
+            // Show the "select all filtered" banner only when a filter is actually active
+            // and there are results worth selecting across pages
+            bool filterActive = IsFilterActive();
+            SelectAllBorder.Visibility = filterActive && _totalCount > 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            // Reset the "select all" checkbox whenever the data reloads
+            _allFilteredIds = null;
+            SelectAllFilteredChk.IsChecked = false;
+            UpdateSelectAllLabel();
         }
 
         private void DataGrid_LoadingRow(object sender, DataGridRowEventArgs e)
@@ -126,7 +139,7 @@ namespace ArchiveSystem.Views.Pages
             if (e.Row.Item is AllDataRow row && row.DeletedAt != null)
                 e.Row.Background = new SolidColorBrush(Color.FromArgb(60, 220, 50, 50));
             else if (e.Row.Item is AllDataRow)
-                e.Row.Background = null; // let alternating style take over
+                e.Row.Background = null; // let alternating row style take over
         }
 
         private void BuildFilter()
@@ -157,6 +170,23 @@ namespace ArchiveSystem.Views.Pages
                 _filter.SortColumn = col;
 
             _filter.SortAscending = _sortAsc;
+        }
+
+        /// <summary>Returns true when any filter field has a non-default value.</summary>
+        private bool IsFilterActive()
+        {
+            if (!string.IsNullOrWhiteSpace(NameBox.Text)) return true;
+            if (!string.IsNullOrWhiteSpace(PNumBox.Text)) return true;
+            if (!string.IsNullOrWhiteSpace(DossierNumBox.Text)) return true;
+            if (!string.IsNullOrWhiteSpace(HallwayBox.Text)) return true;
+            if (!string.IsNullOrWhiteSpace(CabinetBox.Text)) return true;
+            if (!string.IsNullOrWhiteSpace(ShelfBox.Text)) return true;
+            if (YearCombo.SelectedItem is ComboBoxItem yi && yi.Tag is int y && y > 0) return true;
+            if (MonthCombo.SelectedItem is ComboBoxItem mi && mi.Tag is int m && m > 0) return true;
+            foreach (StackPanel sp in CustomFilterPanel.Items)
+                if (sp.Children[0] is TextBox tb && !string.IsNullOrWhiteSpace(tb.Text)) return true;
+
+            return false;
         }
 
         // ── FILTER EVENTS (debounced) ─────────────────────────────────────────
@@ -199,6 +229,34 @@ namespace ArchiveSystem.Views.Pages
             Load();
         }
 
+        // ── SELECT ALL FILTERED ───────────────────────────────────────────────
+
+        private void SelectAllFiltered_Changed(object sender, RoutedEventArgs e)
+        {
+            bool isChecked = SelectAllFilteredChk.IsChecked == true;
+
+            if (isChecked)
+            {
+                // Fetch every matching active record ID across all pages
+                BuildFilter();
+                _allFilteredIds = _service.GetFilteredIds(_filter);
+            }
+            else
+            {
+                _allFilteredIds = null;
+            }
+
+            UpdateSelectAllLabel();
+        }
+
+        private void UpdateSelectAllLabel()
+        {
+            int count = _allFilteredIds?.Count ?? 0;
+            SelectAllFilteredChk.Tag = SelectAllFilteredChk.IsChecked == true
+                ? $"تم تحديد كل النتائج ({count:N0})"
+                : $"تحديد كل النتائج ({_totalCount:N0})";
+        }
+
         // ── SORT ─────────────────────────────────────────────────────────────
 
         private void Sort_Changed(object sender, SelectionChangedEventArgs e)
@@ -236,21 +294,34 @@ namespace ArchiveSystem.Views.Pages
 
         private void BulkFill_Click(object sender, RoutedEventArgs e)
         {
-            var selected = DataGrid.SelectedItems
-                .OfType<AllDataRow>()
-                .Where(r => r.DeletedAt == null) // only active records
-                .Select(r => r.RecordId)
-                .ToList();
+            List<int> targetIds;
 
-            if (selected.Count == 0)
+            if (_allFilteredIds != null && _allFilteredIds.Count > 0)
+            {
+                // User chose "select all filtered results" — use the pre-fetched IDs
+                targetIds = _allFilteredIds;
+            }
+            else
+            {
+                // Fall back to whatever rows are selected in the visible DataGrid
+                targetIds = DataGrid.SelectedItems
+                    .OfType<AllDataRow>()
+                    .Where(r => r.DeletedAt == null) // only active records
+                    .Select(r => r.RecordId)
+                    .ToList();
+            }
+
+            if (targetIds.Count == 0)
             {
                 MessageBox.Show(
-                    "يرجى تحديد سجلات نشطة من الجدول أولاً.\n\nاستخدم Ctrl+Click أو Shift+Click لتحديد أكثر من سجل.",
+                    "يرجى تحديد سجلات نشطة من الجدول أولاً.\n\n" +
+                    "استخدم Ctrl+Click أو Shift+Click لتحديد أكثر من سجل،\n" +
+                    "أو استخدم خيار \"تحديد كل النتائج\" للتعبئة الجماعية الكاملة.",
                     "تعبئة جماعية", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var dialog = new BulkFillDialog(selected) { Owner = Window.GetWindow(this) };
+            var dialog = new BulkFillDialog(targetIds) { Owner = Window.GetWindow(this) };
             if (dialog.ShowDialog() == true) Load();
         }
 
@@ -270,10 +341,12 @@ namespace ArchiveSystem.Views.Pages
 
             var headers = new List<string>
             {
-                "رقم الدوسية","التسلسل","اسم السجين","رقم السجين",
-                "الشهر الهجري","السنة الهجرية","الموقع","الحالة","آخر تعديل"
+                "رقم الدوسية", "التسلسل", "اسم السجين", "رقم السجين",
+                "الشهر الهجري", "السنة الهجرية", "الموقع", "الحالة", "آخر تعديل"
             };
-            foreach (var cf in _customFields) headers.Add(cf.ArabicLabel);
+            foreach (var cf in _customFields)
+                headers.Add(cf.ArabicLabel);
+
             sb.AppendLine(string.Join(",", headers.Select(CsvEscape)));
 
             foreach (var row in rows)
@@ -291,7 +364,8 @@ namespace ArchiveSystem.Views.Pages
                     CsvEscape(row.UpdatedAt ?? row.CreatedAt ?? "")
                 };
                 foreach (var cf in _customFields)
-                    cells.Add(CsvEscape(row.CustomValues.TryGetValue(cf.CustomFieldId, out var v) ? v ?? "" : ""));
+                    cells.Add(CsvEscape(
+                        row.CustomValues.TryGetValue(cf.CustomFieldId, out var v) ? v ?? "" : ""));
 
                 sb.AppendLine(string.Join(",", cells));
             }
