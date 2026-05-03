@@ -874,6 +874,7 @@ namespace ArchiveSystem.Core.Services
         /// <summary>
         /// Caller MUST call BackupService.CreateBackup() BEFORE calling this method.
         /// </summary>
+
         public string? RollbackBatch(int batchId)
         {
             using var conn = _db.CreateConnection();
@@ -884,38 +885,72 @@ namespace ArchiveSystem.Core.Services
                 string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
 
+                // ── 1. Soft-delete all imported records for this batch ────────────
                 conn.Execute(@"
-                    UPDATE Records
-                    SET DeletedAt = @Now, DeletedByUserId = @UserId, Status = 'Deleted'
-                    WHERE ImportBatchId = @BatchId AND DeletedAt IS NULL",
+            UPDATE Records
+            SET DeletedAt       = @Now,
+                DeletedByUserId = @UserId,
+                Status          = 'Deleted'
+            WHERE ImportBatchId = @BatchId
+            AND   DeletedAt IS NULL",
                     new { Now = now, UserId = userId, BatchId = batchId }, tx);
 
+                // ── 2. Find every dossier created by this batch ───────────────────
                 var importedDossierIds = conn.Query<int>(
                     "SELECT DossierId FROM Dossiers WHERE ImportBatchId = @BatchId",
                     new { BatchId = batchId }, tx).ToList();
 
+                // ── 3. Soft-delete dossiers that have no surviving manual records ─
+                //       A dossier that already contained manual records before the
+                //       import should NOT be soft-deleted — only its imported records
+                //       (handled above) are removed.
                 foreach (var did in importedDossierIds)
                 {
                     int manualRecords = conn.ExecuteScalar<int>(@"
-                        SELECT COUNT(*) FROM Records
-                        WHERE DossierId = @Did
-                        AND (ImportBatchId IS NULL OR ImportBatchId != @BatchId)
-                        AND DeletedAt IS NULL",
+                SELECT COUNT(*) FROM Records
+                WHERE DossierId     = @Did
+                AND  (ImportBatchId IS NULL OR ImportBatchId != @BatchId)
+                AND   DeletedAt     IS NULL",
                         new { Did = did, BatchId = batchId }, tx);
 
-                    if (manualRecords == 0)
-                        conn.Execute("DELETE FROM Dossiers WHERE DossierId = @Did",
-                            new { Did = did }, tx);
+                    if (manualRecords > 0)
+                        continue;   // leave this dossier intact — it has non-import records
+
+                    // Soft-delete the dossier
+                    conn.Execute(@"
+                UPDATE Dossiers
+                SET DeletedAt       = @Now,
+                    DeletedByUserId = @UserId,
+                    Status          = 'Archived',
+                    UpdatedAt       = @Now
+                WHERE DossierId = @Did",
+                        new { Now = now, UserId = userId, Did = did }, tx);
+
+                    // Per-dossier audit entry — mirrors DossierService.DeleteDossier
+                    conn.Execute(@"
+                INSERT INTO AuditLog
+                    (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
+                VALUES (@UserId, @Action, 'Dossier', @EntityId, @Desc, @Now)",
+                        new
+                        {
+                            UserId = userId,
+                            Action = AuditActions.DossierDeleted,
+                            EntityId = did,
+                            Desc = $"حذف دوسية {did} — تراجع عن استيراد الدفعة رقم {batchId}",
+                            Now = now
+                        }, tx);
                 }
 
+                // ── 4. Mark the batch as rolled back ─────────────────────────────
                 conn.Execute(
                     "UPDATE ImportBatches SET Status = 'RolledBack' WHERE ImportBatchId = @Id",
                     new { Id = batchId }, tx);
 
+                // ── 5. Batch-level audit entry ────────────────────────────────────
                 conn.Execute(@"
-                    INSERT INTO AuditLog
-                        (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
-                    VALUES (@UserId, 'ImportRolledBack', 'ImportBatch', @EntityId, @Desc, @Now)",
+            INSERT INTO AuditLog
+                (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
+            VALUES (@UserId, 'ImportRolledBack', 'ImportBatch', @EntityId, @Desc, @Now)",
                     new
                     {
                         UserId = userId,
