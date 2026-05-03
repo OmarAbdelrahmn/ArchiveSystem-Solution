@@ -25,20 +25,21 @@ namespace ArchiveSystem.Views.Pages
             Loaded += (s, e) => ApplyPermissions();
         }
 
-
         private void ApplyPermissions()
         {
             // Dossier face section — needs PrintDossierFace
             PermissionHelper.Apply(DossierFacePreviewBtn, Permissions.PrintDossierFace, hideInstead: true);
             PermissionHelper.Apply(DossierFaceSaveBtn, Permissions.PrintDossierFace, hideInstead: true);
+            PermissionHelper.Apply(DossierFacePrintBtn, Permissions.PrintDossierFace, hideInstead: true);
 
             // Monthly/Yearly reports — needs PrintReports
             PermissionHelper.Apply(MonthlyPreviewBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(MonthlySaveBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(MonthlyPrintBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(YearlyPreviewBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(YearlySaveBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(YearlyPrintBtn, Permissions.PrintReports, hideInstead: true);
         }
-
 
         // ─────────────────────────────────────────────────────────────────────
         // DOSSIER FACE
@@ -49,10 +50,7 @@ namespace ArchiveSystem.Views.Pages
             var data = LoadDossierFaceOrError();
             if (data == null) return;
 
-            // Generate to temp file then open
-            string path = Path.Combine(Path.GetTempPath(),
-                $"dossier_face_{data.DossierNumber}_{DateTime.Now:yyyyMMddHHmm}.pdf");
-
+            string path = TempPdfPath($"dossier_face_{data.DossierNumber}");
             var err = _reportService.GenerateDossierFacePdf(data, path);
             if (err != null) { ShowError(err); return; }
 
@@ -64,8 +62,7 @@ namespace ArchiveSystem.Views.Pages
             var data = LoadDossierFaceOrError();
             if (data == null) return;
 
-            string? path = PickSavePath(
-                $"dossier_{data.DossierNumber}_{data.HijriMonth}_{data.HijriYear}");
+            string? path = PickSavePath($"dossier_{data.DossierNumber}_{data.HijriMonth}_{data.HijriYear}");
             if (path == null) return;
 
             var err = _reportService.GenerateDossierFacePdf(data, path);
@@ -73,6 +70,17 @@ namespace ArchiveSystem.Views.Pages
 
             ShowSuccess($"تم حفظ الملف: {path}");
             OpenFile(path);
+        }
+
+        /// <summary>Sends directly to the printer via the Shell "print" verb.</summary>
+        private void PrintDossierFaceDirect_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadDossierFaceOrError();
+            if (data == null) return;
+
+            var err = _reportService.PrintDossierFaceDirect(data);
+            if (err != null) ShowError(err);
+            else ShowSuccess("تم إرسال الملف إلى الطابعة.");
         }
 
         private DossierFaceData? LoadDossierFaceOrError()
@@ -116,9 +124,7 @@ namespace ArchiveSystem.Views.Pages
             var data = LoadMonthlyOrError();
             if (data == null) return;
 
-            string path = Path.Combine(Path.GetTempPath(),
-                $"monthly_{data.Period.Replace(" ", "_").Replace("/", "-")}_{DateTime.Now:yyyyMMddHHmm}.pdf");
-
+            string path = TempPdfPath($"monthly_{data.Period.Replace(" ", "_").Replace("/", "-")}");
             var err = _reportService.GeneratePeriodReportPdf(data, path);
             if (err != null) { ShowError(err); return; }
 
@@ -138,6 +144,16 @@ namespace ArchiveSystem.Views.Pages
 
             ShowSuccess($"تم حفظ الملف: {path}");
             OpenFile(path);
+        }
+
+        private void PrintMonthlyDirect_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadMonthlyOrError();
+            if (data == null) return;
+
+            var err = _reportService.PrintPeriodReportDirect(data);
+            if (err != null) ShowError(err);
+            else ShowSuccess("تم إرسال التقرير الشهري إلى الطابعة.");
         }
 
         private PeriodReportData? LoadMonthlyOrError()
@@ -166,9 +182,7 @@ namespace ArchiveSystem.Views.Pages
             var data = LoadYearlyOrError();
             if (data == null) return;
 
-            string path = Path.Combine(Path.GetTempPath(),
-                $"yearly_{YearlyYearBox.Text}_{DateTime.Now:yyyyMMddHHmm}.pdf");
-
+            string path = TempPdfPath($"yearly_{YearlyYearBox.Text}");
             var err = _reportService.GeneratePeriodReportPdf(data, path);
             if (err != null) { ShowError(err); return; }
 
@@ -190,6 +204,16 @@ namespace ArchiveSystem.Views.Pages
             OpenFile(path);
         }
 
+        private void PrintYearlyDirect_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadYearlyOrError();
+            if (data == null) return;
+
+            var err = _reportService.PrintPeriodReportDirect(data);
+            if (err != null) ShowError(err);
+            else ShowSuccess("تم إرسال التقرير السنوي إلى الطابعة.");
+        }
+
         private PeriodReportData? LoadYearlyOrError()
         {
             HideMsg();
@@ -207,6 +231,10 @@ namespace ArchiveSystem.Views.Pages
         // ─────────────────────────────────────────────────────────────────────
         // HELPERS
         // ─────────────────────────────────────────────────────────────────────
+
+        private static string TempPdfPath(string baseName)
+            => Path.Combine(Path.GetTempPath(),
+                $"{baseName}_{DateTime.Now:yyyyMMddHHmm}.pdf");
 
         private static string? PickSavePath(string defaultName)
         {
@@ -230,12 +258,9 @@ namespace ArchiveSystem.Views.Pages
         private void ShowError(string msg)
         {
             MsgText.Text = msg;
-            MsgBorder.Background = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#FFEBEE"));
-            MsgBorder.BorderBrush = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#EF9A9A"));
-            MsgText.Foreground = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#C62828"));
+            MsgBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFEBEE"));
+            MsgBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF9A9A"));
+            MsgText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C62828"));
             MsgBorder.BorderThickness = new Thickness(1);
             MsgBorder.Visibility = Visibility.Visible;
         }
@@ -243,12 +268,9 @@ namespace ArchiveSystem.Views.Pages
         private void ShowSuccess(string msg)
         {
             MsgText.Text = msg;
-            MsgBorder.Background = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#E8F5E9"));
-            MsgBorder.BorderBrush = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#A5D6A7"));
-            MsgText.Foreground = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#2E7D32"));
+            MsgBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E8F5E9"));
+            MsgBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A5D6A7"));
+            MsgText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"));
             MsgBorder.BorderThickness = new Thickness(1);
             MsgBorder.Visibility = Visibility.Visible;
         }

@@ -24,7 +24,7 @@
 
         <!-- CONTENT -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="32,28,32,40" MaxWidth="900">
+            <StackPanel Margin="32,28,32,40" MaxWidth="960">
 
                 <!-- ══ DOSSIER FACE ═══════════════════════════════════════════ -->
                 <Border Background="White" CornerRadius="8" Padding="24"
@@ -50,12 +50,15 @@
                                    FontSize="12" Foreground="#666"
                                    Margin="0,0,0,16"/>
 
+                        <!-- Input + three action buttons -->
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
@@ -66,6 +69,7 @@
                                      Height="44"
                                      PreviewTextInput="NumberOnly"/>
 
+                            <!-- Preview (open PDF in viewer) -->
                             <Button x:Name="DossierFacePreviewBtn"
                                     Grid.Column="2"
                                     Content="🔍 معاينة"
@@ -73,13 +77,22 @@
                                     Height="44" Width="110"
                                     Click="PreviewDossierFace_Click"/>
 
+                            <!-- Save PDF to file -->
                             <Button x:Name="DossierFaceSaveBtn"
                                     Grid.Column="4"
                                     Content="💾 حفظ PDF"
-                                    Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
                                     Height="44" Width="120"
                                     Click="SaveDossierFacePdf_Click"/>
+
+                            <!-- Direct print (sends to printer) -->
+                            <Button x:Name="DossierFacePrintBtn"
+                                    Grid.Column="6"
+                                    Content="🖨️ طباعة مباشرة"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#1a7a60" Foreground="White"
+                                    Height="44" Width="150"
+                                    Click="PrintDossierFaceDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>
@@ -111,11 +124,13 @@
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
@@ -143,10 +158,17 @@
                             <Button x:Name="MonthlySaveBtn"
                                     Grid.Column="6"
                                     Content="💾 حفظ PDF"
-                                    Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
                                     Height="44" Width="120"
                                     Click="SaveMonthlyPdf_Click"/>
+
+                            <Button x:Name="MonthlyPrintBtn"
+                                    Grid.Column="8"
+                                    Content="🖨️ طباعة مباشرة"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#1a7a60" Foreground="White"
+                                    Height="44" Width="150"
+                                    Click="PrintMonthlyDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>
@@ -178,9 +200,11 @@
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
@@ -201,10 +225,17 @@
                             <Button x:Name="YearlySaveBtn"
                                     Grid.Column="4"
                                     Content="💾 حفظ PDF"
-                                    Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
                                     Height="44" Width="120"
                                     Click="SaveYearlyPdf_Click"/>
+
+                            <Button x:Name="YearlyPrintBtn"
+                                    Grid.Column="6"
+                                    Content="🖨️ طباعة مباشرة"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#1a7a60" Foreground="White"
+                                    Height="44" Width="150"
+                                    Click="PrintYearlyDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>

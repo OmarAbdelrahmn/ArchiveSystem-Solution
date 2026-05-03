@@ -9,12 +9,20 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="64"/>
+            <!-- header -->
             <RowDefinition Height="Auto"/>
+            <!-- dashboard cards -->
             <RowDefinition Height="Auto"/>
+            <!-- search bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- custom field filter row -->
+            <RowDefinition Height="Auto"/>
+            <!-- result count -->
             <RowDefinition Height="*"/>
+            <!-- results / recent dossiers -->
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
         <Border Grid.Row="0" Background="White"
                 BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
             <TextBlock Text="🔍  البحث"
@@ -24,13 +32,21 @@
                        Margin="32,0"/>
         </Border>
 
-        <!-- Search bar -->
-        <Border Grid.Row="1"
+        <!-- ══ DASHBOARD STAT CARDS ════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Background="White"
+                BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
+                Padding="24,14">
+            <UniformGrid x:Name="StatsPanel" Columns="4"/>
+        </Border>
+
+        <!-- ══ SEARCH BAR ══════════════════════════════════════════════════════ -->
+        <Border Grid.Row="2"
                 Background="White"
-                Padding="32,20">
+                Padding="32,16,32,12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
@@ -50,53 +66,165 @@
                         Height="40" Width="90"
                         Margin="12,0,0,0"
                         Click="Search_Click"/>
+
+                <Button x:Name="ClearBtn"
+                        Grid.Column="2"
+                        Content="✕ مسح"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Foreground="#C62828"
+                        Height="40" Width="80"
+                        Margin="6,0,0,0"
+                        Visibility="Collapsed"
+                        Click="Clear_Click"/>
             </Grid>
         </Border>
 
-        <!-- Result count -->
-        <Border Grid.Row="2"
-                Padding="32,8"
-                Background="#F5F5F5">
-            <TextBlock x:Name="ResultCountText"
-                       FontSize="12"
-                       Foreground="#888"/>
+        <!-- ══ CUSTOM FIELD FILTER ROW ═════════════════════════════════════════ -->
+        <Border Grid.Row="3"
+                x:Name="CustomFilterBorder"
+                Background="#F9F9F9"
+                BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
+                Padding="32,10"
+                Visibility="Collapsed">
+            <WrapPanel x:Name="CustomFilterPanel" VerticalAlignment="Center">
+                <TextBlock Text="فلتر حقل مخصص:"
+                           FontSize="12" Foreground="#666"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+                <!-- Combo + TextBox injected in code-behind -->
+                <ComboBox x:Name="CustomFieldCombo"
+                          materialDesign:HintAssist.Hint="اختر الحقل"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          DisplayMemberPath="ArabicLabel"
+                          SelectedValuePath="CustomFieldId"
+                          Width="180" Height="36"
+                          Margin="0,0,10,0"
+                          SelectionChanged="CustomFieldCombo_SelectionChanged"/>
+                <TextBox x:Name="CustomFieldValueBox"
+                         materialDesign:HintAssist.Hint="قيمة الحقل..."
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Width="200" Height="36"
+                         Margin="0,0,10,0"
+                         TextChanged="SearchBox_TextChanged"/>
+                <Button Content="مسح الفلتر"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Foreground="#C62828"
+                        Height="36"
+                        Click="ClearCustomFilter_Click"/>
+            </WrapPanel>
         </Border>
 
-        <!-- Results table -->
-        <DataGrid Grid.Row="3"
-                  x:Name="ResultsGrid"
-                  Margin="24,0,24,24"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  SelectionMode="Single"
-                  Style="{StaticResource MaterialDesignDataGrid}"
-                  materialDesign:DataGridAssist.CellPadding="12 8 12 8"
-                  RowBackground="White"
-                  AlternatingRowBackground="#F9FBF9"
-                  MouseDoubleClick="ResultsGrid_DoubleClick">
+        <!-- ══ RESULT COUNT + ACTION BUTTONS ══════════════════════════════════ -->
+        <Border Grid.Row="4"
+                Padding="32,6"
+                Background="#F5F5F5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="رقم الدوسية"
-                                    Binding="{Binding DossierNumber}"
-                                    Width="110"/>
-                <DataGridTextColumn Header="التسلسل"
-                                    Binding="{Binding SequenceNumber}"
-                                    Width="80"/>
-                <DataGridTextColumn Header="اسم السجين"
-                                    Binding="{Binding PersonName}"
-                                    Width="*"/>
-                <DataGridTextColumn Header="رقم السجين"
-                                    Binding="{Binding PrisonerNumber}"
-                                    Width="130"/>
-                <DataGridTextColumn Header="التاريخ الهجري"
-                                    Binding="{Binding HijriDisplay}"
-                                    Width="110"/>
-                <DataGridTextColumn Header="الموقع"
-                                    Binding="{Binding LocationDisplay}"
-                                    Width="200"/>
-            </DataGrid.Columns>
-        </DataGrid>
+                <TextBlock Grid.Column="0"
+                           x:Name="ResultCountText"
+                           FontSize="12"
+                           Foreground="#888"
+                           VerticalAlignment="Center"/>
+
+                <!-- Quick-print button — visible only when a row is selected -->
+                <Button x:Name="QuickPrintBtn"
+                        Grid.Column="1"
+                        Content="🖨️ طباعة واجهة الدوسية"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Height="34"
+                        Visibility="Collapsed"
+                        Click="QuickPrint_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- ══ RESULTS / RECENT DOSSIERS AREA ═════════════════════════════════ -->
+        <Grid Grid.Row="5">
+            <!-- Search results (shown after a search) -->
+            <DataGrid x:Name="ResultsGrid"
+                      Margin="24,0,24,24"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      SelectionMode="Single"
+                      Style="{StaticResource MaterialDesignDataGrid}"
+                      materialDesign:DataGridAssist.CellPadding="12 8 12 8"
+                      RowBackground="White"
+                      AlternatingRowBackground="#F9FBF9"
+                      Visibility="Collapsed"
+                      SelectionChanged="ResultsGrid_SelectionChanged"
+                      MouseDoubleClick="ResultsGrid_DoubleClick">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="رقم الدوسية"
+                                        Binding="{Binding DossierNumber}"
+                                        Width="110"/>
+                    <DataGridTextColumn Header="التسلسل"
+                                        Binding="{Binding SequenceNumber}"
+                                        Width="80"/>
+                    <DataGridTextColumn Header="اسم السجين"
+                                        Binding="{Binding PersonName}"
+                                        Width="*"/>
+                    <DataGridTextColumn Header="رقم السجين"
+                                        Binding="{Binding PrisonerNumber}"
+                                        Width="130"/>
+                    <DataGridTextColumn Header="التاريخ الهجري"
+                                        Binding="{Binding HijriDisplay}"
+                                        Width="110"/>
+                    <DataGridTextColumn Header="الموقع"
+                                        Binding="{Binding LocationDisplay}"
+                                        Width="200"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Recent dossiers (shown when search is empty) -->
+            <Grid x:Name="RecentPanel" Margin="24,0,24,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="📂  آخر الدوسيات النشطة"
+                           FontSize="14" FontWeight="SemiBold"
+                           Foreground="#1a7a60"
+                           Margin="0,0,0,10"/>
+
+                <DataGrid Grid.Row="1"
+                          x:Name="RecentGrid"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          SelectionMode="Single"
+                          Style="{StaticResource MaterialDesignDataGrid}"
+                          materialDesign:DataGridAssist.CellPadding="12 7 12 7"
+                          RowBackground="White"
+                          AlternatingRowBackground="#F9FBF9"
+                          MouseDoubleClick="RecentGrid_DoubleClick">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="رقم الدوسية"
+                                            Binding="{Binding DossierNumber}"
+                                            Width="110"/>
+                        <DataGridTextColumn Header="التاريخ الهجري"
+                                            Binding="{Binding HijriDisplay}"
+                                            Width="110"/>
+                        <DataGridTextColumn Header="الموقع"
+                                            Binding="{Binding LocationDisplay}"
+                                            Width="180"/>
+                        <DataGridTextColumn Header="عدد السجلات"
+                                            Binding="{Binding RecordCount}"
+                                            Width="110"/>
+                        <DataGridTextColumn Header="آخر نشاط"
+                                            Binding="{Binding LastActivity}"
+                                            Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Grid>
 
     </Grid>
 </Page>
