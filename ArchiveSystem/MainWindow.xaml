@@ -1,10 +1,7 @@
 ﻿<Window x:Class="ArchiveSystem.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        mc:Ignorable="d"
         Title="أرشيف الملفات"
         Height="700" Width="1100"
         MinHeight="500" MinWidth="800"
@@ -27,19 +24,18 @@
                 <StackPanel DockPanel.Dock="Top" Margin="0,24,0,24">
                     <TextBlock Text="أرشيف الملفات"
                                Foreground="White"
-                               FontSize="20"
-                               FontWeight="Bold"
+                               FontSize="20" FontWeight="Bold"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="النظام غير متصل بالإنترنت"
-                               Foreground="#aaffdd"
-                               FontSize="11"
+                               Foreground="#aaffdd" FontSize="11"
                                HorizontalAlignment="Center"
                                Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <!-- Nav buttons -->
+                <!-- Nav buttons — each has x:Name so ApplyNavPermissions() can show/hide them -->
                 <StackPanel DockPanel.Dock="Top" Margin="8,0">
 
+                    <!-- Search: open to all — no name needed, never hidden -->
                     <Button Content="🔍   البحث"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
@@ -47,49 +43,56 @@
                             Height="46" Margin="0,2"
                             Click="NavSearch_Click"/>
 
-                    <Button Content="➕   إدخال بيانات"
+                    <Button x:Name="NavEntryButton"
+                            Content="➕   إدخال بيانات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
                             Height="46" Margin="0,2"
                             Click="NavEntry_Click"/>
 
-                    <Button Content="📋   كل البيانات"
+                    <Button x:Name="NavAllDataButton"
+                            Content="📋   كل البيانات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
                             Height="46" Margin="0,2"
                             Click="NavAllData_Click"/>
 
-                    <Button Content="📊   الإحصاءات"
+                    <Button x:Name="NavStatsButton"
+                            Content="📊   الإحصاءات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
                             Height="46" Margin="0,2"
                             Click="NavStats_Click"/>
 
-                    <Button Content="📥   استيراد Excel"
+                    <Button x:Name="NavImportButton"
+                            Content="📥   استيراد Excel"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
                             Height="46" Margin="0,2"
                             Click="NavImport_Click"/>
 
-                    <Button Content="🖨️   التقارير"
+                    <Button x:Name="NavReportsButton"
+                            Content="🖨️   التقارير"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
                             Height="46" Margin="0,2"
                             Click="NavReports_Click"/>
 
-                    <Button Content="📜   سجل المراجعة"
+                    <Button x:Name="NavAuditLogButton"
+                            Content="📜   سجل المراجعة"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
                             Height="46" Margin="0,2"
                             Click="NavAuditLog_Click"/>
 
-                    <Button Content="⚙️   الإعدادات"
+                    <Button x:Name="NavSettingsButton"
+                            Content="⚙️   الإعدادات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
@@ -104,9 +107,7 @@
                         BorderBrush="#2a8a70"
                         Padding="12,10">
                     <TextBlock x:Name="CurrentUserText"
-                               Text="مدير الأرشيف"
-                               Foreground="#ccffee"
-                               FontSize="12"
+                               Foreground="#ccffee" FontSize="12"
                                HorizontalAlignment="Center"/>
                 </Border>
 

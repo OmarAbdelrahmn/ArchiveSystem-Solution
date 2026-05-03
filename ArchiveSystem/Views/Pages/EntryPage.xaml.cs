@@ -1,10 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using ArchiveSystem.Core.Helpers;
+using ArchiveSystem.Core.Models;
+using ArchiveSystem.Core.Services;
+using Dapper;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using ArchiveSystem.Core.Services;
-using Dapper;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -24,6 +26,13 @@ namespace ArchiveSystem.Views.Pages
             _dossierService = new DossierService(App.Database);
             _recordService = new RecordService(App.Database);
             Loaded += (s, e) => SuggestDossierNumber();
+
+            Loaded += (s, e) =>
+            {
+                if (PermissionHelper.DenyPage(this, Permissions.AddRecord)) return;
+                SuggestDossierNumber();
+            };
+
         }
 
         // ── AUTO SUGGEST ──────────────────────────────
