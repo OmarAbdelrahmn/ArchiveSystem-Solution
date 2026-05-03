@@ -126,18 +126,10 @@ namespace ArchiveSystem.Core.Services
         }
 
         // ── Records by Gregorian calendar week ────────────────────────────────
-        /// <summary>
-        /// Returns record counts grouped by ISO calendar week (strftime %W = 00-53).
-        /// <paramref name="topN"/> controls how many of the most-recent weeks are returned.
-        /// Pass <paramref name="filterYear"/> to restrict to a single Gregorian year.
-        /// </summary>
         public List<WeeklyCount> GetWeeklyBreakdown(int? filterYear = null, int topN = 16)
         {
             using var conn = _db.CreateConnection();
 
-            // Build an optional year WHERE clause.
-            // CreatedAt is stored as ISO 8601 text ("yyyy-MM-ddTHH:mm:ss"), so
-            // strftime('%Y', ...) works correctly.
             string yearFilter = filterYear.HasValue
                 ? $"AND strftime('%Y', CreatedAt) = '{filterYear.Value}'"
                 : string.Empty;
@@ -156,11 +148,6 @@ namespace ArchiveSystem.Core.Services
                 new { TopN = topN }).AsList();
         }
 
-        /// <summary>
-        /// Returns the distinct Gregorian years present in the Records table,
-        /// newest first.  Used to populate the year filter drop-down for the
-        /// weekly breakdown.
-        /// </summary>
         public List<int> GetDistinctRecordYears()
         {
             using var conn = _db.CreateConnection();
@@ -249,9 +236,37 @@ GROUP BY Status;").AsList();
                 LIMIT @TopN",
                 new { Id = customFieldId, TopN = topN }).AsList();
 
-            // count of records with no value for this field
-            int totalActive = conn.ExecuteScalar<int>(
-                "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL");
+            // ── Denominator: only records created ON OR AFTER the field was created.
+            //
+            // The old code used COUNT(*) FROM Records (all active records globally).
+            // That inflates "غير مدخلة" for fields added after many records already
+            // existed, because those older records were never expected to have the
+            // field filled in the first place.
+            //
+            // The correct denominator is: active records whose CreatedAt is >= the
+            // field's own CreatedAt. Records predating the field are excluded because
+            // they pre-date the field's existence and cannot fairly be called "missing".
+            string? fieldCreatedAt = conn.ExecuteScalar<string?>(
+                "SELECT CreatedAt FROM CustomFields WHERE CustomFieldId = @Id",
+                new { Id = customFieldId });
+
+            int relevantTotal;
+            if (string.IsNullOrEmpty(fieldCreatedAt))
+            {
+                // Fallback: field creation date unknown — count all active records
+                relevantTotal = conn.ExecuteScalar<int>(
+                    "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL");
+            }
+            else
+            {
+                // Only records created on or after the field was introduced
+                relevantTotal = conn.ExecuteScalar<int>(@"
+                    SELECT COUNT(*)
+                    FROM Records
+                    WHERE DeletedAt IS NULL
+                    AND   CreatedAt >= @FieldCreatedAt",
+                    new { FieldCreatedAt = fieldCreatedAt });
+            }
 
             int filledCount = conn.ExecuteScalar<int>(@"
                 SELECT COUNT(DISTINCT RecordId)
@@ -260,7 +275,7 @@ GROUP BY Status;").AsList();
                 AND   ValueText IS NOT NULL AND ValueText != ''",
                 new { Id = customFieldId });
 
-            int emptyCount = totalActive - filledCount;
+            int emptyCount = relevantTotal - filledCount;
             if (emptyCount > 0)
             {
                 filled.Add(new CustomFieldStat

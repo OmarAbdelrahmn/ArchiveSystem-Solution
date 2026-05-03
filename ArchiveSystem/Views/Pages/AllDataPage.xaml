@@ -28,6 +28,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0"
@@ -36,15 +37,36 @@
                            Foreground="#1a7a60"
                            VerticalAlignment="Center"/>
 
+                <!-- "Select all filtered" toggle — only visible when a filter is active -->
+                <Border Grid.Column="1"
+                        x:Name="SelectAllBorder"
+                        Background="#F0F7F4"
+                        BorderBrush="#B2DFDB"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="10,0"
+                        Margin="0,0,10,0"
+                        Visibility="Collapsed"
+                        VerticalAlignment="Center">
+                    <CheckBox x:Name="SelectAllFilteredChk"
+                              Content="{Binding ElementName=SelectAllFilteredChk, Path=Tag}"
+                              Tag="تحديد كل النتائج (0)"
+                              Foreground="#1a7a60"
+                              FontSize="12"
+                              Height="36"
+                              Checked="SelectAllFiltered_Changed"
+                              Unchecked="SelectAllFiltered_Changed"/>
+                </Border>
+
                 <Button x:Name="BulkFillBtn"
-                        Grid.Column="1"
+                        Grid.Column="2"
                         Content="تعبئة جماعية"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Height="36" Margin="0,0,10,0"
                         Click="BulkFill_Click"/>
 
-                <Button x:Name="ExportBtn" 
-                        Grid.Column="2"
+                <Button x:Name="ExportBtn"
+                        Grid.Column="3"
                         Content="📤 تصدير CSV"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Height="36"

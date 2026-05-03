@@ -153,7 +153,8 @@ namespace ArchiveSystem.Core.Services
                     WHERE rcfv.RecordId IN ({string.Join(",", recordIds)})").AsList();
 
                 var lookup = values.GroupBy(v => v.RecordId)
-                    .ToDictionary(g => g.Key, g => g.ToDictionary(v => v.CustomFieldId, v => v.ValueText));
+                    .ToDictionary(g => g.Key,
+                                  g => g.ToDictionary(v => v.CustomFieldId, v => v.ValueText));
 
                 foreach (var row in rows)
                 {
@@ -169,6 +170,32 @@ namespace ArchiveSystem.Core.Services
                 Page = filter.Page,
                 PageSize = filter.PageSize
             };
+        }
+
+        // ── ALL record IDs matching the current filter (no paging) ────────────
+        /// <summary>
+        /// Returns every active RecordId that satisfies <paramref name="filter"/>,
+        /// ignoring Page / PageSize entirely.  Used by "تعبئة الكل" so the user
+        /// can bulk-fill across all pages, not just the visible one.
+        /// Deleted records are always excluded regardless of StatusFilter because
+        /// soft-deleted records must never be bulk-filled.
+        /// </summary>
+        public List<int> GetFilteredIds(AllDataFilter filter)
+        {
+            using var conn = _db.CreateConnection();
+
+            // Always force active-only for bulk fill
+            var activeFilter = filter with { StatusFilter = "Active" };
+            var (where, p) = BuildWhere(activeFilter);
+
+            return conn.Query<int>($@"
+                SELECT DISTINCT r.RecordId
+                FROM Records r
+                JOIN  Dossiers  d ON d.DossierId  = r.DossierId
+                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+                {where}
+                ORDER BY r.RecordId",
+                p).AsList();
         }
 
         // ── Bulk fill custom field ─────────────────────────────────────────────
@@ -198,7 +225,14 @@ namespace ArchiveSystem.Core.Services
                             ValueText       = @Value,
                             UpdatedAt       = @Now,
                             UpdatedByUserId = @UserId",
-                        new { RecordId = rid, FieldId = customFieldId, Value = value, Now = now, UserId = userId }, tx);
+                        new
+                        {
+                            RecordId = rid,
+                            FieldId = customFieldId,
+                            Value = value,
+                            Now = now,
+                            UserId = userId
+                        }, tx);
                 }
 
                 var fieldLabel = conn.ExecuteScalar<string>(
@@ -221,7 +255,14 @@ namespace ArchiveSystem.Core.Services
                     INSERT INTO BulkFieldUpdateBatches
                         (CustomFieldId, NewValue, RecordCount, ExecutedByUserId, ExecutedAt)
                     VALUES (@FieldId, @Value, @Count, @UserId, @Now)",
-                    new { FieldId = customFieldId, Value = value, Count = recordIds.Count, UserId = userId, Now = now }, tx);
+                    new
+                    {
+                        FieldId = customFieldId,
+                        Value = value,
+                        Count = recordIds.Count,
+                        UserId = userId,
+                        Now = now
+                    }, tx);
 
                 tx.Commit();
                 return (null, recordIds.Count);
@@ -260,9 +301,9 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<int>(@"
-            SELECT DISTINCT HijriYear FROM Dossiers
-            WHERE DeletedAt IS NULL          -- ← ADD THIS LINE
-            ORDER BY HijriYear DESC").AsList();
+                SELECT DISTINCT HijriYear FROM Dossiers
+                WHERE DeletedAt IS NULL
+                ORDER BY HijriYear DESC").AsList();
         }
 
         // ── WHERE clause builder ──────────────────────────────────────────────
@@ -271,9 +312,8 @@ namespace ArchiveSystem.Core.Services
             var conditions = new List<string>();
             var p = new DynamicParameters();
 
-            conditions.Add("d.DeletedAt IS NULL");   // ← ADD THIS LINE
+            conditions.Add("d.DeletedAt IS NULL");
 
-            // ── Status filter (replaces the old hard-coded DeletedAt IS NULL) ──
             switch (f.StatusFilter)
             {
                 case "Active":
