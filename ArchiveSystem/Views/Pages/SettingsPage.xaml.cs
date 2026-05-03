@@ -88,9 +88,8 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(RestoreBackupBtn, Permissions.RestoreBackup, hideInstead: true);
             PermissionHelper.Apply(CleanBackupsBtn, Permissions.CreateBackup, hideInstead: true);
 
-            // App settings tab
+            // App settings tab — SaveSettingsBtn permission
             PermissionHelper.Apply(SaveSettingsBtn, Permissions.ManageSettings, hideInstead: true);
-            BrowseBackupPath.IsEnabled = PermissionHelper.Can(Permissions.ManageSettings);
         }
 
         // ═════════════════════════════════════════════════════════════════════
@@ -230,7 +229,6 @@ namespace ArchiveSystem.Views.Pages
 
         private void OpenEditFieldDialog(int customFieldId)
         {
-            // Load full field from DB
             var field = _customFieldService.GetAllFields()
                 .FirstOrDefault(f => f.CustomFieldId == customFieldId);
 
@@ -290,7 +288,6 @@ namespace ArchiveSystem.Views.Pages
             var err = _locationService.CreateLocation(h, c, s, label, capacity);
             if (err != null) { ShowLocError(err); return; }
 
-            // Clear inputs
             LocHallwayBox.Text = LocCabinetBox.Text = LocShelfBox.Text = string.Empty;
             LocLabelBox.Text = LocCapacityBox.Text = string.Empty;
             LoadLocations();
@@ -349,10 +346,8 @@ namespace ArchiveSystem.Views.Pages
         {
             BackupHistoryGrid.ItemsSource = _backupService.GetBackupHistory(30);
 
-            // Update retention info text
             int days = GetRetentionDays();
-            RetentionInfoText.Text =
-                $"حذف النسخ التلقائية الأقدم من {days} يوم";
+            RetentionInfoText.Text = $"حذف النسخ التلقائية الأقدم من {days} يوم";
         }
 
         private void CreateBackup_Click(object sender, RoutedEventArgs e)
@@ -517,14 +512,13 @@ namespace ArchiveSystem.Views.Pages
                 SaveSetting(conn, SettingKeys.AuditImportsEnabled,
                     BoolStr(AuditImportsChk), now, userId);
 
-                // Audit the change
                 conn.Execute(@"
                     INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
                     VALUES (@UserId, 'SettingsChanged', 'تم تعديل إعدادات النظام', @Now)",
                     new { UserId = userId, Now = now });
 
                 ShowSettingsMsg("✅ تم حفظ الإعدادات بنجاح.", success: true);
-                LoadBackupHistory(); // refresh retention info
+                LoadBackupHistory();
             }
             catch (Exception ex)
             {
@@ -534,7 +528,6 @@ namespace ArchiveSystem.Views.Pages
 
         private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
         {
-            // Use FolderBrowserDialog via WPF workaround
             var dialog = new System.Windows.Forms.FolderBrowserDialog
             {
                 Description = "اختر مجلد حفظ النسخ الاحتياطية",
