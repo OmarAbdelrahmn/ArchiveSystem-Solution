@@ -132,6 +132,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void LoadAll()
         {
+            AppVersionLabel.Text = App.AppVersion;
             ApplyPermissions();
             LoadUsers();
             LoadRoles();

@@ -460,6 +460,37 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16" MaxWidth="720">
 
+                        <!-- App version (read-only) --> ← ADD FROM HERE
+                        <Border Background="White" CornerRadius="8" Padding="16,12"
+                            Margin="0,0,0,16">  
+                                            <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="4" Opacity="0.08" ShadowDepth="1"/>
+                                                </Border.Effect>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <TextBlock Text="ℹ️  إصدار النظام"
+                                           FontSize="13" FontWeight="Bold"
+                                           Foreground="#1a7a60"/>
+                                                        <TextBlock Text="رقم الإصدار الحالي المثبَّت"
+                                           FontSize="11" Foreground="#888"
+                                           Margin="0,2,0,0"/>
+                                                    </StackPanel>
+
+                                                    <Border Grid.Column="1"
+                                    Background="#F0F7F4" CornerRadius="6"
+                                    Padding="14,6" VerticalAlignment="Center">
+                                                <TextBlock x:Name="AppVersionLabel"
+                                           FontSize="16" FontWeight="Bold"
+                                           Foreground="#1a7a60"/>   
+                                </Border>
+                            </Grid>
+                        </Border>
+
                         <!-- Backup settings group -->
                         <Border Background="White" CornerRadius="8" Padding="20"
                                 Margin="0,0,0,16">

@@ -17,6 +17,8 @@ namespace ArchiveSystem
             var user = UserSession.CurrentUser;
             CurrentUserText.Text = user?.FullName ?? "مستخدم";
 
+            AppVersionText.Text = $"v{App.AppVersion}";
+
             ApplyNavPermissions();
             MainFrame.Navigate(new SearchPage());
         }

@@ -12,6 +12,8 @@ namespace ArchiveSystem
         public static DatabaseContext Database { get; private set; } = null!;
         public static string DbPath { get; private set; } = string.Empty;
         public static BackupService Backup { get; private set; } = null!;
+        /// <summary>Assembly version string, e.g. "1.0.0".</summary>
+        public static string AppVersion { get; private set; } = "1.0.0";
 
         /// <summary>
         /// The FontScale key read from AppSettings on startup ("Normal" or "Large").
@@ -35,6 +37,8 @@ namespace ArchiveSystem
             Database = new DatabaseContext(DbPath);
             Database.InitializeDatabase();
 
+            WriteVersionToDatabase();
+
             // ── Read font scale so every subsequent window can apply it ──────
             try
             {
@@ -57,6 +61,42 @@ namespace ArchiveSystem
             // ── Open login window ────────────────────────────────────────────
             var loginWindow = new LoginWindow();
             loginWindow.Show();
+        }
+
+        /// <summary>
+        /// Reads the assembly version (set in .csproj &lt;Version&gt;) and upserts it
+        /// into AppSettings so the running version is always recorded in the DB.
+        /// </summary>
+        private static void WriteVersionToDatabase()
+        {
+            try
+            {
+                var raw = System.Reflection.Assembly
+                              .GetExecutingAssembly()
+                              .GetName().Version;
+
+                // Format as "Major.Minor.Patch" — drop the always-zero revision
+                string version = raw != null
+                    ? $"{raw.Major}.{raw.Minor}.{raw.Build}"
+                    : "1.0.0";
+
+                AppVersion = version;   // ← ADD HERE, before the DB write
+
+
+                using var conn = Database.CreateConnection();
+                conn.Execute(@"
+            INSERT INTO AppSettings (SettingKey, SettingValue, UpdatedAt)
+            VALUES (@Key, @Value, @Now)
+            ON CONFLICT(SettingKey)
+            DO UPDATE SET SettingValue = @Value, UpdatedAt = @Now",
+                    new
+                    {
+                        Key = SettingKeys.AppVersion,
+                        Value = version,
+                        Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
+                    });
+            }
+            catch { /* non-critical — never block startup */ }
         }
     }
 }

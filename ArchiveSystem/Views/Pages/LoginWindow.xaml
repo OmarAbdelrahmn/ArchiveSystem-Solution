@@ -150,17 +150,19 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- FOOTER -->
         <Border Grid.Row="2"
-                BorderThickness="0,1,0,0"
-                BorderBrush="#E0E0E0"
-                Padding="16,0">
-            <TextBlock x:Name="LastBackupText"
-                       Text="جاري التحقق من آخر نسخة احتياطية..."
-                       FontSize="11"
-                       Foreground="#888"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"/>
+        BorderThickness="0,1,0,0"
+        BorderBrush="#E0E0E0"
+        Padding="16,0">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="LastBackupText"
+                   FontSize="11" Foreground="#888"
+                   HorizontalAlignment="Center"/>
+                <TextBlock x:Name="VersionText"
+                   FontSize="10" Foreground="#BBBBBB"
+                   HorizontalAlignment="Center"
+                   Margin="0,2,0,0"/>
+            </StackPanel>
         </Border>
 
     </Grid>

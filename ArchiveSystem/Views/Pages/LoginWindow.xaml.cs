@@ -55,6 +55,8 @@ namespace ArchiveSystem
                 ? $"آخر نسخة احتياطية: {lastBackup}"
                 : "لا توجد نسخة احتياطية بعد";
 
+            VersionText.Text = $"الإصدار {App.AppVersion}";
+
             UsernameBox.Focus();
         }
 

@@ -101,14 +101,19 @@
 
                 </StackPanel>
 
-                <!-- Logged-in user footer -->
                 <Border DockPanel.Dock="Bottom"
-                        BorderThickness="0,1,0,0"
-                        BorderBrush="#2a8a70"
-                        Padding="12,10">
-                    <TextBlock x:Name="CurrentUserText"
+                    BorderThickness="0,1,0,0"
+                    BorderBrush="#2a8a70"
+                    Padding="12,10">
+                                <StackPanel>
+                                    <TextBlock x:Name="CurrentUserText"
                                Foreground="#ccffee" FontSize="12"
                                HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="AppVersionText"
+                               Foreground="#5a9a80" FontSize="10"
+                               HorizontalAlignment="Center"
+                               Margin="0,3,0,0"/>
+                    </StackPanel>
                 </Border>
 
             </DockPanel>
