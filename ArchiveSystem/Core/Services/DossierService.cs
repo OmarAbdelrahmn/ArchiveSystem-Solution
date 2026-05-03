@@ -201,5 +201,179 @@ namespace ArchiveSystem.Core.Services
                     CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                 }, tx);
         }
+
+        // ══════════════════════════════════════════════════════════════════════════════
+        // ADD THESE THREE METHODS TO DossierService.cs
+        // Place them anywhere inside the DossierService class body,
+        // for example after the existing GetMovementHistory() method.
+        // ══════════════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Updates dossier metadata: hijri date, expected count, and location.
+        /// Auto-creates the location if it does not exist.
+        /// Returns error string or null on success.
+        /// </summary>
+        public string? UpdateDossier(
+            int dossierId,
+            int hijriMonth,
+            int hijriYear,
+            int? expectedFileCount,
+            int hallway,
+            int cabinet,
+            int shelf)
+        {
+            if (hijriMonth < 1 || hijriMonth > 12)
+                return "الشهر الهجري يجب أن يكون بين 1 و 12.";
+            if (hijriYear < 1400 || hijriYear > 1600)
+                return "السنة الهجرية غير صحيحة.";
+            if (hallway <= 0 || cabinet <= 0 || shelf <= 0)
+                return "يرجى إدخال أرقام الممر والكبينة والرف.";
+
+            using var conn = _db.CreateConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                int locationId = GetOrCreateLocation(conn, hallway, cabinet, shelf, tx);
+                string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+
+                conn.Execute(@"
+            UPDATE Dossiers
+            SET HijriMonth        = @Month,
+                HijriYear         = @Year,
+                ExpectedFileCount = @Expected,
+                CurrentLocationId = @LocId,
+                UpdatedAt         = @Now
+            WHERE DossierId = @DossierId",
+                    new
+                    {
+                        Month = hijriMonth,
+                        Year = hijriYear,
+                        Expected = expectedFileCount.HasValue
+                                        ? (object)expectedFileCount.Value
+                                        : System.DBNull.Value,
+                        LocId = locationId,
+                        Now = now,
+                        DossierId = dossierId
+                    }, tx);
+
+                WriteAudit(conn, AuditActions.DossierEdited,
+                    $"تم تعديل بيانات دوسية {dossierId}",
+                    "Dossier", dossierId, tx);
+
+                tx.Commit();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                tx.Rollback();
+                return $"خطأ أثناء تعديل الدوسية: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Moves a dossier to a new physical location and records a movement entry.
+        /// Auto-creates the destination location if it does not exist.
+        /// Returns error string or null on success.
+        /// </summary>
+        public string? MoveDossier(int dossierId, int hallway, int cabinet, int shelf, string? reason)
+        {
+            if (hallway <= 0 || cabinet <= 0 || shelf <= 0)
+                return "يرجى إدخال أرقام الممر والكبينة والرف.";
+
+            using var conn = _db.CreateConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+
+                // Read current location
+                int? fromLocationId = conn.ExecuteScalar<int?>(
+                    "SELECT CurrentLocationId FROM Dossiers WHERE DossierId = @Id",
+                    new { Id = dossierId }, tx);
+
+                int toLocationId = GetOrCreateLocation(conn, hallway, cabinet, shelf, tx);
+
+                // Insert movement record
+                conn.Execute(@"
+            INSERT INTO DossierMovements
+                (DossierId, FromLocationId, ToLocationId, Reason, MovedByUserId, MovedAt)
+            VALUES
+                (@DossId, @FromId, @ToId, @Reason, @UserId, @Now)",
+                    new
+                    {
+                        DossId = dossierId,
+                        FromId = fromLocationId.HasValue ? (object)fromLocationId.Value : System.DBNull.Value,
+                        ToId = toLocationId,
+                        Reason = string.IsNullOrWhiteSpace(reason) ? (object)System.DBNull.Value : reason.Trim(),
+                        UserId = UserSession.CurrentUser?.UserId,
+                        Now = now
+                    }, tx);
+
+                // Update dossier current location
+                conn.Execute(@"
+            UPDATE Dossiers
+            SET CurrentLocationId = @LocId,
+                UpdatedAt         = @Now
+            WHERE DossierId = @Id",
+                    new { LocId = toLocationId, Now = now, Id = dossierId }, tx);
+
+                WriteAudit(conn, AuditActions.DossierMoved,
+                    $"نقل دوسية {dossierId} إلى ممر {hallway} - كبينة {cabinet} - رف {shelf}",
+                    "Dossier", dossierId, tx);
+
+                tx.Commit();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                tx.Rollback();
+                return $"خطأ أثناء تسجيل الحركة: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Changes the dossier status (Open / Complete / Archived).
+        /// Sets ClosedAt when status is not Open.
+        /// Returns error string or null on success.
+        /// </summary>
+        public string? SetDossierStatus(int dossierId, string newStatus)
+        {
+            if (newStatus is not ("Open" or "Complete" or "Archived"))
+                return "حالة غير مدعومة.";
+
+            using var conn = _db.CreateConnection();
+            string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+
+            conn.Execute(@"
+        UPDATE Dossiers
+        SET Status    = @Status,
+            ClosedAt  = @ClosedAt,
+            UpdatedAt = @Now
+        WHERE DossierId = @Id",
+                new
+                {
+                    Status = newStatus,
+                    ClosedAt = newStatus == "Open"
+                                   ? (object)System.DBNull.Value
+                                   : now,
+                    Now = now,
+                    Id = dossierId
+                });
+
+            WriteAudit(conn, AuditActions.DossierEdited,
+                $"تغيير حالة الدوسية {dossierId} إلى {newStatus}",
+                "Dossier", dossierId);
+
+            return null;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════════════
+        // ALSO: In GetMovementHistory(), add the MovedByUserName join if not present.
+        // Update the query to include:
+        //   LEFT JOIN Users u ON u.UserId = dm.MovedByUserId
+        // and add:
+        //   u.FullName AS MovedByUserName
+        // to the SELECT columns. The DossierMovement model already has MovedByUserName.
+        // ══════════════════════════════════════════════════════════════════════════════
     }
 }

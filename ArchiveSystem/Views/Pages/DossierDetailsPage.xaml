@@ -9,17 +9,17 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="64"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- ══ HEADER ══ -->
         <Border Grid.Row="0" Background="White"
                 BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
-            <Grid Margin="24,0">
+            <Grid Margin="16,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="0"
@@ -28,89 +28,172 @@
                         Foreground="#1a7a60"
                         Click="Back_Click"/>
 
-                <TextBlock Grid.Column="1"
-                           x:Name="HeaderTitle"
-                           Text="📁  تفاصيل الدوسية"
-                           FontSize="22" FontWeight="Bold"
-                           Foreground="#1a7a60"
-                           VerticalAlignment="Center"
-                           Margin="12,0"/>
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="8,0">
+                    <TextBlock x:Name="HeaderTitle"
+                               Text="📁  تفاصيل الدوسية"
+                               FontSize="20" FontWeight="Bold"
+                               Foreground="#1a7a60"
+                               VerticalAlignment="Center"/>
+                    <Border x:Name="StatusBadge"
+                            CornerRadius="12"
+                            Padding="10,3"
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            Background="#E8F5E9">
+                        <TextBlock x:Name="StatusBadgeText"
+                                   FontSize="12" FontWeight="SemiBold"
+                                   Foreground="#2E7D32"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Action buttons -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+
+                    <Button Content="🖨️ طباعة واجهة"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Height="34" Margin="0,0,8,0"
+                            Click="PrintFace_Click"/>
+
+                    <Button Content="✏️ تعديل الدوسية"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Height="34" Margin="0,0,8,0"
+                            Click="EditDossier_Click"/>
+
+                    <Button Content="🚚 نقل الدوسية"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Height="34" Margin="0,0,8,0"
+                            Click="MoveDossier_Click"/>
+
+                    <ComboBox x:Name="StatusCombo"
+                              materialDesign:HintAssist.Hint="تغيير الحالة"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Height="34" Width="145"
+                              SelectionChanged="StatusCombo_SelectionChanged">
+                        <ComboBoxItem Content="مفتوحة"     Tag="Open"/>
+                        <ComboBoxItem Content="مكتملة"     Tag="Complete"/>
+                        <ComboBoxItem Content="مؤرشفة"     Tag="Archived"/>
+                    </ComboBox>
+
+                </StackPanel>
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="1" Grid.RowSpan="2"
-                      VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="32,24">
+        <!-- ══ CONTENT ══ -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-                <!-- Dossier Info Card -->
-                <Border Background="White"
-                        CornerRadius="8"
-                        Padding="24"
-                        Margin="0,0,0,20">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6"
-                                          Opacity="0.08"
-                                          ShadowDepth="2"/>
-                    </Border.Effect>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+            <!-- Info Card -->
+            <Border Grid.Row="0"
+                    Background="White"
+                    BorderThickness="0,0,0,1" BorderBrush="#E8E8E8"
+                    Padding="24,16">
+                <UniformGrid Columns="5">
 
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="رقم الدوسية"
-                                       FontSize="12" Foreground="#888"/>
-                            <TextBlock x:Name="DossierNumberText"
-                                       FontSize="20" FontWeight="Bold"
-                                       Foreground="#1a7a60"
-                                       Margin="0,4,0,0"/>
-                        </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="رقم الدوسية"
+                                   FontSize="11" Foreground="#888"/>
+                        <TextBlock x:Name="DossierNumberText"
+                                   FontSize="22" FontWeight="Bold"
+                                   Foreground="#1a7a60"/>
+                    </StackPanel>
 
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="الموقع الفيزيائي"
-                                       FontSize="12" Foreground="#888"/>
-                            <TextBlock x:Name="LocationText"
-                                       FontSize="14" FontWeight="SemiBold"
-                                       Margin="0,4,0,0"/>
-                        </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="التاريخ الهجري"
+                                   FontSize="11" Foreground="#888"/>
+                        <TextBlock x:Name="HijriDateText"
+                                   FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
 
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="عدد الملفات"
-                                       FontSize="12" Foreground="#888"/>
-                            <TextBlock x:Name="FileCountText"
-                                       FontSize="14" FontWeight="SemiBold"
-                                       Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="الموقع الفيزيائي"
+                                   FontSize="11" Foreground="#888"/>
+                        <TextBlock x:Name="LocationText"
+                                   FontSize="13" FontWeight="SemiBold"/>
+                    </StackPanel>
 
-                <!-- Records Table -->
-                <Border Background="White"
-                        CornerRadius="8"
-                        Padding="20"
-                        Margin="0,0,0,20">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6"
-                                          Opacity="0.08"
-                                          ShadowDepth="2"/>
-                    </Border.Effect>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="عدد الملفات"
+                                   FontSize="11" Foreground="#888"/>
+                        <TextBlock x:Name="FileCountText"
+                                   FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+
                     <StackPanel>
-                        <TextBlock Text="قائمة السجناء"
-                                   FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60"
-                                   Margin="0,0,0,12"/>
+                        <TextBlock Text="تاريخ الإنشاء"
+                                   FontSize="11" Foreground="#888"/>
+                        <TextBlock x:Name="CreatedAtText"
+                                   FontSize="12" Foreground="#666"/>
+                    </StackPanel>
 
-                        <DataGrid x:Name="RecordsGrid"
+                </UniformGrid>
+            </Border>
+
+            <!-- Tab Control -->
+            <TabControl Grid.Row="1"
+                        Margin="12,8,12,12"
+                        Style="{StaticResource MaterialDesignTabControl}">
+
+                <!-- ══ RECORDS TAB ══ -->
+                <TabItem Header="السجلات">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Records toolbar -->
+                        <Border Grid.Row="0"
+                                Background="White"
+                                BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
+                                Padding="12,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0"
+                                           x:Name="RecordCountText"
+                                           FontSize="12" Foreground="#666"
+                                           VerticalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal">
+                                    <Button Content="✏️ تعديل السجل"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Height="32" Margin="0,0,8,0"
+                                            Click="EditRecord_Click"/>
+                                    <Button Content="🗑 حذف السجل"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Foreground="#C62828"
+                                            Height="32"
+                                            Click="DeleteRecord_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Records DataGrid -->
+                        <DataGrid Grid.Row="1"
+                                  x:Name="RecordsGrid"
                                   AutoGenerateColumns="False"
                                   IsReadOnly="True"
                                   CanUserAddRows="False"
+                                  SelectionMode="Single"
                                   Style="{StaticResource MaterialDesignDataGrid}"
                                   materialDesign:DataGridAssist.CellPadding="10 7 10 7"
                                   RowBackground="White"
                                   AlternatingRowBackground="#F9FBF9"
-                                  MaxHeight="380">
+                                  VirtualizingPanel.IsVirtualizing="True"
+                                  MouseDoubleClick="RecordsGrid_DoubleClick">
+
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="تسلسل"
                                     Binding="{Binding SequenceNumber}"
@@ -123,14 +206,123 @@
                                     Width="140"/>
                                 <DataGridTextColumn Header="ملاحظات"
                                     Binding="{Binding Notes}"
+                                    Width="160"/>
+                                <!-- Custom field columns injected in code-behind -->
+                            </DataGrid.Columns>
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="Deleted">
+                                            <Setter Property="Background"
+                                                    Value="#20E53935"/>
+                                            <Setter Property="Opacity" Value="0.6"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- ══ MOVEMENT HISTORY TAB ══ -->
+                <TabItem Header="حركة الدوسية">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Add movement form -->
+                        <Border Grid.Row="0"
+                                Background="#F0F7F4"
+                                BorderThickness="0,0,0,1" BorderBrush="#C8E6C9"
+                                Padding="16,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         x:Name="MoveHallwayBox"
+                                         materialDesign:HintAssist.Hint="ممر جديد *"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Width="100" Height="40"
+                                         PreviewTextInput="NumberOnly"/>
+
+                                <TextBox Grid.Column="2"
+                                         x:Name="MoveCabinetBox"
+                                         materialDesign:HintAssist.Hint="كبينة *"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Width="100" Height="40"
+                                         PreviewTextInput="NumberOnly"/>
+
+                                <TextBox Grid.Column="4"
+                                         x:Name="MoveShelfBox"
+                                         materialDesign:HintAssist.Hint="رف *"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Width="100" Height="40"
+                                         PreviewTextInput="NumberOnly"/>
+
+                                <TextBox Grid.Column="6"
+                                         x:Name="MoveReasonBox"
+                                         materialDesign:HintAssist.Hint="سبب النقل (اختياري)"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Height="40"/>
+
+                                <Button Grid.Column="8"
+                                        Content="🚚 تسجيل النقل"
+                                        Style="{StaticResource MaterialDesignRaisedButton}"
+                                        Background="#1a7a60" Foreground="White"
+                                        Height="40" Width="140"
+                                        Click="RegisterMove_Click"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Movement history grid -->
+                        <DataGrid Grid.Row="1"
+                                  x:Name="MovementsGrid"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  SelectionMode="Single"
+                                  Style="{StaticResource MaterialDesignDataGrid}"
+                                  materialDesign:DataGridAssist.CellPadding="10 7 10 7"
+                                  RowBackground="White"
+                                  AlternatingRowBackground="#F9FBF9">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="التاريخ"
+                                    Binding="{Binding MovedAt}"
+                                    Width="155"/>
+                                <DataGridTextColumn Header="من"
+                                    Binding="{Binding FromLocation.DisplayName}"
+                                    Width="*"/>
+                                <DataGridTextColumn Header="إلى"
+                                    Binding="{Binding ToLocation.DisplayName}"
+                                    Width="*"/>
+                                <DataGridTextColumn Header="السبب"
+                                    Binding="{Binding Reason}"
                                     Width="180"/>
+                                <DataGridTextColumn Header="بواسطة"
+                                    Binding="{Binding MovedByUserName}"
+                                    Width="130"/>
                             </DataGrid.Columns>
                         </DataGrid>
-                    </StackPanel>
-                </Border>
+                    </Grid>
+                </TabItem>
 
-            </StackPanel>
-        </ScrollViewer>
+            </TabControl>
+        </Grid>
 
     </Grid>
 </Page>
