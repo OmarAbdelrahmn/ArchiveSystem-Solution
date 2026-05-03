@@ -92,47 +92,50 @@
                          FontSize="14"
                          Margin="0,0,0,16"
                          KeyDown="Input_KeyDown"/>
-
                 <!-- Password with eye -->
                 <Grid Margin="0,0,0,24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Hidden password -->
                     <PasswordBox x:Name="PasswordBox"
-                                 Grid.Column="0"
-                                 materialDesign:HintAssist.Hint="كلمة المرور"
-                                 Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
-                                 FontSize="14"
-                                 KeyDown="Input_KeyDown" Grid.ColumnSpan="2"/>
+                 Grid.Column="0"
+                 Grid.ColumnSpan="2"
+                 materialDesign:HintAssist.Hint="كلمة المرور"
+                 Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                 FontSize="14"
+                 Padding="12,0,44,0"
+                 KeyDown="Input_KeyDown"/>
 
                     <!-- Visible password -->
                     <TextBox x:Name="PasswordVisibleBox"
-                             Grid.Column="0"
-                             materialDesign:HintAssist.Hint="كلمة المرور"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             FontSize="14"
-                             Visibility="Collapsed"
-                             KeyDown="Input_KeyDown"/>
+             Grid.Column="0"
+             Grid.ColumnSpan="2"
+             materialDesign:HintAssist.Hint="كلمة المرور"
+             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+             FontSize="14"
+             Padding="12,0,44,0"
+             Visibility="Collapsed"
+             KeyDown="Input_KeyDown"/>
 
                     <!-- Eye button -->
                     <Button x:Name="TogglePasswordButton"
-                            Margin="271,10,12,11"
-                            FontSize="16"
-                            Content="👁"
-                            Click="TogglePasswordButton_Click" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Background="White">
-                        <Button.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform/>
-                                <SkewTransform/>
-                                <RotateTransform Angle="0.669"/>
-                                <TranslateTransform/>
-                            </TransformGroup>
-                        </Button.RenderTransform>
-                    </Button>
+            Grid.Column="1"
+            Width="36"
+            Height="55"
+            Padding="0"
+            FontSize="16"
+            Content="👁"
+            Background="Transparent"
+            BorderThickness="0"
+            Cursor="Hand"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Left"
+            Click="TogglePasswordButton_Click"/>
                 </Grid>
+
 
                 <!-- Login Button -->
                 <Button x:Name="LoginButton"
