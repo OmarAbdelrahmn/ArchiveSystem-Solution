@@ -12,18 +12,14 @@ namespace ArchiveSystem
         public MainWindow()
         {
             InitializeComponent();
+            FontScaleManager.Apply(this, FontScaleManager.ToMultiplier(App.FontScaleSetting));
 
-            // Show logged-in user name + role in sidebar footer
             var user = UserSession.CurrentUser;
             CurrentUserText.Text = user?.FullName ?? "مستخدم";
 
-            // Enforce sidebar nav visibility
             ApplyNavPermissions();
-
-            // Default page — search is visible to everyone who can log in
             MainFrame.Navigate(new SearchPage());
         }
-
         // ── Permission-gated navigation ───────────────────────────────────────
 
         /// <summary>

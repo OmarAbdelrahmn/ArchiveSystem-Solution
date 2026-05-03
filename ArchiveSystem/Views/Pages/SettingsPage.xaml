@@ -553,6 +553,30 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Font scale group -->
+                        <Border Background="White" CornerRadius="8" Padding="20"
+                            Margin="0,0,0,16">
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="4" Opacity="0.08" ShadowDepth="1"/>
+                                                </Border.Effect>
+                                                <StackPanel>
+                                                    <TextBlock Text="🔤  حجم الخط"
+                                       FontSize="14" FontWeight="Bold"
+                                       Foreground="#1a7a60" Margin="0,0,0,16"/>
+
+                                                    <TextBlock Text="حجم عرض النصوص والعناصر في النظام"
+                                       FontSize="12" Foreground="#555" Margin="0,0,0,10"/>
+
+                                                    <ComboBox x:Name="FontScaleCombo"
+                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                      Width="220" Height="40"
+                                      HorizontalAlignment="Right">
+                                    <ComboBoxItem Content="عادي (Normal)"  Tag="Normal"/>
+                                    <ComboBoxItem Content="كبير (Large)"   Tag="Large"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
+
                         <!-- Status message -->
                         <Border x:Name="SettingsMsgBorder"
                                 CornerRadius="4" Padding="12,8" Margin="0,0,0,12"

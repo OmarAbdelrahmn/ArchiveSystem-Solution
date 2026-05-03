@@ -497,6 +497,19 @@ namespace ArchiveSystem.Views.Pages
                 AuditEditsChk.IsChecked = GetBool(map, SettingKeys.AuditEditsEnabled, def: true);
                 AuditPrintingChk.IsChecked = GetBool(map, SettingKeys.AuditPrintingEnabled, def: true);
                 AuditImportsChk.IsChecked = GetBool(map, SettingKeys.AuditImportsEnabled, def: true);
+
+                // Font scale
+                foreach (ComboBoxItem item in FontScaleCombo.Items)
+                {
+                    if (item.Tag?.ToString() == GetSetting(map, SettingKeys.FontScale, FontScaleManager.KeyNormal))
+                    {
+                        FontScaleCombo.SelectedItem = item;
+                        break;
+                    }
+                }
+                if (FontScaleCombo.SelectedItem == null)
+                    FontScaleCombo.SelectedIndex = 0;
+
             }
             catch (Exception ex)
             {
@@ -538,6 +551,15 @@ namespace ArchiveSystem.Views.Pages
                     BoolStr(AuditPrintingChk), now, userId);
                 SaveSetting(conn, SettingKeys.AuditImportsEnabled,
                     BoolStr(AuditImportsChk), now, userId);
+
+                // Font scale
+                string fontScaleKey = (FontScaleCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString()
+                                      ?? FontScaleManager.KeyNormal;
+                SaveSetting(conn, SettingKeys.FontScale, fontScaleKey, now, userId);
+
+                // Live-apply immediately so the user sees the change without restarting
+                App.FontScaleSetting = fontScaleKey;
+                FontScaleManager.ReApplyToMainWindow(FontScaleManager.ToMultiplier(fontScaleKey));
 
                 conn.Execute(@"
                     INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)

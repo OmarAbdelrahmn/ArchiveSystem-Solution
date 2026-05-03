@@ -12,6 +12,7 @@ namespace ArchiveSystem
         public LoginWindow()
         {
             InitializeComponent();
+            FontScaleManager.Apply(this, FontScaleManager.ToMultiplier(App.FontScaleSetting));
             _authService = new AuthService(App.Database);
             Loaded += LoginWindow_Loaded;
         }
