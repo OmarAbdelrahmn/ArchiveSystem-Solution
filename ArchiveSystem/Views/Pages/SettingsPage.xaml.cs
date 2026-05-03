@@ -92,6 +92,33 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(SaveSettingsBtn, Permissions.ManageSettings, hideInstead: true);
         }
 
+        private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "اختر مجلد حفظ النسخ الاحتياطية",
+                Filter = "Folder|*.none",
+                FileName = "اختر هذا المجلد",
+                CheckFileExists = false,
+                CheckPathExists = true,
+                ValidateNames = false
+            };
+
+            if (!string.IsNullOrWhiteSpace(BackupPathBox.Text)
+                && System.IO.Directory.Exists(BackupPathBox.Text.Trim()))
+            {
+                dlg.InitialDirectory = BackupPathBox.Text.Trim();
+            }
+
+            if (dlg.ShowDialog() == true)
+            {
+                string folder = System.IO.Path.GetDirectoryName(dlg.FileName)
+                             ?? System.IO.Path.GetFullPath(dlg.FileName);
+                BackupPathBox.Text = folder;
+            }
+        }
+
+
         // ═════════════════════════════════════════════════════════════════════
         // USERS TAB
         // ═════════════════════════════════════════════════════════════════════
@@ -526,18 +553,18 @@ namespace ArchiveSystem.Views.Pages
             }
         }
 
-        private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new System.Windows.Forms.FolderBrowserDialog
-            {
-                Description = "اختر مجلد حفظ النسخ الاحتياطية",
-                UseDescriptionForTitle = true,
-                SelectedPath = BackupPathBox.Text.Trim()
-            };
+        //private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
+        //{
+        //    var dialog = new System.Windows.Forms.FolderBrowserDialog
+        //    {
+        //        Description = "اختر مجلد حفظ النسخ الاحتياطية",
+        //        UseDescriptionForTitle = true,
+        //        SelectedPath = BackupPathBox.Text.Trim()
+        //    };
 
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                BackupPathBox.Text = dialog.SelectedPath;
-        }
+        //    if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        //        BackupPathBox.Text = dialog.SelectedPath;
+        //}
 
         private void ShowSettingsMsg(string msg, bool success)
         {
