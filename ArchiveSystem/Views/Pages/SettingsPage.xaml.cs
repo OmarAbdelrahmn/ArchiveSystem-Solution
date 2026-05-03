@@ -170,6 +170,11 @@ namespace ArchiveSystem.Views.Pages
 
             // App settings tab — SaveSettingsBtn permission
             PermissionHelper.Apply(SaveSettingsBtn, Permissions.ManageSettings, hideInstead: true);
+
+            // Field definition buttons — full schema access required
+            PermissionHelper.Apply(AddFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
+            PermissionHelper.Apply(EditFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
+            PermissionHelper.Apply(ToggleFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
         }
 
         private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
@@ -600,7 +605,6 @@ namespace ArchiveSystem.Views.Pages
                 ShowSettingsMsg($"خطأ أثناء تحميل الإعدادات: {ex.Message}", success: false);
             }
         }
-
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
             SettingsMsgBorder.Visibility = Visibility.Collapsed;
@@ -617,43 +621,79 @@ namespace ArchiveSystem.Views.Pages
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
                 using var conn = App.Database.CreateConnection();
 
-                SaveSetting(conn, SettingKeys.BackupPath,
-                    BackupPathBox.Text.Trim(), now, userId);
-                SaveSetting(conn, SettingKeys.BackupRetentionDays,
-                    retDays.ToString(), now, userId);
-                SaveSetting(conn, SettingKeys.PreventDuplicatePrisonerNumber,
-                    BoolStr(PreventDuplicateChk), now, userId);
-                SaveSetting(conn, SettingKeys.RequireExactTenDigitNumber,
-                    BoolStr(RequireExactTenChk), now, userId);
-                SaveSetting(conn, SettingKeys.RequireLocation,
-                    BoolStr(RequireLocationChk), now, userId);
-                SaveSetting(conn, SettingKeys.RequireMovementReason,
-                    BoolStr(RequireMovementReasonChk), now, userId);
-                SaveSetting(conn, SettingKeys.AuditEditsEnabled,
-                    BoolStr(AuditEditsChk), now, userId);
-                SaveSetting(conn, SettingKeys.AuditPrintingEnabled,
-                    BoolStr(AuditPrintingChk), now, userId);
-                SaveSetting(conn, SettingKeys.AuditImportsEnabled,
-                    BoolStr(AuditImportsChk), now, userId);
+                // ── Read the current (old) settings BEFORE any writes ─────────
+                var oldRows = Dapper.SqlMapper.Query<AppSetting>(conn,
+                    "SELECT SettingKey, SettingValue FROM AppSettings").AsList();
+                var oldMap = oldRows.ToDictionary(r => r.SettingKey, r => r.SettingValue);
 
-                // Font scale
-                string fontScaleKey = (FontScaleCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString()
+                // ── Build the new settings map (mirrors what we are about to save)
+                string fontScaleKey = (FontScaleCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)
+                                          ?.Tag?.ToString()
                                       ?? FontScaleManager.KeyNormal;
-                SaveSetting(conn, SettingKeys.FontScale, fontScaleKey, now, userId);
 
+                var newMap = new Dictionary<string, string>
+                {
+                    [SettingKeys.BackupPath] = BackupPathBox.Text.Trim(),
+                    [SettingKeys.BackupRetentionDays] = retDays.ToString(),
+                    [SettingKeys.PreventDuplicatePrisonerNumber] = BoolStr(PreventDuplicateChk),
+                    [SettingKeys.RequireExactTenDigitNumber] = BoolStr(RequireExactTenChk),
+                    [SettingKeys.RequireLocation] = BoolStr(RequireLocationChk),
+                    [SettingKeys.RequireMovementReason] = BoolStr(RequireMovementReasonChk),
+                    [SettingKeys.AuditEditsEnabled] = BoolStr(AuditEditsChk),
+                    [SettingKeys.AuditPrintingEnabled] = BoolStr(AuditPrintingChk),
+                    [SettingKeys.AuditImportsEnabled] = BoolStr(AuditImportsChk),
+                    [SettingKeys.FontScale] = fontScaleKey,
+                    [SettingKeys.ThemeColor] = _selectedThemeColor,
+                };
+
+                // ── Compute diff: only keys whose value actually changed ────────
+                var changedKeys = newMap.Keys
+                    .Where(k => !oldMap.TryGetValue(k, out var ov) || ov != newMap[k])
+                    .ToList();
+
+                // ── Persist all settings ───────────────────────────────────────
+                foreach (var (key, value) in newMap)
+                    SaveSetting(conn, key, value, now, userId);
+
+                // ── Apply live changes ─────────────────────────────────────────
                 ApplyThemeColor(_selectedThemeColor);
-
-
-                // Live-apply immediately so the user sees the change without restarting
                 App.FontScaleSetting = fontScaleKey;
                 FontScaleManager.ReApplyToMainWindow(FontScaleManager.ToMultiplier(fontScaleKey));
 
+                // ── Build JSON snapshots of the changed keys only ──────────────
+                string? oldJson = null;
+                string? newJson = null;
 
+                if (changedKeys.Count > 0)
+                {
+                    var oldSnapshot = changedKeys.ToDictionary(
+                        k => k,
+                        k => oldMap.TryGetValue(k, out var v) ? v : null);
 
+                    var newSnapshot = changedKeys.ToDictionary(
+                        k => k,
+                        k => newMap[k]);
+
+                    oldJson = System.Text.Json.JsonSerializer.Serialize(oldSnapshot);
+                    newJson = System.Text.Json.JsonSerializer.Serialize(newSnapshot);
+                }
+
+                // ── Audit ──────────────────────────────────────────────────────
                 conn.Execute(@"
-                    INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
-                    VALUES (@UserId, 'SettingsChanged', 'تم تعديل إعدادات النظام', @Now)",
-                    new { UserId = userId, Now = now });
+                    INSERT INTO AuditLog
+                        (UserId, ActionType, Description, OldValueJson, NewValueJson, CreatedAt)
+                    VALUES
+                        (@UserId, 'SettingsChanged', @Desc, @OldJson, @NewJson, @Now)",
+                    new
+                    {
+                        UserId = userId,
+                        Desc = changedKeys.Count > 0
+                            ? $"تم تعديل {changedKeys.Count} إعداد: {string.Join("، ", changedKeys)}"
+                            : "تم حفظ الإعدادات (بدون تغييرات)",
+                        OldJson = oldJson,
+                        NewJson = newJson,
+                        Now = now
+                    });
 
                 ShowSettingsMsg("✅ تم حفظ الإعدادات بنجاح.", success: true);
                 LoadBackupHistory();
@@ -663,6 +703,7 @@ namespace ArchiveSystem.Views.Pages
                 ShowSettingsMsg($"خطأ أثناء الحفظ: {ex.Message}", success: false);
             }
         }
+      
 
         //private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
         //{

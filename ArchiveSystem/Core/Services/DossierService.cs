@@ -79,7 +79,6 @@ namespace ArchiveSystem.Core.Services
 
             using var conn = _db.CreateConnection();
 
-            // check duplicate dossier number
             int exists = conn.ExecuteScalar<int>(
                 "SELECT COUNT(*) FROM Dossiers WHERE DossierNumber = @N",
                 new { N = dossierNumber });
@@ -89,7 +88,6 @@ namespace ArchiveSystem.Core.Services
             using var tx = conn.BeginTransaction();
             try
             {
-                // get or create location
                 int locationId = GetOrCreateLocation(
                     conn, hallway, cabinet, shelf, tx);
 
@@ -184,13 +182,17 @@ namespace ArchiveSystem.Core.Services
         private void WriteAudit(SqliteConnection conn,
             string actionType, string description,
             string entityType, int entityId,
-            SqliteTransaction? tx = null)
+            SqliteTransaction? tx = null,
+            string? oldJson = null,
+            string? newJson = null)
         {
             conn.Execute(@"
                 INSERT INTO AuditLog
-                    (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
+                    (UserId, ActionType, EntityType, EntityId,
+                     Description, OldValueJson, NewValueJson, CreatedAt)
                 VALUES
-                    (@UserId, @ActionType, @EntityType, @EntityId, @Description, @CreatedAt)",
+                    (@UserId, @ActionType, @EntityType, @EntityId,
+                     @Description, @OldJson, @NewJson, @CreatedAt)",
                 new
                 {
                     UserId = UserSession.CurrentUser?.UserId,
@@ -198,15 +200,11 @@ namespace ArchiveSystem.Core.Services
                     EntityType = entityType,
                     EntityId = entityId,
                     Description = description,
+                    OldJson = oldJson,
+                    NewJson = newJson,
                     CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                 }, tx);
         }
-
-        // ══════════════════════════════════════════════════════════════════════════════
-        // ADD THESE THREE METHODS TO DossierService.cs
-        // Place them anywhere inside the DossierService class body,
-        // for example after the existing GetMovementHistory() method.
-        // ══════════════════════════════════════════════════════════════════════════════
 
         /// <summary>
         /// Updates dossier metadata: hijri date, expected count, and location.
@@ -230,6 +228,17 @@ namespace ArchiveSystem.Core.Services
                 return "يرجى إدخال أرقام الممر والكبينة والرف.";
 
             using var conn = _db.CreateConnection();
+
+            // ── Capture old values BEFORE the update ─────────────────────────
+            var old = conn.Query<Dossier, Location, Dossier>(@"
+                SELECT d.*, l.*
+                FROM Dossiers d
+                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+                WHERE d.DossierId = @Id",
+                (d, l) => { d.CurrentLocation = l; return d; },
+                new { Id = dossierId },
+                splitOn: "LocationId").FirstOrDefault();
+
             using var tx = conn.BeginTransaction();
             try
             {
@@ -237,13 +246,13 @@ namespace ArchiveSystem.Core.Services
                 string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
 
                 conn.Execute(@"
-            UPDATE Dossiers
-            SET HijriMonth        = @Month,
-                HijriYear         = @Year,
-                ExpectedFileCount = @Expected,
-                CurrentLocationId = @LocId,
-                UpdatedAt         = @Now
-            WHERE DossierId = @DossierId",
+                    UPDATE Dossiers
+                    SET HijriMonth        = @Month,
+                        HijriYear         = @Year,
+                        ExpectedFileCount = @Expected,
+                        CurrentLocationId = @LocId,
+                        UpdatedAt         = @Now
+                    WHERE DossierId = @DossierId",
                     new
                     {
                         Month = hijriMonth,
@@ -256,9 +265,31 @@ namespace ArchiveSystem.Core.Services
                         DossierId = dossierId
                     }, tx);
 
+                // ── Serialize old / new snapshots ─────────────────────────────
+                string? oldJson = old == null ? null : System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    old.HijriMonth,
+                    old.HijriYear,
+                    ExpectedFileCount = old.ExpectedFileCount,
+                    Hallway = old.CurrentLocation?.HallwayNumber,
+                    Cabinet = old.CurrentLocation?.CabinetNumber,
+                    Shelf = old.CurrentLocation?.ShelfNumber
+                });
+
+                string newJson = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    HijriMonth = hijriMonth,
+                    HijriYear = hijriYear,
+                    ExpectedFileCount = expectedFileCount,
+                    Hallway = hallway,
+                    Cabinet = cabinet,
+                    Shelf = shelf
+                });
+
                 WriteAudit(conn, AuditActions.DossierEdited,
                     $"تم تعديل بيانات دوسية {dossierId}",
-                    "Dossier", dossierId, tx);
+                    "Dossier", dossierId, tx,
+                    oldJson: oldJson, newJson: newJson);
 
                 tx.Commit();
                 return null;
@@ -281,24 +312,31 @@ namespace ArchiveSystem.Core.Services
                 return "يرجى إدخال أرقام الممر والكبينة والرف.";
 
             using var conn = _db.CreateConnection();
+
+            // ── Capture old location BEFORE the move ─────────────────────────
+            var oldLocation = conn.QuerySingleOrDefault<Location>(@"
+                SELECT l.*
+                FROM Dossiers d
+                JOIN Locations l ON l.LocationId = d.CurrentLocationId
+                WHERE d.DossierId = @Id",
+                new { Id = dossierId });
+
             using var tx = conn.BeginTransaction();
             try
             {
                 string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
 
-                // Read current location
                 int? fromLocationId = conn.ExecuteScalar<int?>(
                     "SELECT CurrentLocationId FROM Dossiers WHERE DossierId = @Id",
                     new { Id = dossierId }, tx);
 
                 int toLocationId = GetOrCreateLocation(conn, hallway, cabinet, shelf, tx);
 
-                // Insert movement record
                 conn.Execute(@"
-            INSERT INTO DossierMovements
-                (DossierId, FromLocationId, ToLocationId, Reason, MovedByUserId, MovedAt)
-            VALUES
-                (@DossId, @FromId, @ToId, @Reason, @UserId, @Now)",
+                    INSERT INTO DossierMovements
+                        (DossierId, FromLocationId, ToLocationId, Reason, MovedByUserId, MovedAt)
+                    VALUES
+                        (@DossId, @FromId, @ToId, @Reason, @UserId, @Now)",
                     new
                     {
                         DossId = dossierId,
@@ -309,17 +347,33 @@ namespace ArchiveSystem.Core.Services
                         Now = now
                     }, tx);
 
-                // Update dossier current location
                 conn.Execute(@"
-            UPDATE Dossiers
-            SET CurrentLocationId = @LocId,
-                UpdatedAt         = @Now
-            WHERE DossierId = @Id",
+                    UPDATE Dossiers
+                    SET CurrentLocationId = @LocId,
+                        UpdatedAt         = @Now
+                    WHERE DossierId = @Id",
                     new { LocId = toLocationId, Now = now, Id = dossierId }, tx);
+
+                // ── Serialize old / new location snapshots ────────────────────
+                string? oldJson = oldLocation == null ? null : System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    Hallway = oldLocation.HallwayNumber,
+                    Cabinet = oldLocation.CabinetNumber,
+                    Shelf = oldLocation.ShelfNumber
+                });
+
+                string newJson = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    Hallway = hallway,
+                    Cabinet = cabinet,
+                    Shelf = shelf,
+                    Reason = reason?.Trim()
+                });
 
                 WriteAudit(conn, AuditActions.DossierMoved,
                     $"نقل دوسية {dossierId} إلى ممر {hallway} - كبينة {cabinet} - رف {shelf}",
-                    "Dossier", dossierId, tx);
+                    "Dossier", dossierId, tx,
+                    oldJson: oldJson, newJson: newJson);
 
                 tx.Commit();
                 return null;
@@ -344,12 +398,17 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
             string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
 
+            // ── Capture old status ────────────────────────────────────────────
+            string? oldStatus = conn.ExecuteScalar<string>(
+                "SELECT Status FROM Dossiers WHERE DossierId = @Id",
+                new { Id = dossierId });
+
             conn.Execute(@"
-        UPDATE Dossiers
-        SET Status    = @Status,
-            ClosedAt  = @ClosedAt,
-            UpdatedAt = @Now
-        WHERE DossierId = @Id",
+                UPDATE Dossiers
+                SET Status    = @Status,
+                    ClosedAt  = @ClosedAt,
+                    UpdatedAt = @Now
+                WHERE DossierId = @Id",
                 new
                 {
                     Status = newStatus,
@@ -360,20 +419,16 @@ namespace ArchiveSystem.Core.Services
                     Id = dossierId
                 });
 
+            string? oldJson = oldStatus == null ? null
+                : System.Text.Json.JsonSerializer.Serialize(new { Status = oldStatus });
+            string newJson = System.Text.Json.JsonSerializer.Serialize(new { Status = newStatus });
+
             WriteAudit(conn, AuditActions.DossierEdited,
                 $"تغيير حالة الدوسية {dossierId} إلى {newStatus}",
-                "Dossier", dossierId);
+                "Dossier", dossierId,
+                oldJson: oldJson, newJson: newJson);
 
             return null;
         }
-
-        // ══════════════════════════════════════════════════════════════════════════════
-        // ALSO: In GetMovementHistory(), add the MovedByUserName join if not present.
-        // Update the query to include:
-        //   LEFT JOIN Users u ON u.UserId = dm.MovedByUserId
-        // and add:
-        //   u.FullName AS MovedByUserName
-        // to the SELECT columns. The DossierMovement model already has MovedByUserName.
-        // ══════════════════════════════════════════════════════════════════════════════
     }
 }

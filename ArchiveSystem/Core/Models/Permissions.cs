@@ -22,5 +22,7 @@
         public const string CreateBackup = "CreateBackup";
         public const string RestoreBackup = "RestoreBackup";
         public const string ViewAuditLog = "ViewAuditLog";
+        public const string ManageFieldSuggestions = "ManageFieldSuggestions"; // ← add
+
     }
 }

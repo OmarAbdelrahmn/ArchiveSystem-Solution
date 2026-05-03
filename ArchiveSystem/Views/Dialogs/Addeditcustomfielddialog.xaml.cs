@@ -1,9 +1,10 @@
-﻿using System.Text.RegularExpressions;
+﻿using ArchiveSystem.Core.Helpers;
+using ArchiveSystem.Core.Models;
+using ArchiveSystem.Core.Services;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using ArchiveSystem.Core.Models;
-using ArchiveSystem.Core.Services;
 
 namespace ArchiveSystem.Views.Dialogs
 {
@@ -86,6 +87,15 @@ namespace ArchiveSystem.Views.Dialogs
 
         private void AddOption_Click(object sender, RoutedEventArgs e)
         {
+
+            if (!PermissionHelper.Can(Permissions.ManageFieldSuggestions)
+     && !PermissionHelper.Can(Permissions.ManageCustomFields))
+            {
+                ShowError("ليس لديك صلاحية لإدارة قوائم الاقتراحات.");
+                return;
+            }
+
+
             string val = NewOptionBox.Text.Trim();
             if (string.IsNullOrEmpty(val)) return;
 

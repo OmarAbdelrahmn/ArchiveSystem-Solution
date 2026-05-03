@@ -126,6 +126,11 @@ namespace ArchiveSystem.Core.Services
 
             using var conn = _db.CreateConnection();
 
+            // ── Capture old values BEFORE the update ─────────────────────────
+            var old = conn.QuerySingleOrDefault<Record>(
+                "SELECT * FROM Records WHERE RecordId = @Id",
+                new { Id = recordId });
+
             // Check duplicate prisoner number (excluding this record)
             int dupCheck = conn.ExecuteScalar<int>(@"
                 SELECT COUNT(*) FROM Records
@@ -151,9 +156,26 @@ namespace ArchiveSystem.Core.Services
                     RecordId = recordId
                 });
 
+            // ── Serialize old / new snapshots ─────────────────────────────────
+            string? oldJson = old == null ? null : System.Text.Json.JsonSerializer.Serialize(new
+            {
+                old.PersonName,
+                old.PrisonerNumber,
+                Notes = old.Notes ?? ""
+            });
+
+            string newJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                PersonName = personName.Trim(),
+                PrisonerNumber = prisonerNumber,
+                Notes = notes?.Trim() ?? ""
+            });
+
             WriteAudit(conn, AuditActions.RecordEdited,
                 $"تم تعديل السجل رقم {recordId}: {personName} ({prisonerNumber})",
-                "Record", recordId);
+                "Record", recordId,
+                oldJson: oldJson, newJson: newJson);
+
             return null;
         }
 
@@ -258,7 +280,6 @@ namespace ArchiveSystem.Core.Services
                 "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL AND CreatedAt >= @S",
                 new { S = monthStart });
 
-            // Count distinct non-empty nationality values across active records
             int natCount = conn.ExecuteScalar<int>(@"
         SELECT COUNT(DISTINCT rcfv.ValueText)
         FROM RecordCustomFieldValues rcfv
@@ -293,12 +314,17 @@ namespace ArchiveSystem.Core.Services
         private void WriteAudit(Microsoft.Data.Sqlite.SqliteConnection conn,
             string actionType, string description,
             string entityType, int entityId,
-            Microsoft.Data.Sqlite.SqliteTransaction? tx = null)
+            Microsoft.Data.Sqlite.SqliteTransaction? tx = null,
+            string? oldJson = null,
+            string? newJson = null)
         {
             conn.Execute(@"
                 INSERT INTO AuditLog
-                    (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
-                VALUES (@UserId, @ActionType, @EntityType, @EntityId, @Description, @CreatedAt)",
+                    (UserId, ActionType, EntityType, EntityId,
+                     Description, OldValueJson, NewValueJson, CreatedAt)
+                VALUES
+                    (@UserId, @ActionType, @EntityType, @EntityId,
+                     @Description, @OldJson, @NewJson, @CreatedAt)",
                 new
                 {
                     UserId = UserSession.CurrentUser?.UserId,
@@ -306,6 +332,8 @@ namespace ArchiveSystem.Core.Services
                     EntityType = entityType,
                     EntityId = entityId,
                     Description = description,
+                    OldJson = oldJson,
+                    NewJson = newJson,
                     CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                 }, tx);
         }

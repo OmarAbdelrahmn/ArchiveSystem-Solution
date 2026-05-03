@@ -493,7 +493,7 @@ namespace ArchiveSystem.Data
             var dataEntryPerms = new[]
             {
                 "SearchRecords","ViewDossier","AddRecord","EditRecord",
-                "CreateDossier","PrintDossierFace","ViewStatistics"
+                "CreateDossier","PrintDossierFace","ViewStatistics","ManageFieldSuggestions"
             };
             foreach (var perm in dataEntryPerms)
             {
