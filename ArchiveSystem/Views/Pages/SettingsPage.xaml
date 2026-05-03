@@ -553,6 +553,32 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Theme Color group -->
+                        <Border Background="White" CornerRadius="8" Padding="20"
+                                Margin="0,0,0,16">      
+                                                <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="4" Opacity="0.08" ShadowDepth="1"/>
+                                                    </Border.Effect>
+                                                    <StackPanel>
+                                                        <TextBlock Text="🎨  لون النظام"
+                                           FontSize="14" FontWeight="Bold"
+                                           Foreground="#1a7a60" Margin="0,0,0,14"/>
+
+                                                        <TextBlock Text="اختر اللون الرئيسي لواجهة النظام"
+                                           FontSize="12" Foreground="#555" Margin="0,0,0,10"/>
+
+                                                        <!-- Preset swatches -->
+                                                        <WrapPanel x:Name="ColorSwatchPanel" Margin="0,0,0,4">
+                                                            <!-- Swatches injected in code-behind -->
+                                                        </WrapPanel>
+
+                                                        <!-- Show currently selected hex value -->
+                                                <TextBlock x:Name="SelectedColorText"
+                                           FontSize="11" Foreground="#999"
+                                           Margin="0,8,0,0"/>   
+                            </StackPanel>
+                        </Border>
+
                         <!-- Font scale group -->
                         <Border Background="White" CornerRadius="8" Padding="20"
                             Margin="0,0,0,16">

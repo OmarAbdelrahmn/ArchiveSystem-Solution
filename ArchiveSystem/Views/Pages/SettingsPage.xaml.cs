@@ -1,14 +1,15 @@
-﻿using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using ArchiveSystem.Core.Helpers;
+﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
 using ArchiveSystem.Views.Dialogs;
 using Dapper;
+using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -28,6 +29,8 @@ namespace ArchiveSystem.Views.Pages
         };
     }
 
+
+
     // ─────────────────────────────────────────────────────────────────────────
     public partial class SettingsPage : Page
     {
@@ -36,6 +39,82 @@ namespace ArchiveSystem.Views.Pages
         private readonly CustomFieldService _customFieldService;
         private readonly LocationService _locationService;
         private readonly BackupService _backupService;
+        private string _selectedThemeColor = "#178567";
+
+
+        // ── Theme colour presets ──────────────────────────────────────────────────
+
+        private static readonly (string Hex, string Label)[] ThemePresets =
+        {
+            ("#178567", "أخضر فيروزي (افتراضي)"),
+            ("#1565C0", "أزرق"),
+            ("#6A1B9A", "بنفسجي"),
+            ("#AD1457", "وردي داكن"),
+            ("#C62828", "أحمر"),
+            ("#E65100", "برتقالي"),
+            ("#558B2F", "أخضر زيتي"),
+            ("#37474F", "رمادي أردوازي"),
+        };
+
+        private void BuildColorSwatches(string activeHex)
+        {
+            ColorSwatchPanel.Children.Clear();
+
+            foreach (var (hex, label) in ThemePresets)
+            {
+                var color = (Color)ColorConverter.ConvertFromString(hex);
+                bool isActive = string.Equals(hex, activeHex,
+                    StringComparison.OrdinalIgnoreCase);
+
+                var swatch = new Border
+                {
+                    Width = 36,
+                    Height = 36,
+                    CornerRadius = new CornerRadius(18),
+                    Background = new SolidColorBrush(color),
+                    Margin = new Thickness(0, 0, 10, 8),
+                    Cursor = System.Windows.Input.Cursors.Hand,
+                    ToolTip = label,
+                    BorderThickness = new Thickness(isActive ? 3 : 0),
+                    BorderBrush = Brushes.White,
+                    Effect = isActive
+                        ? (System.Windows.Media.Effects.Effect)
+                          new System.Windows.Media.Effects.DropShadowEffect
+                          {
+                              Color = color,
+                              BlurRadius = 10,
+                              Opacity = 0.7,
+                              ShadowDepth = 0
+                          }
+                        : null
+                };
+
+                string capturedHex = hex;
+                swatch.MouseLeftButtonUp += (_, _) =>
+                {
+                    _selectedThemeColor = capturedHex;
+                    SelectedColorText.Text = $"اللون المختار: {capturedHex}  ({label})";
+                    BuildColorSwatches(capturedHex);   // refresh ring
+                };
+
+                ColorSwatchPanel.Children.Add(swatch);
+            }
+        }
+
+        /// <summary>Applies a hex color to the running MaterialDesign theme palette.</summary>
+        private static void ApplyThemeColor(string hex)
+        {
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(hex);
+                var helper = new MaterialDesignThemes.Wpf.PaletteHelper();
+                var theme = helper.GetTheme();
+                theme.SetPrimaryColor(color);
+                theme.SetSecondaryColor(color);
+                helper.SetTheme(theme);
+            }
+            catch { /* ignore invalid hex */ }
+        }
 
         public SettingsPage()
         {
@@ -510,6 +589,10 @@ namespace ArchiveSystem.Views.Pages
                 if (FontScaleCombo.SelectedItem == null)
                     FontScaleCombo.SelectedIndex = 0;
 
+                _selectedThemeColor = GetSetting(map, SettingKeys.ThemeColor, "#178567");
+                BuildColorSwatches(_selectedThemeColor);
+                SelectedColorText.Text = $"اللون الحالي: {_selectedThemeColor}";
+
             }
             catch (Exception ex)
             {
@@ -557,9 +640,14 @@ namespace ArchiveSystem.Views.Pages
                                       ?? FontScaleManager.KeyNormal;
                 SaveSetting(conn, SettingKeys.FontScale, fontScaleKey, now, userId);
 
+                ApplyThemeColor(_selectedThemeColor);
+
+
                 // Live-apply immediately so the user sees the change without restarting
                 App.FontScaleSetting = fontScaleKey;
                 FontScaleManager.ReApplyToMainWindow(FontScaleManager.ToMultiplier(fontScaleKey));
+
+
 
                 conn.Execute(@"
                     INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
