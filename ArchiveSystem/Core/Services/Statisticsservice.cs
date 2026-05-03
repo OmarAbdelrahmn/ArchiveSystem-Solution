@@ -112,14 +112,17 @@ namespace ArchiveSystem.Core.Services
                 : string.Empty;
 
             return conn.Query<MonthlyCount>($@"
-                SELECT d.HijriYear, d.HijriMonth, COUNT(r.RecordId) AS Count
-                FROM Dossiers d
-                LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL AND WHERE d.DeletedAt IS NULL
-                WHERE 1=1 {yearFilter}
-                GROUP BY d.HijriYear, d.HijriMonth
-                ORDER BY d.HijriYear DESC, d.HijriMonth DESC
-                LIMIT @TopN",
-                new { TopN = topN }).AsList();
+    SELECT d.HijriYear, d.HijriMonth, COUNT(r.RecordId) AS Count
+    FROM Dossiers d
+    LEFT JOIN Records r 
+        ON r.DossierId = d.DossierId
+       AND r.DeletedAt IS NULL
+    WHERE d.DeletedAt IS NULL
+      {yearFilter}
+    GROUP BY d.HijriYear, d.HijriMonth
+    ORDER BY d.HijriYear DESC, d.HijriMonth DESC
+    LIMIT @TopN",
+            new { TopN = topN }).AsList();
         }
 
         // ── Records by Gregorian calendar week ────────────────────────────────
@@ -174,22 +177,26 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             var rows = conn.Query<(string Status, int Count)>(@"
-                SELECT
-                    CASE
-                        WHEN ExpectedFileCount IS NULL THEN 'Unknown'
-                        WHEN ExpectedFileCount = ActualCount THEN 'Complete'
-                        ELSE 'Incomplete'
-                    END AS Status,
-                    COUNT(*) AS Count
-                FROM (
-                    SELECT d.DossierId,
-                           d.ExpectedFileCount,
-                           COUNT(r.RecordId) AS ActualCount
-                    FROM Dossiers d
-                    LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
-                    GROUP BY d.DossierId, d.ExpectedFileCount
-                ) t
-                GROUP BY Status").AsList();
+SELECT
+    CASE
+        WHEN ExpectedFileCount IS NULL THEN 'Unknown'
+        WHEN ExpectedFileCount = ActualCount THEN 'Complete'
+        ELSE 'Incomplete'
+    END AS Status,
+    COUNT(*) AS Count
+FROM (
+    SELECT
+        d.DossierId,
+        d.ExpectedFileCount,
+        COUNT(r.RecordId) AS ActualCount
+    FROM Dossiers d
+    LEFT JOIN Records r
+        ON r.DossierId = d.DossierId
+       AND r.DeletedAt IS NULL
+    WHERE d.DeletedAt IS NULL
+    GROUP BY d.DossierId, d.ExpectedFileCount
+) t
+GROUP BY Status;").AsList();
 
             int complete = 0, incomplete = 0, unknown = 0;
             foreach (var (status, count) in rows)
@@ -206,19 +213,23 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<LocationStat>(@"
-                SELECT
-                    l.HallwayNumber,
-                    l.CabinetNumber,
-                    l.ShelfNumber,
-                    COUNT(DISTINCT d.DossierId) AS DossierCount,
-                    COUNT(r.RecordId)           AS RecordCount
-                FROM Locations l
-                LEFT JOIN Dossiers d ON d.CurrentLocationId = l.LocationId
-                LEFT JOIN Records  r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
-                WHERE l.IsActive = 1
-                GROUP BY l.LocationId, l.HallwayNumber, l.CabinetNumber, l.ShelfNumber
-                ORDER BY DossierCount DESC
-                LIMIT @TopN",
+    SELECT
+        l.HallwayNumber,
+        l.CabinetNumber,
+        l.ShelfNumber,
+        COUNT(DISTINCT d.DossierId) AS DossierCount,
+        COUNT(r.RecordId)           AS RecordCount
+    FROM Locations l
+    LEFT JOIN Dossiers d
+        ON d.CurrentLocationId = l.LocationId
+       AND d.DeletedAt IS NULL
+    LEFT JOIN Records r
+        ON r.DossierId = d.DossierId
+       AND r.DeletedAt IS NULL
+    WHERE l.IsActive = 1
+    GROUP BY l.LocationId, l.HallwayNumber, l.CabinetNumber, l.ShelfNumber
+    ORDER BY DossierCount DESC
+    LIMIT @TopN",
                 new { TopN = topN }).AsList();
         }
 

@@ -111,19 +111,27 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
 
             var rows = conn.Query<PeriodReportRow>(@"
-        SELECT
-            d.DossierNumber,
-            d.HijriMonth,
-            d.HijriYear,
-            d.Status,
-            COALESCE(l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber, 'غير محدد') AS LocationDisplay,
-            COUNT(r.RecordId) AS RecordCount
-        FROM Dossiers d
-        LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-        LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
-        WHERE r.CreatedAt >= @From AND r.CreatedAt < @To
-        GROUP BY d.DossierId
-        ORDER BY d.HijriMonth, d.DossierNumber",
+    SELECT
+        d.DossierNumber,
+        d.HijriMonth,
+        d.HijriYear,
+        d.Status,
+        COALESCE(
+            l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber,
+            'غير محدد'
+        ) AS LocationDisplay,
+        COUNT(r.RecordId) AS RecordCount
+    FROM Dossiers d
+    LEFT JOIN Locations l
+        ON l.LocationId = d.CurrentLocationId
+    LEFT JOIN Records r
+        ON r.DossierId = d.DossierId
+       AND r.DeletedAt IS NULL
+    WHERE d.DeletedAt IS NULL
+      AND r.CreatedAt >= @From
+      AND r.CreatedAt < @To
+    GROUP BY d.DossierId
+    ORDER BY d.HijriMonth, d.DossierNumber",
                 new { From = gregorianDateFrom, To = gregorianDateTo }).AsList();
 
             var reportFields = LoadReportCustomFields(conn);
@@ -272,19 +280,27 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
 
             var rows = conn.Query<PeriodReportRow>(@"
-                SELECT
-                    d.DossierNumber,
-                    d.HijriMonth,
-                    d.HijriYear,
-                    d.Status,
-                    COALESCE(l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber, 'غير محدد') AS LocationDisplay,
-                    COUNT(r.RecordId) AS RecordCount
-                FROM Dossiers d
-                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-                LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
-                WHERE d.HijriYear = @Year AND d.HijriMonth = @Month
-                GROUP BY d.DossierId
-                ORDER BY d.DossierNumber",
+    SELECT
+        d.DossierNumber,
+        d.HijriMonth,
+        d.HijriYear,
+        d.Status,
+        COALESCE(
+            l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber,
+            'غير محدد'
+        ) AS LocationDisplay,
+        COUNT(r.RecordId) AS RecordCount
+    FROM Dossiers d
+    LEFT JOIN Locations l
+        ON l.LocationId = d.CurrentLocationId
+    LEFT JOIN Records r
+        ON r.DossierId = d.DossierId
+       AND r.DeletedAt IS NULL
+    WHERE d.DeletedAt IS NULL
+      AND d.HijriYear = @Year
+      AND d.HijriMonth = @Month
+    GROUP BY d.DossierId
+    ORDER BY d.DossierNumber",
                 new { Year = hijriYear, Month = hijriMonth }).AsList();
 
             var reportFields = LoadReportCustomFields(conn);
@@ -307,19 +323,26 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
 
             var rows = conn.Query<PeriodReportRow>(@"
-                SELECT
-                    d.DossierNumber,
-                    d.HijriMonth,
-                    d.HijriYear,
-                    d.Status,
-                    COALESCE(l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber, 'غير محدد') AS LocationDisplay,
-                    COUNT(r.RecordId) AS RecordCount
-                FROM Dossiers d
-                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
-                LEFT JOIN Records   r ON r.DossierId  = d.DossierId AND r.DeletedAt IS NULL AND d.DeletedAt IS NULL
-                WHERE d.HijriYear = @Year
-                GROUP BY d.DossierId
-                ORDER BY d.HijriMonth, d.DossierNumber",
+    SELECT
+        d.DossierNumber,
+        d.HijriMonth,
+        d.HijriYear,
+        d.Status,
+        COALESCE(
+            l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber,
+            'غير محدد'
+        ) AS LocationDisplay,
+        COUNT(r.RecordId) AS RecordCount
+    FROM Dossiers d
+    LEFT JOIN Locations l
+        ON l.LocationId = d.CurrentLocationId
+    LEFT JOIN Records r
+        ON r.DossierId = d.DossierId
+       AND r.DeletedAt IS NULL
+    WHERE d.DeletedAt IS NULL
+      AND d.HijriYear = @Year
+    GROUP BY d.DossierId
+    ORDER BY d.HijriMonth, d.DossierNumber",
                 new { Year = hijriYear }).AsList();
 
             var reportFields = LoadReportCustomFields(conn);
