@@ -16,6 +16,26 @@ namespace ArchiveSystem
             Loaded += LoginWindow_Loaded;
         }
 
+        private bool _passwordVisible = false;
+
+        private void TogglePasswordButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_passwordVisible)
+            {
+                PasswordBox.Password = PasswordVisibleBox.Text;
+                PasswordVisibleBox.Visibility = Visibility.Collapsed;
+                PasswordBox.Visibility = Visibility.Visible;
+                _passwordVisible = false;
+            }
+            else
+            {
+                PasswordVisibleBox.Text = PasswordBox.Password;
+                PasswordVisibleBox.Visibility = Visibility.Visible;
+                PasswordBox.Visibility = Visibility.Collapsed;
+                _passwordVisible = true;
+            }
+        }
+
         private void LoginWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // Check if this is first run (no users exist)

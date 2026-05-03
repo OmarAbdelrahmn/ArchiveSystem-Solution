@@ -19,7 +19,7 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <!-- ── HEADER ── -->
+        <!-- HEADER -->
         <Border Grid.Row="0" Background="#1a7a60">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="🗂"
@@ -27,7 +27,8 @@
                            HorizontalAlignment="Center"
                            Foreground="White"/>
                 <TextBlock Text="أرشيف الملفات"
-                           FontSize="24" FontWeight="Bold"
+                           FontSize="24"
+                           FontWeight="Bold"
                            Foreground="White"
                            HorizontalAlignment="Center"
                            Margin="0,8,0,0"/>
@@ -39,76 +40,114 @@
             </StackPanel>
         </Border>
 
-        <!-- ── FORM ── -->
-        <StackPanel Grid.Row="1" Margin="40,32,40,0">
+        <!-- FORM -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
 
-            <!-- Error message (hidden until needed) -->
-            <Border x:Name="ErrorBorder"
-                    Background="#FFEBEE"
-                    BorderBrush="#EF9A9A"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Padding="12,8"
-                    Margin="0,0,0,16"
-                    Visibility="Collapsed">
-                <TextBlock x:Name="ErrorText"
-                           Foreground="#C62828"
-                           FontSize="13"
-                           TextWrapping="Wrap"/>
-            </Border>
+            <StackPanel Margin="40,32,40,20">
 
-            <!-- First-run setup panel (hidden until needed) -->
-            <Border x:Name="SetupBorder"
-                    Background="#E8F5E9"
-                    BorderBrush="#A5D6A7"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Padding="12,8"
-                    Margin="0,0,0,16"
-                    Visibility="Collapsed">
-                <TextBlock Text="مرحباً! أول تشغيل للنظام. يرجى إنشاء حساب مدير الأرشيف."
-                           Foreground="#2E7D32"
-                           FontSize="12"
-                           TextWrapping="Wrap"/>
-            </Border>
+                <!-- Error message -->
+                <Border x:Name="ErrorBorder"
+                        Background="#FFEBEE"
+                        BorderBrush="#EF9A9A"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Margin="0,0,0,16"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="ErrorText"
+                               Foreground="#C62828"
+                               FontSize="13"
+                               TextWrapping="Wrap"/>
+                </Border>
 
-            <!-- Full name (first run only) -->
-            <TextBox x:Name="FullNameBox"
-                     materialDesign:HintAssist.Hint="الاسم الكامل"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     FontSize="14"
-                     Margin="0,0,0,16"
-                     Visibility="Collapsed"/>
+                <!-- First-run setup -->
+                <Border x:Name="SetupBorder"
+                        Background="#E8F5E9"
+                        BorderBrush="#A5D6A7"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Margin="0,0,0,16"
+                        Visibility="Collapsed">
+                    <TextBlock Text="مرحباً! أول تشغيل للنظام. يرجى إنشاء حساب مدير الأرشيف."
+                               Foreground="#2E7D32"
+                               FontSize="12"
+                               TextWrapping="Wrap"/>
+                </Border>
 
-            <!-- Username -->
-            <TextBox x:Name="UsernameBox"
-                     materialDesign:HintAssist.Hint="اسم المستخدم"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     FontSize="14"
-                     Margin="0,0,0,16"
-                     KeyDown="Input_KeyDown"/>
-
-            <!-- Password -->
-            <PasswordBox x:Name="PasswordBox"
-                         materialDesign:HintAssist.Hint="كلمة المرور"
-                         Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                <!-- Full name -->
+                <TextBox x:Name="FullNameBox"
+                         materialDesign:HintAssist.Hint="الاسم الكامل"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          FontSize="14"
-                         Margin="0,0,0,24"
+                         Margin="0,0,0,16"
+                         Visibility="Collapsed"/>
+
+                <!-- Username -->
+                <TextBox x:Name="UsernameBox"
+                         materialDesign:HintAssist.Hint="اسم المستخدم"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         FontSize="14"
+                         Margin="0,0,0,16"
                          KeyDown="Input_KeyDown"/>
 
-            <!-- Login Button -->
-            <Button x:Name="LoginButton"
-                    Content="تسجيل الدخول"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="#1a7a60"
-                    Foreground="White"
-                    FontSize="15"
-                    Height="44"
-                    Click="LoginButton_Click"/>
+                <!-- Password with eye -->
+                <Grid Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="44"/>
+                    </Grid.ColumnDefinitions>
 
-        </StackPanel>
+                    <!-- Hidden password -->
+                    <PasswordBox x:Name="PasswordBox"
+                                 Grid.Column="0"
+                                 materialDesign:HintAssist.Hint="كلمة المرور"
+                                 Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                                 FontSize="14"
+                                 KeyDown="Input_KeyDown" Grid.ColumnSpan="2"/>
 
-        <!-- ── FOOTER: last backup ── -->
+                    <!-- Visible password -->
+                    <TextBox x:Name="PasswordVisibleBox"
+                             Grid.Column="0"
+                             materialDesign:HintAssist.Hint="كلمة المرور"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             FontSize="14"
+                             Visibility="Collapsed"
+                             KeyDown="Input_KeyDown"/>
+
+                    <!-- Eye button -->
+                    <Button x:Name="TogglePasswordButton"
+                            Margin="271,10,12,11"
+                            FontSize="16"
+                            Content="👁"
+                            Click="TogglePasswordButton_Click" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Background="White">
+                        <Button.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="0.669"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Button.RenderTransform>
+                    </Button>
+                </Grid>
+
+                <!-- Login Button -->
+                <Button x:Name="LoginButton"
+                        Content="تسجيل الدخول"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Background="#1a7a60"
+                        Foreground="White"
+                        FontSize="15"
+                        Height="44"
+                        Click="LoginButton_Click"/>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- FOOTER -->
         <Border Grid.Row="2"
                 BorderThickness="0,1,0,0"
                 BorderBrush="#E0E0E0"
