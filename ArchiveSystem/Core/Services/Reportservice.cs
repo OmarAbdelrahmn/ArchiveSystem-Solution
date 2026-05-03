@@ -18,6 +18,51 @@ namespace ArchiveSystem.Core.Services
         public List<DossierFaceRecord> Records { get; set; } = new();
     }
 
+
+
+    public class DataQualityReportData
+    {
+        public string GeneratedAt { get; set; } = string.Empty;
+        public int TotalDossiers { get; set; }
+        public int TotalRecords { get; set; }
+        public int DossiersWithMismatch { get; set; }
+        public int UnresolvedWarningsTotal { get; set; }
+        public List<DataQualityWarningGroup> WarningGroups { get; set; } = new();
+        public List<DataQualityMismatchRow> MismatchDossiers { get; set; } = new();
+        public List<DataQualityFieldRow> MissingFieldRows { get; set; } = new();
+    }
+    public class DataQualityFieldRow
+    {
+        public string FieldLabel { get; set; } = string.Empty;
+        public bool IsRequired { get; set; }
+        public int TotalRecords { get; set; }
+        public int FilledCount { get; set; }
+        public int MissingCount => TotalRecords - FilledCount;
+        public string FillRate => TotalRecords > 0
+            ? $"{FilledCount * 100.0 / TotalRecords:F1}%"
+            : "—";
+    }
+
+    public class DataQualityWarningGroup
+    {
+        public string WarningType { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public string BatchFileName { get; set; } = string.Empty;
+    }
+
+    public class DataQualityMismatchRow
+    {
+        public int DossierNumber { get; set; }
+        public int HijriMonth { get; set; }
+        public int HijriYear { get; set; }
+        public int ExpectedCount { get; set; }
+        public int ActualCount { get; set; }
+        public int Difference => ActualCount - ExpectedCount;
+        public string HijriDisplay => $"{HijriMonth}/{HijriYear}هـ";
+        public string DifferenceDisplay => Difference >= 0 ? $"+{Difference}" : Difference.ToString();
+    }
+
+
     public class DossierFaceRecord
     {
         public int Sequence { get; set; }
@@ -581,6 +626,304 @@ namespace ArchiveSystem.Core.Services
             {
                 return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}";
             }
+        }
+
+        public DataQualityReportData LoadDataQualityReport()
+        {
+            using var conn = _db.CreateConnection();
+
+            int totalDossiers = conn.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM Dossiers WHERE DeletedAt IS NULL");
+            int totalRecords = conn.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL");
+
+            // ── 1. Unresolved import warnings grouped by type ─────────────────
+            var warningGroups = conn.Query<DataQualityWarningGroup>(@"
+                SELECT
+                    iw.WarningType,
+                    COUNT(*)           AS Count,
+                    COALESCE(ib.FileName, '') AS BatchFileName
+                FROM ImportWarnings iw
+                LEFT JOIN ImportBatches ib
+                    ON ib.ImportBatchId = iw.ImportBatchId
+                WHERE iw.IsResolved = 0
+                GROUP BY iw.WarningType
+                ORDER BY Count DESC").AsList();
+
+            int unresolvedTotal = warningGroups.Sum(g => g.Count);
+
+            // ── 2. Dossiers where actual count ≠ expected (and expected is set) ─
+            var mismatchDossiers = conn.Query<DataQualityMismatchRow>(@"
+                SELECT
+                    d.DossierNumber,
+                    d.HijriMonth,
+                    d.HijriYear,
+                    d.ExpectedFileCount AS ExpectedCount,
+                    COUNT(r.RecordId)   AS ActualCount
+                FROM Dossiers d
+                LEFT JOIN Records r
+                    ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                WHERE d.DeletedAt IS NULL
+                AND   d.ExpectedFileCount IS NOT NULL
+                GROUP BY d.DossierId
+                HAVING COUNT(r.RecordId) != d.ExpectedFileCount
+                ORDER BY ABS(COUNT(r.RecordId) - d.ExpectedFileCount) DESC
+                LIMIT 100").AsList();
+
+            // ── 3. Active custom fields – fill rate per field ──────────────────
+            var fields = conn.Query<(int Id, string Label, bool Required)>(@"
+                SELECT CustomFieldId, ArabicLabel, IsRequired
+                FROM CustomFields
+                WHERE IsActive = 1
+                ORDER BY SortOrder, ArabicLabel").AsList();
+
+            var fieldRows = new List<DataQualityFieldRow>();
+            foreach (var (id, label, required) in fields)
+            {
+                int filled = conn.ExecuteScalar<int>(@"
+                    SELECT COUNT(DISTINCT rcfv.RecordId)
+                    FROM RecordCustomFieldValues rcfv
+                    JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
+                    WHERE rcfv.CustomFieldId = @Id
+                    AND   rcfv.ValueText IS NOT NULL
+                    AND   rcfv.ValueText != ''",
+                    new { Id = id });
+
+                fieldRows.Add(new DataQualityFieldRow
+                {
+                    FieldLabel = label,
+                    IsRequired = required,
+                    TotalRecords = totalRecords,
+                    FilledCount = filled
+                });
+            }
+
+            return new DataQualityReportData
+            {
+                GeneratedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                TotalDossiers = totalDossiers,
+                TotalRecords = totalRecords,
+                DossiersWithMismatch = mismatchDossiers.Count,
+                UnresolvedWarningsTotal = unresolvedTotal,
+                WarningGroups = warningGroups,
+                MismatchDossiers = mismatchDossiers,
+                MissingFieldRows = fieldRows
+            };
+        }
+
+        /// <summary>Generates the data quality PDF and saves to outputPath.</summary>
+        public string? GenerateDataQualityReportPdf(DataQualityReportData data, string outputPath)
+        {
+            try
+            {
+                QuestPDF.Settings.License = LicenseType.Community;
+
+                Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        page.Size(PageSizes.A4);
+                        page.Margin(1.5f, Unit.Centimetre);
+                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily("Arial"));
+                        page.ContentFromRightToLeft();
+
+                        page.Header().Column(col =>
+                        {
+                            col.Item().AlignCenter().Text("تقرير جودة البيانات والأخطاء")
+                                .FontSize(16).Bold();
+                            col.Item().AlignCenter()
+                                .Text($"تاريخ التقرير: {data.GeneratedAt}")
+                                .FontSize(11).FontColor(Colors.Grey.Darken2);
+                            col.Item().AlignCenter()
+                                .Text($"إجمالي الدوسيات: {data.TotalDossiers}  |  إجمالي السجلات: {data.TotalRecords}")
+                                .FontSize(11);
+
+                            // Summary badges row
+                            col.Item().Padding(6).Row(row =>
+                            {
+                                row.RelativeItem().Background(
+                                    data.UnresolvedWarningsTotal > 0
+                                        ? Colors.Red.Lighten4 : Colors.Green.Lighten4)
+                                    .Padding(8).AlignCenter()
+                                    .Text($"تحذيرات غير محلولة: {data.UnresolvedWarningsTotal}")
+                                    .Bold().FontSize(11);
+
+                                row.ConstantItem(12);
+
+                                row.RelativeItem().Background(
+                                    data.DossiersWithMismatch > 0
+                                        ? Colors.Orange.Lighten4 : Colors.Green.Lighten4)
+                                    .Padding(8).AlignCenter()
+                                    .Text($"دوسيات بتعداد غير مطابق: {data.DossiersWithMismatch}")
+                                    .Bold().FontSize(11);
+                            });
+
+                            col.Item().PaddingVertical(4)
+                                .LineHorizontal(1).LineColor(Colors.Teal.Medium);
+                        });
+
+                        page.Content().Column(col =>
+                        {
+                            // ── Section 1: Unresolved warnings ──────────────
+                            if (data.WarningGroups.Count > 0)
+                            {
+                                col.Item().PaddingBottom(6)
+                                    .Text("أولاً: التحذيرات غير المحلولة من الاستيراد")
+                                    .Bold().FontSize(12).FontColor(Colors.Red.Darken3);
+
+                                col.Item().Table(t =>
+                                {
+                                    t.ColumnsDefinition(c =>
+                                    {
+                                        c.RelativeColumn(3);
+                                        c.ConstantColumn(70);
+                                        c.RelativeColumn(2);
+                                    });
+
+                                    t.Header(h =>
+                                    {
+                                        HeaderCell(h, "نوع التحذير");
+                                        HeaderCell(h, "العدد");
+                                        HeaderCell(h, "الدفعة");
+                                    });
+
+                                    foreach (var g in data.WarningGroups)
+                                    {
+                                        bool alt = data.WarningGroups.IndexOf(g) % 2 == 0;
+                                        var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
+                                        DataCell(t, g.WarningType, bg);
+                                        DataCell(t, g.Count.ToString(), bg, center: true);
+                                        DataCell(t, g.BatchFileName, bg);
+                                    }
+                                });
+
+                                col.Item().PaddingVertical(10);
+                            }
+
+                            // ── Section 2: Count mismatches ──────────────────
+                            if (data.MismatchDossiers.Count > 0)
+                            {
+                                col.Item().PaddingBottom(6)
+                                    .Text("ثانياً: الدوسيات ذات التعداد غير المطابق")
+                                    .Bold().FontSize(12).FontColor(Colors.Orange.Darken3);
+
+                                col.Item().Table(t =>
+                                {
+                                    t.ColumnsDefinition(c =>
+                                    {
+                                        c.ConstantColumn(90);
+                                        c.ConstantColumn(100);
+                                        c.ConstantColumn(80);
+                                        c.ConstantColumn(80);
+                                        c.ConstantColumn(70);
+                                    });
+
+                                    t.Header(h =>
+                                    {
+                                        HeaderCell(h, "رقم الدوسية");
+                                        HeaderCell(h, "التاريخ الهجري");
+                                        HeaderCell(h, "المتوقع");
+                                        HeaderCell(h, "الفعلي");
+                                        HeaderCell(h, "الفارق");
+                                    });
+
+                                    foreach (var r in data.MismatchDossiers)
+                                    {
+                                        bool alt = data.MismatchDossiers.IndexOf(r) % 2 == 0;
+                                        var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
+                                        DataCell(t, r.DossierNumber.ToString(), bg, center: true);
+                                        DataCell(t, r.HijriDisplay, bg, center: true);
+                                        DataCell(t, r.ExpectedCount.ToString(), bg, center: true);
+                                        DataCell(t, r.ActualCount.ToString(), bg, center: true);
+                                        DataCell(t, r.DifferenceDisplay, bg, center: true);
+                                    }
+                                });
+
+                                col.Item().PaddingVertical(10);
+                            }
+
+                            // ── Section 3: Field fill rates ──────────────────
+                            if (data.MissingFieldRows.Count > 0)
+                            {
+                                col.Item().PaddingBottom(6)
+                                    .Text("ثالثاً: نسبة تعبئة الحقول المخصصة")
+                                    .Bold().FontSize(12).FontColor(Colors.Teal.Darken3);
+
+                                col.Item().Table(t =>
+                                {
+                                    t.ColumnsDefinition(c =>
+                                    {
+                                        c.RelativeColumn(2);
+                                        c.ConstantColumn(60);
+                                        c.ConstantColumn(80);
+                                        c.ConstantColumn(80);
+                                        c.ConstantColumn(80);
+                                    });
+
+                                    t.Header(h =>
+                                    {
+                                        HeaderCell(h, "الحقل");
+                                        HeaderCell(h, "مطلوب");
+                                        HeaderCell(h, "مُعبأ");
+                                        HeaderCell(h, "فارغ");
+                                        HeaderCell(h, "نسبة التعبئة");
+                                    });
+
+                                    foreach (var f in data.MissingFieldRows)
+                                    {
+                                        bool alt = data.MissingFieldRows.IndexOf(f) % 2 == 0;
+                                        var bg = f.IsRequired && f.MissingCount > 0
+                                            ? Colors.Red.Lighten5
+                                            : (alt ? Colors.Grey.Lighten4 : Colors.White);
+
+                                        DataCell(t, f.FieldLabel, bg);
+                                        DataCell(t, f.IsRequired ? "✓" : "—", bg, center: true);
+                                        DataCell(t, f.FilledCount.ToString(), bg, center: true);
+                                        DataCell(t, f.MissingCount.ToString(), bg, center: true);
+                                        DataCell(t, f.FillRate, bg, center: true);
+                                    }
+                                });
+                            }
+
+                            if (data.WarningGroups.Count == 0
+                                && data.MismatchDossiers.Count == 0
+                                && data.MissingFieldRows.All(f => f.MissingCount == 0))
+                            {
+                                col.Item().PaddingTop(20).AlignCenter()
+                                    .Text("✅ لا توجد مشكلات في جودة البيانات.")
+                                    .FontSize(14).FontColor(Colors.Green.Darken2).Bold();
+                            }
+                        });
+
+                        page.Footer().AlignCenter().Text(x =>
+                        {
+                            x.Span("صفحة ").FontSize(9).FontColor(Colors.Grey.Medium);
+                            x.CurrentPageNumber().FontSize(9);
+                            x.Span(" من ").FontSize(9).FontColor(Colors.Grey.Medium);
+                            x.TotalPages().FontSize(9);
+                        });
+                    });
+                }).GeneratePdf(outputPath);
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return $"خطأ أثناء إنشاء تقرير الجودة: {ex.Message}";
+            }
+        }
+
+
+
+        public string? PrintDataQualityReportDirect(DataQualityReportData data)
+        {
+            string tempPath = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                $"data_quality_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+
+            var genErr = GenerateDataQualityReportPdf(data, tempPath);
+            if (genErr != null) return genErr;
+            return OpenPdfForDirectPrint(tempPath, "تقرير جودة البيانات");
         }
 
         // ─────────────────────────────────────────────────────────────────────

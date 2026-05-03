@@ -22,7 +22,7 @@ namespace ArchiveSystem.Views.Pages
             InitializeComponent();
             _reportService = new ReportService(App.Database);
             _dossierService = new DossierService(App.Database);
-            Loaded += (s, e) => ApplyPermissions();
+            Loaded += (s, e) => { ApplyPermissions(); LoadDataQualitySummary(); };
         }
 
         private void ApplyPermissions()
@@ -43,6 +43,9 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(WeeklyPreviewBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(WeeklySaveBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(WeeklyPrintBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(DataQualityPreviewBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(DataQualitySaveBtn,   Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(DataQualityPrintBtn,  Permissions.PrintReports, hideInstead: true);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -52,6 +55,91 @@ namespace ArchiveSystem.Views.Pages
         // ─────────────────────────────────────────────────────────────────────
         // WEEKLY REPORT
         // ─────────────────────────────────────────────────────────────────────
+
+        private void LoadDataQualitySummary()
+        {
+            try
+            {
+                var data = _reportService.LoadDataQualityReport();
+
+                DQWarningsText.Text = $"تحذيرات غير محلولة: {data.UnresolvedWarningsTotal}";
+                DQMismatchText.Text = $"دوسيات غير مطابقة: {data.DossiersWithMismatch}";
+                DQRecordsText.Text = $"إجمالي السجلات: {data.TotalRecords:N0}";
+
+                // Colour the warnings badge green when there are no issues
+                DQWarningsBadge.Background = new SolidColorBrush(
+                    data.UnresolvedWarningsTotal > 0
+                        ? (Color)ColorConverter.ConvertFromString("#FFEBEE")
+                        : (Color)ColorConverter.ConvertFromString("#E8F5E9"));
+                DQWarningsText.Foreground = new SolidColorBrush(
+                    data.UnresolvedWarningsTotal > 0
+                        ? (Color)ColorConverter.ConvertFromString("#C62828")
+                        : (Color)ColorConverter.ConvertFromString("#2E7D32"));
+
+                DQMismatchBadge.Background = new SolidColorBrush(
+                    data.DossiersWithMismatch > 0
+                        ? (Color)ColorConverter.ConvertFromString("#FFF8E1")
+                        : (Color)ColorConverter.ConvertFromString("#E8F5E9"));
+                DQMismatchText.Foreground = new SolidColorBrush(
+                    data.DossiersWithMismatch > 0
+                        ? (Color)ColorConverter.ConvertFromString("#E65100")
+                        : (Color)ColorConverter.ConvertFromString("#2E7D32"));
+
+                DataQualitySummaryBorder.Visibility = Visibility.Visible;
+            }
+            catch { /* non-critical – don't block page load */ }
+        }
+
+        private void PreviewDataQuality_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadDataQualityOrError();
+            if (data == null) return;
+
+            string path = TempPdfPath("data_quality");
+            var err = _reportService.GenerateDataQualityReportPdf(data, path);
+            if (err != null) { ShowError(err); return; }
+
+            OpenFile(path);
+        }
+
+        private void SaveDataQualityPdf_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadDataQualityOrError();
+            if (data == null) return;
+
+            string? path = PickSavePath($"data_quality_{DateTime.Now:yyyyMMdd}");
+            if (path == null) return;
+
+            var err = _reportService.GenerateDataQualityReportPdf(data, path);
+            if (err != null) { ShowError(err); return; }
+
+            ShowSuccess($"تم حفظ الملف: {path}");
+            OpenFile(path);
+        }
+
+        private void PrintDataQualityDirect_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadDataQualityOrError();
+            if (data == null) return;
+
+            var err = _reportService.PrintDataQualityReportDirect(data);
+            if (err != null) ShowError(err);
+            else ShowSuccess("تم إرسال تقرير جودة البيانات إلى الطابعة.");
+        }
+
+        private DataQualityReportData? LoadDataQualityOrError()
+        {
+            HideMsg();
+            try
+            {
+                return _reportService.LoadDataQualityReport();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"خطأ أثناء تحميل بيانات الجودة: {ex.Message}");
+                return null;
+            }
+        }
 
         private void PreviewWeekly_Click(object sender, RoutedEventArgs e)
         {
