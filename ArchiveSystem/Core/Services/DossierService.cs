@@ -21,6 +21,57 @@ namespace ArchiveSystem.Core.Services
                 splitOn: "LocationId").AsList();
         }
 
+        /// <summary>
+        /// Soft-deletes a dossier and cascades to all its active records.
+        /// Returns (null, recordsDeleted) on success, (errorString, 0) on failure.
+        /// </summary>
+        public (string? Error, int RecordsDeleted) DeleteDossier(int dossierId, string reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+                return ("سبب الحذف مطلوب.", 0);
+
+            using var conn = _db.CreateConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+                int userId = UserSession.CurrentUser?.UserId ?? 0;
+
+                // Cascade soft-delete all active records in this dossier
+                int recordsDeleted = conn.Execute(@"
+            UPDATE Records
+            SET DeletedAt       = @Now,
+                DeletedByUserId = @UserId,
+                Status          = 'Deleted',
+                Notes           = COALESCE(Notes,'') || ' | حُذف مع الدوسية: ' || @Reason
+            WHERE DossierId = @DossierId
+            AND   DeletedAt IS NULL",
+                    new { Now = now, UserId = userId, Reason = reason, DossierId = dossierId }, tx);
+
+                // Soft-delete the dossier itself
+                conn.Execute(@"
+            UPDATE Dossiers
+            SET DeletedAt       = @Now,
+                DeletedByUserId = @UserId,
+                Status          = 'Archived',
+                UpdatedAt       = @Now
+            WHERE DossierId = @DossierId",
+                    new { Now = now, UserId = userId, DossierId = dossierId }, tx);
+
+                WriteAudit(conn, AuditActions.DossierDeleted,
+                    $"حذف دوسية {dossierId} — السبب: {reason} — السجلات المحذوفة: {recordsDeleted}",
+                    "Dossier", dossierId, tx);
+
+                tx.Commit();
+                return (null, recordsDeleted);
+            }
+            catch (Exception ex)
+            {
+                tx.Rollback();
+                return ($"خطأ أثناء حذف الدوسية: {ex.Message}", 0);
+            }
+        }
+
         public Dossier? GetDossierById(int dossierId)
         {
             using var conn = _db.CreateConnection();

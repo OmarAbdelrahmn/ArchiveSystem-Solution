@@ -81,6 +81,12 @@
                         <ComboBoxItem Content="مكتملة"     Tag="Complete"/>
                         <ComboBoxItem Content="مؤرشفة"     Tag="Archived"/>
                     </ComboBox>
+                    <Button x:Name="DeleteDossierBtn"
+                    Content="🗑 حذف الدوسية"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Foreground="#C62828"
+                    Height="34" Margin="8,0,0,0"
+                    Click="DeleteDossier_Click"/>
 
                 </StackPanel>
             </Grid>

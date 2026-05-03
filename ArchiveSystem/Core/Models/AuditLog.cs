@@ -38,5 +38,6 @@
         public const string BulkFieldUpdate = "BulkFieldUpdate";
         public const string CustomFieldCreated = "CustomFieldCreated";
         public const string CustomFieldChanged = "CustomFieldChanged";
+        public const string DossierDeleted = "DossierDeleted";
     }
 }

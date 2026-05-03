@@ -158,6 +158,7 @@ namespace ArchiveSystem.Core.Services
         // ── All permission keys with Arabic labels ──
         public static Dictionary<string, string> GetAllPermissionKeys() => new()
         {
+            [Permissions.DeleteDossier] = "حذف الدوسيات",   // ← add
             [Permissions.SearchRecords] = "البحث في السجلات",
             [Permissions.ViewDossier] = "عرض الدوسيات",
             [Permissions.AddRecord] = "إضافة سجل جديد",

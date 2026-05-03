@@ -469,7 +469,7 @@ namespace ArchiveSystem.Data
                 "CreateDossier","EditDossier","MoveDossier","PrintReports","PrintDossierFace",
                 "ImportExcel","ApproveExcelImport","ViewStatistics","ManageArchiveStructure",
                 "ManageCustomFields","ManageUsers","ManageSettings","CreateBackup",
-                "RestoreBackup","ViewAuditLog"
+                "RestoreBackup","ViewAuditLog","DeleteDossier"
             };
 
             var managerRoleId = conn.ExecuteScalar<int>(

@@ -54,6 +54,48 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(EditRecordBtn, Permissions.EditRecord, hideInstead: true);
             PermissionHelper.Apply(DeleteRecordBtn, Permissions.DeleteRecord, hideInstead: true);
             PermissionHelper.Apply(RegisterMoveBtn, Permissions.MoveDossier, hideInstead: true);
+            PermissionHelper.Apply(DeleteDossierBtn, Permissions.DeleteDossier, hideInstead: true);
+        }
+
+        private void DeleteDossier_Click(object sender, RoutedEventArgs e)
+        {
+            if (_dossier == null) return;
+
+            var activeRecords = _recordService.GetRecordsByDossier(_dossierId);
+
+            string reason = Microsoft.VisualBasic.Interaction.InputBox(
+                $"أدخل سبب حذف الدوسية رقم {_dossier.DossierNumber}:\n\n" +
+                $"⚠️ سيتم حذف {activeRecords.Count} سجل داخلها أيضاً.",
+                "حذف الدوسية", "");
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                MessageBox.Show("سبب الحذف مطلوب. تم إلغاء العملية.",
+                    "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"⚠️ سيتم حذف الدوسية رقم {_dossier.DossierNumber} " +
+                $"و{activeRecords.Count} سجل بداخلها.\n\nالسبب: {reason}\n\nهل تريد المتابعة؟",
+                "تأكيد الحذف",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            var (error, deleted) = _dossierService.DeleteDossier(_dossierId, reason);
+
+            if (error != null)
+            {
+                MessageBox.Show(error, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            MessageBox.Show(
+                $"✅ تم حذف الدوسية و{deleted} سجل بنجاح.",
+                "تم الحذف", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            NavigationService?.GoBack();
         }
 
         private void AddCustomFieldColumns()
