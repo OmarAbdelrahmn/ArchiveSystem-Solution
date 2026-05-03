@@ -1,12 +1,14 @@
-﻿using System.Diagnostics;
+﻿using ArchiveSystem.Core.Helpers;
+using ArchiveSystem.Core.Models;
+using ArchiveSystem.Core.Services;
+using Microsoft.Win32;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using ArchiveSystem.Core.Services;
-using Microsoft.Win32;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -20,7 +22,23 @@ namespace ArchiveSystem.Views.Pages
             InitializeComponent();
             _reportService = new ReportService(App.Database);
             _dossierService = new DossierService(App.Database);
+            Loaded += (s, e) => ApplyPermissions();
         }
+
+
+        private void ApplyPermissions()
+        {
+            // Dossier face section — needs PrintDossierFace
+            PermissionHelper.Apply(DossierFacePreviewBtn, Permissions.PrintDossierFace, hideInstead: true);
+            PermissionHelper.Apply(DossierFaceSaveBtn, Permissions.PrintDossierFace, hideInstead: true);
+
+            // Monthly/Yearly reports — needs PrintReports
+            PermissionHelper.Apply(MonthlyPreviewBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(MonthlySaveBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(YearlyPreviewBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(YearlySaveBtn, Permissions.PrintReports, hideInstead: true);
+        }
+
 
         // ─────────────────────────────────────────────────────────────────────
         // DOSSIER FACE

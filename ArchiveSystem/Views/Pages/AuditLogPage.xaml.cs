@@ -1,11 +1,12 @@
-﻿using System.IO;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
+﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
 using Dapper;
 using Microsoft.Win32;
+using System.IO;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -76,6 +77,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void Initialize()
         {
+            if (PermissionHelper.DenyPage(this, Permissions.ViewAuditLog)) return;
             LoadActionTypes();
             LoadUsers();
             Load();

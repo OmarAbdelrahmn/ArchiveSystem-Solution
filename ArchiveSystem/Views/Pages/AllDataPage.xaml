@@ -36,13 +36,15 @@
                            Foreground="#1a7a60"
                            VerticalAlignment="Center"/>
 
-                <Button Grid.Column="1"
+                <Button x:Name="BulkFillBtn"
+                        Grid.Column="1"
                         Content="تعبئة جماعية"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Height="36" Margin="0,0,10,0"
                         Click="BulkFill_Click"/>
 
-                <Button Grid.Column="2"
+                <Button x:Name="ExportBtn" 
+                        Grid.Column="2"
                         Content="📤 تصدير CSV"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Height="36"

@@ -1,14 +1,15 @@
-﻿using System.IO;
+﻿using ArchiveSystem.Core.Helpers;
+using ArchiveSystem.Core.Models;
+using ArchiveSystem.Core.Services;
+using ArchiveSystem.Views.Dialogs;
+using Microsoft.Win32;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using ArchiveSystem.Core.Models;
-using ArchiveSystem.Core.Services;
-using ArchiveSystem.Views.Dialogs;
-using Microsoft.Win32;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -38,6 +39,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void Initialize()
         {
+            if (PermissionHelper.DenyPage(this, Permissions.SearchRecords)) return;
             var years = _service.GetDistinctYears();
             YearCombo.Items.Clear();
             YearCombo.Items.Add(new ComboBoxItem { Content = "الكل", Tag = 0 });
@@ -50,6 +52,9 @@ namespace ArchiveSystem.Views.Pages
             AddCustomFilterInputs();
 
             Load();
+
+            PermissionHelper.Apply(BulkFillBtn, Permissions.EditRecord, hideInstead: true);
+            PermissionHelper.Apply(ExportBtn, Permissions.SearchRecords, hideInstead: true);
         }
 
         private void AddCustomFieldColumns()

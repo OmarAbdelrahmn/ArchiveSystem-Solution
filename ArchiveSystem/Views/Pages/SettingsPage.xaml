@@ -38,16 +38,19 @@
                     <StackPanel Grid.Row="0"
                                 Orientation="Horizontal"
                                 Margin="0,0,0,12">
-                        <Button Content="➕ إضافة مستخدم"
+                        <Button x:Name="AddUserBtn" 
+                                Content="➕ إضافة مستخدم"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
                                 Background="#1a7a60" Foreground="White"
                                 Height="36"
                                 Click="AddUser_Click"/>
-                        <Button Content="🔑 تغيير كلمة المرور"
+                        <Button x:Name="ChangePasswordBtn"
+                                Content="🔑 تغيير كلمة المرور"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="36" Margin="10,0,0,0"
                                 Click="ChangePassword_Click"/>
-                        <Button Content="تعطيل / تفعيل"
+                        <Button x:Name="ToggleActiveBtn"
+                                Content="تعطيل / تفعيل"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="36" Margin="10,0,0,0"
                                 Click="ToggleActive_Click"/>
@@ -97,16 +100,19 @@
                     <StackPanel Grid.Row="0"
                                 Orientation="Horizontal"
                                 Margin="0,0,0,12">
-                        <Button Content="➕ إضافة دور"
+                        <Button x:Name="AddRoleBtn"
+                                Content="➕ إضافة دور"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
                                 Background="#1a7a60" Foreground="White"
                                 Height="36"
                                 Click="AddRole_Click"/>
-                        <Button Content="✏️ تعديل الدور والصلاحيات"
+                        <Button x:Name="EditRoleBtn"
+                                Content="✏️ تعديل الدور والصلاحيات"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="36" Margin="10,0,0,0"
                                 Click="EditRole_Click"/>
-                        <Button Content="🗑 حذف الدور"
+                        <Button x:Name="DeleteRoleBtn" 
+                                Content="🗑 حذف الدور"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Height="36" Margin="10,0,0,0"
                                 Foreground="#C62828"

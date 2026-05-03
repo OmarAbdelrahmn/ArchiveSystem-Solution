@@ -1,7 +1,9 @@
-﻿using System.Windows;
+﻿using ArchiveSystem.Core.Helpers;
+using ArchiveSystem.Core.Models;
+using ArchiveSystem.Core.Services;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using ArchiveSystem.Core.Services;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -19,6 +21,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void LoadAll()
         {
+            if (PermissionHelper.DenyPage(this, Permissions.ViewStatistics)) return;
             LoadSummaryCards();
             LoadYearFilter();
             LoadMonthly();

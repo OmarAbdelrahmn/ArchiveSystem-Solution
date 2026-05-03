@@ -1,8 +1,9 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
 using ArchiveSystem.Views.Dialogs;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -21,8 +22,22 @@ namespace ArchiveSystem.Views.Pages
 
         private void LoadAll()
         {
+            ApplyPermissions();
             LoadUsers();
             LoadRoles();
+        }
+
+        private void ApplyPermissions()
+        {
+            // Users tab buttons
+            PermissionHelper.Apply(AddUserBtn, Permissions.ManageUsers, hideInstead: true);
+            PermissionHelper.Apply(ChangePasswordBtn, Permissions.ManageUsers, hideInstead: true);
+            PermissionHelper.Apply(ToggleActiveBtn, Permissions.ManageUsers, hideInstead: true);
+
+            // Roles tab buttons
+            PermissionHelper.Apply(AddRoleBtn, Permissions.ManageUsers, hideInstead: true);
+            PermissionHelper.Apply(EditRoleBtn, Permissions.ManageUsers, hideInstead: true);
+            PermissionHelper.Apply(DeleteRoleBtn, Permissions.ManageUsers, hideInstead: true);
         }
 
         private void LoadUsers()

@@ -54,17 +54,20 @@
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
 
-                    <Button Content="🖨️ طباعة واجهة"
+                    <Button x:Name="PrintFaceBtn" 
+                            Content="🖨️ طباعة واجهة"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             Height="34" Margin="0,0,8,0"
                             Click="PrintFace_Click"/>
 
-                    <Button Content="✏️ تعديل الدوسية"
+                    <Button x:Name="EditDossierBtn" 
+                            Content="✏️ تعديل الدوسية"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             Height="34" Margin="0,0,8,0"
                             Click="EditDossier_Click"/>
 
-                    <Button Content="🚚 نقل الدوسية"
+                    <Button x:Name="MoveDossierBtn" 
+                            Content="🚚 نقل الدوسية"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             Height="34" Margin="0,0,8,0"
                             Click="MoveDossier_Click"/>
@@ -165,13 +168,15 @@
                                            FontSize="12" Foreground="#666"
                                            VerticalAlignment="Center"/>
 
-                                <StackPanel Grid.Column="1"
+                                <StackPanel x:Name="EditRecordBtn"
+                                            Grid.Column="1"
                                             Orientation="Horizontal">
                                     <Button Content="✏️ تعديل السجل"
                                             Style="{StaticResource MaterialDesignOutlinedButton}"
                                             Height="32" Margin="0,0,8,0"
                                             Click="EditRecord_Click"/>
-                                    <Button Content="🗑 حذف السجل"
+                                    <Button x:Name="DeleteRecordBtn"
+                                            Content="🗑 حذف السجل"
                                             Style="{StaticResource MaterialDesignOutlinedButton}"
                                             Foreground="#C62828"
                                             Height="32"
@@ -279,7 +284,8 @@
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                          Height="40"/>
 
-                                <Button Grid.Column="8"
+                                <Button x:Name="RegisterMoveBtn"
+                                        Grid.Column="8"
                                         Content="🚚 تسجيل النقل"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
                                         Background="#1a7a60" Foreground="White"

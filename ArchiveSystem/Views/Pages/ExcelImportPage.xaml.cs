@@ -1,10 +1,11 @@
-﻿using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
 using Microsoft.Win32;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -21,7 +22,15 @@ namespace ArchiveSystem.Views.Pages
             InitializeComponent();
             _importService = new ExcelImportService(App.Database);
             _backupService = new BackupService(App.Database, App.DbPath);
-            Loaded += (s, e) => LoadRecentBatches();
+            Loaded += (s, e) =>
+            {
+                if (PermissionHelper.DenyPage(this, Permissions.ImportExcel)) return;
+                LoadRecentBatches();
+                // Hide approve button if no ApproveExcelImport permission
+                PermissionHelper.Apply(ApproveButton, Permissions.ApproveExcelImport, hideInstead: true);
+                // Hide rollback button too — only approvers can rollback
+                PermissionHelper.Apply(RollbackBtn, Permissions.ApproveExcelImport, hideInstead: true);
+            };
         }
 
         // ── FILE SELECTION ────────────────────────────────────────────────────

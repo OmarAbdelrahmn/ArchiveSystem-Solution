@@ -66,13 +66,15 @@
                                      Height="44"
                                      PreviewTextInput="NumberOnly"/>
 
-                            <Button Grid.Column="2"
+                            <Button x:Name="DossierFacePreviewBtn"
+                                    Grid.Column="2"
                                     Content="🔍 معاينة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
                                     Height="44" Width="110"
                                     Click="PreviewDossierFace_Click"/>
 
-                            <Button Grid.Column="4"
+                            <Button x:Name="DossierFaceSaveBtn"
+                                    Grid.Column="4"
                                     Content="💾 حفظ PDF"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
                                     Background="#1a7a60" Foreground="White"
@@ -131,13 +133,15 @@
                                      Height="44"
                                      PreviewTextInput="NumberOnly"/>
 
-                            <Button Grid.Column="4"
+                            <Button x:Name="MonthlyPreviewBtn"
+                                    Grid.Column="4"
                                     Content="🔍 معاينة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
                                     Height="44" Width="110"
                                     Click="PreviewMonthly_Click"/>
 
-                            <Button Grid.Column="6"
+                            <Button x:Name="MonthlySaveBtn"
+                                    Grid.Column="6"
                                     Content="💾 حفظ PDF"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
                                     Background="#1a7a60" Foreground="White"
@@ -187,13 +191,15 @@
                                      Height="44"
                                      PreviewTextInput="NumberOnly"/>
 
-                            <Button Grid.Column="2"
+                            <Button x:Name="YearlyPreviewBtn"
+                                    Grid.Column="2"
                                     Content="🔍 معاينة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
                                     Height="44" Width="110"
                                     Click="PreviewYearly_Click"/>
 
-                            <Button Grid.Column="4"
+                            <Button x:Name="YearlySaveBtn"
+                                    Grid.Column="4"
                                     Content="💾 حفظ PDF"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
                                     Background="#1a7a60" Foreground="White"

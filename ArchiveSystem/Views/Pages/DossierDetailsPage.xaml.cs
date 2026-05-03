@@ -1,10 +1,11 @@
-﻿using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
 using ArchiveSystem.Views.Dialogs;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -40,8 +41,19 @@ namespace ArchiveSystem.Views.Pages
             // Load custom field columns first (before data)
             _customFields = _customFieldService.GetActiveEntryFields();
             AddCustomFieldColumns();
-
+            ApplyPermissions();
             LoadAll();
+        }
+
+        private void ApplyPermissions()
+        {
+            PermissionHelper.Apply(PrintFaceBtn, Permissions.PrintDossierFace, hideInstead: true);
+            PermissionHelper.Apply(EditDossierBtn, Permissions.EditDossier, hideInstead: true);
+            PermissionHelper.Apply(MoveDossierBtn, Permissions.MoveDossier, hideInstead: true);
+            PermissionHelper.Apply(StatusCombo, Permissions.EditDossier, hideInstead: true);
+            PermissionHelper.Apply(EditRecordBtn, Permissions.EditRecord, hideInstead: true);
+            PermissionHelper.Apply(DeleteRecordBtn, Permissions.DeleteRecord, hideInstead: true);
+            PermissionHelper.Apply(RegisterMoveBtn, Permissions.MoveDossier, hideInstead: true);
         }
 
         private void AddCustomFieldColumns()
