@@ -553,11 +553,7 @@ namespace ArchiveSystem.Core.Services
             return new SheetProcessResult(recordCount, warnings, duplicates, finalStatus);
         }
 
-        // ── MANUAL UPDATE of staging dossier metadata (FIX: now fully implemented) ──
-        /// <summary>
-        /// Allows the manager to manually set metadata when title parsing failed.
-        /// Resolves the MissingDossierMetadata warning and re-evaluates sheet status.
-        /// </summary>
+
         public string? UpdateStagingDossier(int stagingDossierId,
             int dossierNumber, int hijriMonth, int hijriYear, int? expectedCount)
         {
@@ -567,36 +563,36 @@ namespace ArchiveSystem.Core.Services
 
             using var conn = _db.CreateConnection();
 
-            // Check dossier number not already used in another staging dossier in this batch
+            // ── Guard: dossier number must be unique within this batch ────────────
             var batchId = conn.ExecuteScalar<int>(
                 "SELECT ImportBatchId FROM ImportStagingDossiers WHERE StagingDossierId = @Id",
                 new { Id = stagingDossierId });
 
             int dupInBatch = conn.ExecuteScalar<int>(@"
-                SELECT COUNT(*) FROM ImportStagingDossiers
-                WHERE ImportBatchId = @BatchId
-                AND DossierNumber = @DNum
-                AND StagingDossierId != @Id",
+        SELECT COUNT(*) FROM ImportStagingDossiers
+        WHERE ImportBatchId    = @BatchId
+        AND   DossierNumber    = @DNum
+        AND   StagingDossierId != @Id",
                 new { BatchId = batchId, DNum = dossierNumber, Id = stagingDossierId });
 
             if (dupInBatch > 0)
                 return $"رقم الدوسية {dossierNumber} مستخدم مسبقاً في هذه الدفعة.";
 
-            // Resolve the MissingDossierMetadata warning
-            conn.Execute(@"
-                UPDATE ImportWarnings
-                SET IsResolved = 1, ResolvedByUserId = @UserId, ResolvedAt = @Now
-                WHERE StagingDossierId = @Id
-                AND WarningType = 'MissingDossierMetadata'
-                AND IsResolved = 0",
-                new
-                {
-                    UserId = UserSession.CurrentUser?.UserId,
-                    Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    Id = stagingDossierId
-                });
+            string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+            int userId = UserSession.CurrentUser?.UserId ?? 0;
 
-            // Check if count mismatch warning should be updated
+            // ── Resolve MissingDossierMetadata (manager has now supplied the data) ─
+            conn.Execute(@"
+        UPDATE ImportWarnings
+        SET IsResolved       = 1,
+            ResolvedByUserId = @UserId,
+            ResolvedAt       = @Now
+        WHERE StagingDossierId = @Id
+        AND   WarningType      = 'MissingDossierMetadata'
+        AND   IsResolved       = 0",
+                new { UserId = userId, Now = now, Id = stagingDossierId });
+
+            // ── Re-evaluate CountMismatch ─────────────────────────────────────────
             if (expectedCount.HasValue)
             {
                 int actualCount = conn.ExecuteScalar<int>(
@@ -605,30 +601,68 @@ namespace ArchiveSystem.Core.Services
 
                 if (actualCount == expectedCount.Value)
                 {
-                    // Resolve existing count mismatch warning if it exists
                     conn.Execute(@"
-                        UPDATE ImportWarnings
-                        SET IsResolved = 1, ResolvedByUserId = @UserId, ResolvedAt = @Now
-                        WHERE StagingDossierId = @Id
-                        AND WarningType = 'CountMismatch'
-                        AND IsResolved = 0",
-                        new
-                        {
-                            UserId = UserSession.CurrentUser?.UserId,
-                            Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
-                            Id = stagingDossierId
-                        });
+                UPDATE ImportWarnings
+                SET IsResolved       = 1,
+                    ResolvedByUserId = @UserId,
+                    ResolvedAt       = @Now
+                WHERE StagingDossierId = @Id
+                AND   WarningType      = 'CountMismatch'
+                AND   IsResolved       = 0",
+                        new { UserId = userId, Now = now, Id = stagingDossierId });
                 }
             }
 
+            // ── Re-evaluate SheetNameTitleMismatch ────────────────────────────────
+            //
+            // The warning fires when the digits embedded in the sheet name do not
+            // match the dossier number parsed from the title row.  The manager may
+            // fix this by typing the number that matches the sheet name, so we
+            // resolve the warning if the new number now agrees with the sheet name.
+            //
+            // If the manager intentionally enters a number that still differs from
+            // the sheet name (e.g. the sheet was mis-named), we leave the warning
+            // unresolved so it stays visible in the review tab as a conscious choice.
+            string? sheetName = conn.ExecuteScalar<string?>(
+                "SELECT SheetName FROM ImportStagingDossiers WHERE StagingDossierId = @Id",
+                new { Id = stagingDossierId });
+
+            if (!string.IsNullOrEmpty(sheetName))
+            {
+                // Extract the leading / only numeric run from the sheet name,
+                // using the same logic as ProcessSheet (strip non-digits, parse).
+                string sheetDigits = Regex.Replace(sheetName, @"\D", "");
+
+                bool sheetNumberMatchesDossier =
+                    !string.IsNullOrEmpty(sheetDigits)
+                    && int.TryParse(sheetDigits, out int sheetNum)
+                    && sheetNum == dossierNumber;
+
+                if (sheetNumberMatchesDossier)
+                {
+                    // Numbers now agree → clear the mismatch warning.
+                    conn.Execute(@"
+                UPDATE ImportWarnings
+                SET IsResolved       = 1,
+                    ResolvedByUserId = @UserId,
+                    ResolvedAt       = @Now
+                WHERE StagingDossierId = @Id
+                AND   WarningType      = 'SheetNameTitleMismatch'
+                AND   IsResolved       = 0",
+                        new { UserId = userId, Now = now, Id = stagingDossierId });
+                }
+                // else: numbers still differ — leave warning unresolved intentionally.
+            }
+
+            // ── Persist the updated metadata ──────────────────────────────────────
             conn.Execute(@"
-                UPDATE ImportStagingDossiers
-                SET DossierNumber     = @DNum,
-                    HijriMonth        = @Month,
-                    HijriYear         = @Year,
-                    ExpectedFileCount = @Expected,
-                    Status            = 'NeedsReview'
-                WHERE StagingDossierId = @Id",
+        UPDATE ImportStagingDossiers
+        SET DossierNumber     = @DNum,
+            HijriMonth        = @Month,
+            HijriYear         = @Year,
+            ExpectedFileCount = @Expected,
+            Status            = 'NeedsReview'
+        WHERE StagingDossierId = @Id",
                 new
                 {
                     DNum = dossierNumber,
