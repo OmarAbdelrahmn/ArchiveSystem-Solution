@@ -205,6 +205,22 @@
 
                         </UniformGrid>
 
+                        <!-- Custom fields notice -->
+                        <Border Background="#E3F2FD"
+                                BorderBrush="#90CAF9"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="12,9" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="ℹ️ " FontSize="14" VerticalAlignment="Center"/>
+                                <TextBlock TextWrapping="Wrap"
+                                           Foreground="#1565C0" FontSize="12"
+                                           VerticalAlignment="Center">
+                                    <Run FontWeight="SemiBold">ملاحظة بشأن الحقول المخصصة:</Run>
+                                    <Run>ملف Excel لا يحتوي على أعمدة للحقول المخصصة (مثل الجنسية وغيرها). ستُضاف السجلات المستوردة بقيم فارغة لهذه الحقول، ويمكن تعبئتها لاحقاً من شاشة "كل البيانات" باستخدام خاصية التعبئة الجماعية، أو يدوياً من تفاصيل كل سجل.</Run>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
                         <!-- Blocker warning -->
                         <Border x:Name="BlockerBorder"
                                 Background="#FFEBEE" BorderBrush="#EF9A9A"
