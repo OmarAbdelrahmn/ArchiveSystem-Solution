@@ -574,6 +574,7 @@ namespace ArchiveSystem.Data
                 ["AuditPrintingEnabled"] = "true",
                 ["AuditImportsEnabled"] = "true",
                 ["Density"] = "Comfortable",
+
             };
 
             foreach (var s in settings)

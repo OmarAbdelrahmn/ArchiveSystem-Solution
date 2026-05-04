@@ -145,14 +145,16 @@ namespace ArchiveSystem.Core.Services
                 SET PersonName      = @PersonName,
                     PrisonerNumber  = @PrisonerNumber,
                     Notes           = @Notes,
-                    UpdatedAt       = @Now
+                    UpdatedAt       = @Now,
+                    UpdatedByUserId = @UserId
                 WHERE RecordId = @RecordId",
                 new
                 {
                     PersonName = personName.Trim(),
                     PrisonerNumber = prisonerNumber,
-                    Notes = string.IsNullOrWhiteSpace(notes) ? (object)DBNull.Value : notes.Trim(),
+                    Notes = notes,
                     Now = now,
+                    UserId = UserSession.CurrentUser?.UserId,
                     RecordId = recordId
                 });
 
