@@ -52,6 +52,38 @@ namespace ArchiveSystem.Views.Pages
             _currentBatchId = 0;
         }
 
+        private void RejectDossier_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn || btn.Tag is not int stagingDossierId) return;
+
+            // Determine current status from the bound item
+            if (btn.DataContext is not StagedDossierView staged) return;
+
+            if (staged.Status == "Rejected")
+            {
+                // Un-reject
+                _importService.UnrejectStagingDossier(stagingDossierId);
+            }
+            else
+            {
+                var confirm = MessageBox.Show(
+                    $"سيتم رفض الشيت '{staged.SheetName}' وسيُستبعد من الاعتماد.\n\nهل تريد المتابعة؟",
+                    "رفض الشيت",
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (confirm != MessageBoxResult.Yes) return;
+
+                var err = _importService.RejectStagingDossier(stagingDossierId);
+                if (err != null)
+                {
+                    MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+            }
+
+            RefreshReviewData();
+        }
+
         // ── STAGE ─────────────────────────────────────────────────────────────
 
         private async void StageFile_Click(object sender, RoutedEventArgs e)

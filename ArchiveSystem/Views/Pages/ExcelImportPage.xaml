@@ -288,8 +288,31 @@
                                         Binding="{Binding WarningCount}"   Width="75"/>
                                     <DataGridTextColumn Header="الحالة"
                                         Binding="{Binding StatusDisplay}"  Width="*"/>
+                                    <DataGridTemplateColumn Header="إجراء" Width="120">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Tag="{Binding StagingDossierId}"
+                                                        Click="RejectDossier_Click"
+                                                        Height="26" Padding="6,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button"
+                                                               BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                                            <Setter Property="Content"    Value="❌ رفض"/>
+                                                            <Setter Property="Foreground" Value="#C62828"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Rejected">
+                                                                    <Setter Property="Content"    Value="↩ استعادة"/>
+                                                                    <Setter Property="Foreground" Value="#1a7a60"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
-
+                                
                                 <DataGrid.RowStyle>
                                     <Style TargetType="DataGridRow">
                                         <Style.Triggers>

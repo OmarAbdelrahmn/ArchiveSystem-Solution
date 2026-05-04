@@ -675,6 +675,31 @@ namespace ArchiveSystem.Core.Services
             return null;
         }
 
+        public string? RejectStagingDossier(int stagingDossierId)
+        {
+            using var conn = _db.CreateConnection();
+            int updated = conn.Execute(@"
+        UPDATE ImportStagingDossiers
+        SET Status = 'Rejected'
+        WHERE StagingDossierId = @Id
+        AND   Status != 'Rejected'",
+                new { Id = stagingDossierId });
+
+            return updated == 0 ? "الدوسية مرفوضة مسبقاً أو غير موجودة." : null;
+        }
+
+        public string? UnrejectStagingDossier(int stagingDossierId)
+        {
+            using var conn = _db.CreateConnection();
+            conn.Execute(@"
+        UPDATE ImportStagingDossiers
+        SET Status = 'NeedsReview'
+        WHERE StagingDossierId = @Id
+        AND   Status = 'Rejected'",
+                new { Id = stagingDossierId });
+            return null;
+        }
+
         // ── GET STAGED DOSSIERS ───────────────────────────────────────────────
         public List<StagedDossierView> GetStagedDossiers(int batchId)
         {
