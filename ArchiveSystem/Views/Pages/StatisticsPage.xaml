@@ -370,6 +370,18 @@
                                   RowBackground="White"
                                   AlternatingRowBackground="#F9FBF9"
                                   MaxHeight="300">
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEmpty}" Value="True">
+                                            <Setter Property="Background" Value="#FFF8E1"/>
+                                            <Setter Property="FontStyle" Value="Italic"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="القيمة"
                                                     Binding="{Binding Value}"
