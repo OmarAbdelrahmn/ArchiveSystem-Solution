@@ -86,8 +86,13 @@ namespace ArchiveSystem.Core.Services
         public List<CustomField> ReportCustomFields { get; set; } = new();
         // Values per record: RecordId → (CustomFieldId → ValueText)
         public Dictionary<int, Dictionary<int, string?>> RecordCustomValues { get; set; } = new();
+        // ── أضف هذا ──────────────────────────────────────────────────────────
+        /// <summary>
+        /// Per-field aggregation for the summary section.
+        /// Key = ArabicLabel, Value = list of (ValueText, Count) ordered by count desc.
+        /// </summary>
+        public Dictionary<string, List<(string Value, int Count)>> FieldAggregates { get; set; } = new();
     }
-
     public class PeriodReportRow
     {
         public int DossierNumber { get; set; }
@@ -146,8 +151,42 @@ namespace ArchiveSystem.Core.Services
                 TotalRecords = rows.Sum(r => r.RecordCount),
                 Rows = rows,
                 ReportCustomFields = reportFields,
-                RecordCustomValues = customValues
+                RecordCustomValues = customValues,
+                FieldAggregates = BuildFieldAggregates(customValues, reportFields) // ← أضف هذا
             };
+        }
+
+        /// <summary>
+        /// Collapses RecordCustomValues into per-field value-frequency maps.
+        /// </summary>
+        private static Dictionary<string, List<(string Value, int Count)>> BuildFieldAggregates(
+            Dictionary<int, Dictionary<int, string?>> recordCustomValues,
+            List<CustomField> fields)
+        {
+            var result = new Dictionary<string, List<(string, int)>>();
+
+            foreach (var cf in fields)
+            {
+                var freq = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var perRecord in recordCustomValues.Values)
+                {
+                    if (!perRecord.TryGetValue(cf.CustomFieldId, out var val)) continue;
+                    if (string.IsNullOrWhiteSpace(val)) continue;
+
+                    val = val.Trim();
+                    freq[val] = freq.TryGetValue(val, out int c) ? c + 1 : 1;
+                }
+
+                if (freq.Count == 0) continue;
+
+                result[cf.ArabicLabel] = freq
+                    .OrderByDescending(kv => kv.Value)
+                    .Select(kv => (kv.Key, kv.Value))
+                    .ToList();
+            }
+
+            return result;
         }
 
         private static Dictionary<int, Dictionary<int, string?>> LoadCustomValuesForWeek(
@@ -307,6 +346,7 @@ namespace ArchiveSystem.Core.Services
             var reportFields = LoadReportCustomFields(conn);
             var customValues = LoadCustomValuesForDossiers(conn, hijriMonth, null, hijriYear, reportFields);
 
+            // في LoadMonthlyReport
             return new PeriodReportData
             {
                 Title = "تقرير شهري",
@@ -315,7 +355,8 @@ namespace ArchiveSystem.Core.Services
                 TotalRecords = rows.Sum(r => r.RecordCount),
                 Rows = rows,
                 ReportCustomFields = reportFields,
-                RecordCustomValues = customValues
+                RecordCustomValues = customValues,
+                FieldAggregates = BuildFieldAggregates(customValues, reportFields) // ← أضف هذا
             };
         }
 
@@ -357,7 +398,8 @@ namespace ArchiveSystem.Core.Services
                 TotalRecords = rows.Sum(r => r.RecordCount),
                 Rows = rows,
                 ReportCustomFields = reportFields,
-                RecordCustomValues = customValues
+                RecordCustomValues = customValues,
+                FieldAggregates = BuildFieldAggregates(customValues, reportFields) // ← أضف هذا
             };
         }
 
@@ -594,9 +636,7 @@ namespace ArchiveSystem.Core.Services
                                 cols.ConstantColumn(60);   // عدد الملفات
                                 cols.RelativeColumn(2);    // الموقع
                                 cols.ConstantColumn(70);   // الحالة
-                                // One column per custom report field
-                                foreach (var _ in data.ReportCustomFields)
-                                    cols.RelativeColumn(1.5f);
+                                // One column per custom report fiel
                             });
 
                             table.Header(h =>
@@ -606,8 +646,7 @@ namespace ArchiveSystem.Core.Services
                                 HeaderCell(h, "عدد الملفات");
                                 HeaderCell(h, "الموقع");
                                 HeaderCell(h, "الحالة");
-                                foreach (var cf in data.ReportCustomFields)
-                                    HeaderCell(h, cf.ArabicLabel);
+
                             });
 
                             foreach (var row in data.Rows)
@@ -621,27 +660,86 @@ namespace ArchiveSystem.Core.Services
                                 DataCell(table, row.LocationDisplay, bg);
                                 DataCell(table, TranslateStatus(row.Status), bg, center: true);
 
-                                // For period reports, custom field values are per-record, not per-dossier.
-                                // We show a summary count: e.g. how many non-empty values in this dossier.
-                                foreach (var cf in data.ReportCustomFields)
-                                {
-                                    // Count distinct non-null values for this field within this dossier's records
-                                    var distinctVals = data.RecordCustomValues.Values
-                                        .Where(rv => rv.ContainsKey(cf.CustomFieldId)
-                                                     && !string.IsNullOrWhiteSpace(rv[cf.CustomFieldId]))
-                                        .Select(rv => rv[cf.CustomFieldId])
-                                        .Distinct()
-                                        .Take(3)
-                                        .ToList();
-
-                                    string display = distinctVals.Count > 0
-                                        ? string.Join(" / ", distinctVals)
-                                        : "—";
-
-                                    DataCell(table, display, bg);
-                                }
                             }
                         });
+
+                        // ── القسم الثاني: ملخص الحقول المخصصة ───────────────────────────────
+                        if (data.FieldAggregates.Count > 0)
+                        {
+                            // فراغ بين الجدولين
+                            // نضيف صفحة جديدة للملخص إذا كانت البيانات كبيرة
+                            container.Page(page2 =>
+                            {
+                                page2.Size(PageSizes.A4);
+                                page2.Margin(1.5f, Unit.Centimetre);
+                                page2.DefaultTextStyle(t => t.FontSize(10).FontFamily("Arial"));
+                                page2.ContentFromRightToLeft();
+
+                                page2.Header().Column(col =>
+                                {
+                                    col.Item().AlignCenter()
+                                        .Text($"ملخص الحقول المخصصة — {data.Period}")
+                                        .FontSize(14).Bold();
+                                    col.Item().PaddingVertical(4)
+                                        .LineHorizontal(1).LineColor(Colors.Teal.Medium);
+                                });
+
+                                page2.Content().Column(col =>
+                                {
+                                    foreach (var (fieldLabel, values) in data.FieldAggregates)
+                                    {
+                                        int fieldTotal = values.Sum(v => v.Count);
+
+                                        col.Item().PaddingBottom(4)
+                                            .Text(fieldLabel)
+                                            .Bold().FontSize(12).FontColor(Colors.Teal.Darken3);
+
+                                        col.Item().Table(t =>
+                                        {
+                                            t.ColumnsDefinition(c =>
+                                            {
+                                                c.RelativeColumn(3);   // القيمة
+                                                c.ConstantColumn(70);  // العدد
+                                                c.ConstantColumn(80);  // النسبة
+                                            });
+
+                                            t.Header(h =>
+                                            {
+                                                HeaderCell(h, "القيمة");
+                                                HeaderCell(h, "العدد");
+                                                HeaderCell(h, "النسبة");
+                                            });
+
+                                            foreach (var (value, count) in values)
+                                            {
+                                                bool alt = values.IndexOf((value, count)) % 2 == 0;
+                                                var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
+                                                double pct = fieldTotal > 0 ? count * 100.0 / fieldTotal : 0;
+
+                                                DataCell(t, value, bg);
+                                                DataCell(t, count.ToString(), bg, center: true);
+                                                DataCell(t, $"{pct:F1}%", bg, center: true);
+                                            }
+
+                                            // صف الإجمالي
+                                            DataCell(t, "الإجمالي", Colors.Teal.Lighten4);
+                                            DataCell(t, fieldTotal.ToString(), Colors.Teal.Lighten4, center: true);
+                                            DataCell(t, "100%", Colors.Teal.Lighten4, center: true);
+                                        });
+
+                                        col.Item().PaddingVertical(12); // مسافة بين الحقول
+                                    }
+                                });
+
+                                page2.Footer().AlignCenter().Text(x =>
+                                {
+                                    x.Span("صفحة ").FontSize(9).FontColor(Colors.Grey.Medium);
+                                    x.CurrentPageNumber().FontSize(9);
+                                    x.Span(" من ").FontSize(9).FontColor(Colors.Grey.Medium);
+                                    x.TotalPages().FontSize(9);
+                                });
+                            });
+                        }
 
                         page.Footer().AlignCenter().Text(x =>
                         {
