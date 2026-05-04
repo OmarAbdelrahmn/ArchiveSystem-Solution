@@ -51,15 +51,16 @@ namespace ArchiveSystem.Views.Pages
             var s = _service.GetSummary();
             _totalDossiers = s.TotalDossiers > 0 ? s.TotalDossiers : 1;
 
-            // after existing 4 cards:
-            double avg = _service.GetAverageDailyEntries();
-            SummaryCards.Children.Add(MakeCard("متوسط الإدخال اليومي", avg.ToString("F1"), "#00695C", "📈"));
+
 
             SummaryCards.Children.Clear();
             SummaryCards.Children.Add(MakeCard("إجمالي الدوسيات", s.TotalDossiers.ToString("N0"), "#1a7a60", "📁"));
             SummaryCards.Children.Add(MakeCard("إجمالي السجلات", s.TotalRecords.ToString("N0"), "#1565C0", "👤"));
             SummaryCards.Children.Add(MakeCard("مُضاف اليوم", s.RecordsToday.ToString("N0"), "#6A1B9A", "📅"));
             SummaryCards.Children.Add(MakeCard("مُضاف هذا الشهر", s.RecordsThisMonth.ToString("N0"), "#E65100", "📆"));
+            // after existing 4 cards:
+            double avg = _service.GetAverageDailyEntries();
+            SummaryCards.Children.Add(MakeCard("متوسط الإدخال اليومي", avg.ToString("F1"), "#00695C", "📈"));
         }
 
         private static Border MakeCard(string label, string value, string hexColor, string icon)
