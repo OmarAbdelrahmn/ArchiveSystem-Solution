@@ -25,6 +25,8 @@ namespace ArchiveSystem.Views.Pages
 
         // Tracks IDs when the user chooses "select all filtered results"
         private List<int>? _allFilteredIds = null;
+        private int _activeFilteredCount = 0;       // ← ADD
+
 
         private System.Windows.Threading.DispatcherTimer? _debounce;
 
@@ -121,10 +123,21 @@ namespace ArchiveSystem.Views.Pages
 
             PageText.Text = $"صفحة {result.Page} من {result.TotalPages}  |  عرض {result.Items.Count} من {_totalCount:N0}";
 
-            // Show the "select all filtered" banner only when a filter is actually active
-            // and there are results worth selecting across pages
+
+            // Reset the "select all" checkbox whenever the data reloads
+            _allFilteredIds = null;
+            SelectAllFilteredChk.IsChecked = false;
+            UpdateSelectAllLabel();
+
+            // AFTER
             bool filterActive = IsFilterActive();
-            SelectAllBorder.Visibility = filterActive && _totalCount > 0
+
+            // Fetch the active-only count so the label is accurate regardless of StatusFilter
+            _activeFilteredCount = filterActive
+                ? _service.GetFilteredActiveCount(_filter)
+                : 0;
+
+            SelectAllBorder.Visibility = filterActive && _activeFilteredCount > 0
                 ? Visibility.Visible
                 : Visibility.Collapsed;
 
@@ -251,10 +264,12 @@ namespace ArchiveSystem.Views.Pages
 
         private void UpdateSelectAllLabel()
         {
-            int count = _allFilteredIds?.Count ?? 0;
+            // Always show the active-only count — GetFilteredIds forces StatusFilter = "Active",
+            // so the label must reflect that, not _totalCount which may include deleted rows.
+            int count = _allFilteredIds?.Count ?? _activeFilteredCount;
             SelectAllFilteredChk.Tag = SelectAllFilteredChk.IsChecked == true
-                ? $"تم تحديد كل النتائج ({count:N0})"
-                : $"تحديد كل النتائج ({_totalCount:N0})";
+                ? $"تم تحديد كل السجلات النشطة ({count:N0})"
+                : $"تحديد كل السجلات النشطة ({_activeFilteredCount:N0})";
         }
 
         // ── SORT ─────────────────────────────────────────────────────────────

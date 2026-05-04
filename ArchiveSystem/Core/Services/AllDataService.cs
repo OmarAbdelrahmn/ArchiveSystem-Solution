@@ -184,6 +184,26 @@ namespace ArchiveSystem.Core.Services
             };
         }
 
+        /// <summary>
+        /// Returns the COUNT of active records that satisfy <paramref name="filter"/>,
+        /// always forcing StatusFilter = "Active" — the same guarantee as GetFilteredIds.
+        /// Cheap single COUNT query; used by the UI to show an accurate
+        /// "will select N active records" label before the user checks the box.
+        /// </summary>
+        public int GetFilteredActiveCount(AllDataFilter filter)
+        {
+            using var conn = _db.CreateConnection();
+            var activeFilter = filter with { StatusFilter = "Active" };
+            var (where, p) = BuildWhere(activeFilter);
+            return conn.ExecuteScalar<int>($@"
+        SELECT COUNT(DISTINCT r.RecordId)
+        FROM Records r
+        JOIN  Dossiers  d ON d.DossierId  = r.DossierId
+        LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+        {where}", p);
+        }
+
+
         // ── ALL record IDs matching the current filter (no paging) ────────────
         /// <summary>
         /// Returns every active RecordId that satisfies <paramref name="filter"/>,
