@@ -308,10 +308,12 @@ namespace ArchiveSystem.Core.Services
             int recordCount = 0;
             bool hasWarnings = !titleParsed;
             int prevSeq = 0;
-
             for (int r = headerRow + 1; r <= lastRow; r++)
             {
                 var row = ws.Row(r);
+
+                // ADD: skip hidden rows entirely
+                if (row.IsHidden) continue;
 
                 string rawSeq = seqCol > 0 ? row.Cell(seqCol).GetString().Trim() : "";
                 string rawName = nameCol > 0 ? row.Cell(nameCol).GetString().Trim() : "";
@@ -320,6 +322,12 @@ namespace ArchiveSystem.Core.Services
                 if (string.IsNullOrEmpty(rawSeq) &&
                     string.IsNullOrEmpty(rawName) &&
                     string.IsNullOrEmpty(rawNum)) continue;
+
+                // ADD: skip obvious totals/summary rows — non-numeric sequence with keyword
+                if (!string.IsNullOrEmpty(rawSeq) &&
+                    !int.TryParse(rawSeq.Trim(), out _) &&
+                    (rawSeq.Contains("إجمالي") || rawSeq.Contains("مجموع") || rawSeq.Contains("المجموع")))
+                    continue;
 
                 int? hall = hallCol > 0 ? ParseInt(row.Cell(hallCol).GetString()) : null;
                 int? cab = cabCol > 0 ? ParseInt(row.Cell(cabCol).GetString()) : null;

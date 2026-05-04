@@ -47,12 +47,29 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<string>(@"
-                SELECT DISTINCT ValueText
-                FROM RecordCustomFieldValues
-                WHERE CustomFieldId = @Id
-                  AND ValueText IS NOT NULL AND ValueText != ''
-                ORDER BY UpdatedAt DESC
-                LIMIT @Limit",
+                    SELECT Value FROM (
+                        -- Values already used in records (most recent first)
+                        SELECT DISTINCT ValueText AS Value,
+                               MAX(UpdatedAt) AS LastUsed,
+                               1 AS Source
+                        FROM RecordCustomFieldValues
+                        WHERE CustomFieldId = @Id
+                          AND ValueText IS NOT NULL AND ValueText != ''
+                        GROUP BY ValueText
+
+                        UNION
+
+                        -- Manually seeded options (appear even if never used)
+                        SELECT ArabicValue AS Value,
+                               CreatedAt AS LastUsed,
+                               2 AS Source
+                        FROM CustomFieldOptions
+                        WHERE CustomFieldId = @Id
+                          AND IsActive = 1
+                    )
+                    GROUP BY Value
+                    ORDER BY MIN(Source), MAX(LastUsed) DESC
+                    LIMIT @Limit",
                 new { Id = customFieldId, Limit = limit }).AsList();
         }
 

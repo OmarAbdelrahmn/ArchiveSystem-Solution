@@ -324,18 +324,31 @@ namespace ArchiveSystem.Core.Services
             }
         }
 
-        // ── Suggestion list for TextWithSuggestions ────────────────────────────
         public List<string> GetRecentSuggestions(int customFieldId, int limit = 8)
         {
             using var conn = _db.CreateConnection();
             return conn.Query<string>(@"
-                SELECT DISTINCT ValueText
-                FROM RecordCustomFieldValues
-                WHERE CustomFieldId = @Id
-                AND   ValueText IS NOT NULL
-                AND   ValueText != ''
-                ORDER BY UpdatedAt DESC
-                LIMIT @Limit",
+                    SELECT Value FROM (
+                        SELECT DISTINCT ValueText AS Value,
+                               MAX(UpdatedAt) AS LastUsed,
+                               1 AS Source
+                        FROM RecordCustomFieldValues
+                        WHERE CustomFieldId = @Id
+                          AND ValueText IS NOT NULL AND ValueText != ''
+                        GROUP BY ValueText
+
+                        UNION
+
+                        SELECT ArabicValue AS Value,
+                               CreatedAt AS LastUsed,
+                               2 AS Source
+                        FROM CustomFieldOptions
+                        WHERE CustomFieldId = @Id
+                          AND IsActive = 1
+                    )
+                    GROUP BY Value
+                    ORDER BY MIN(Source), MAX(LastUsed) DESC
+                    LIMIT @Limit",
                 new { Id = customFieldId, Limit = limit }).AsList();
         }
 
