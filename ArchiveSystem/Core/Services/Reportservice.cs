@@ -811,7 +811,28 @@ namespace ArchiveSystem.Core.Services
             var fieldRows = new List<DataQualityFieldRow>();
             foreach (var (id, label, required) in fields)
             {
-                int filled = conn.ExecuteScalar<int>(@"
+                // Match StatisticsService: only count records created ON OR AFTER
+                // the field was created — older records were never expected to have it.
+                string? fieldCreatedAt = conn.ExecuteScalar<string?>(
+                    "SELECT CreatedAt FROM CustomFields WHERE CustomFieldId = @Id",
+                    new { Id = id });
+
+                int relevantTotal;
+                if (string.IsNullOrEmpty(fieldCreatedAt))
+                {
+                    relevantTotal = totalRecords;
+                }
+                else
+                {
+                    relevantTotal = conn.ExecuteScalar<int>(@"
+                        SELECT COUNT(*)
+                        FROM Records
+                        WHERE DeletedAt IS NULL
+                        AND   CreatedAt >= @FieldCreatedAt",
+                                    new { FieldCreatedAt = fieldCreatedAt });
+                            }
+
+                            int filled = conn.ExecuteScalar<int>(@"
                     SELECT COUNT(DISTINCT rcfv.RecordId)
                     FROM RecordCustomFieldValues rcfv
                     JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
@@ -824,7 +845,7 @@ namespace ArchiveSystem.Core.Services
                 {
                     FieldLabel = label,
                     IsRequired = required,
-                    TotalRecords = totalRecords,
+                    TotalRecords = relevantTotal,
                     FilledCount = filled
                 });
             }
