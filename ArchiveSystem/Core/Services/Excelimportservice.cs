@@ -915,7 +915,7 @@ namespace ArchiveSystem.Core.Services
                         UserId = userId,
                         Action = AuditActions.ExcelImportCompleted,
                         EntityId = batchId,
-                        Desc = $"اعتماد استيراد الملف: {batch.FileName} — {batch.TotalRecords} سجل",
+                        Desc = $"اعتماد استيراد الملف: {batch.FileName} — {batch.TotalRecords} سجل" + " | الحقول المخصصة (مثل الجنسية) لم تُستورد من Excel وستبقى فارغة",
                         Now = now
                     }, tx);
 

@@ -397,9 +397,29 @@ namespace ArchiveSystem.Views.Pages
                     "تعبئة جماعية", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
+            // Build a human-readable summary of the active filter
+            string? filterSummary = BuildFilterSummary();
 
-            var dialog = new BulkFillDialog(targetIds) { Owner = Window.GetWindow(this) };
+            var dialog = new BulkFillDialog(targetIds, filterSummary) { Owner = Window.GetWindow(this) };
+
             if (dialog.ShowDialog() == true) Load();
+        }
+
+        private string? BuildFilterSummary()
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(NameBox.Text)) parts.Add($"الاسم: {NameBox.Text.Trim()}");
+            if (!string.IsNullOrWhiteSpace(PNumBox.Text)) parts.Add($"رقم السجين: {PNumBox.Text.Trim()}");
+            if (!string.IsNullOrWhiteSpace(DossierNumBox.Text)) parts.Add($"الدوسية: {DossierNumBox.Text.Trim()}");
+            if (!string.IsNullOrWhiteSpace(HallwayBox.Text)) parts.Add($"ممر: {HallwayBox.Text.Trim()}");
+            if (YearCombo.SelectedItem is ComboBoxItem yi && yi.Tag is int y && y > 0)
+                parts.Add($"سنة: {y}هـ");
+            if (MonthCombo.SelectedItem is ComboBoxItem mi && mi.Tag is int m && m > 0)
+                parts.Add($"شهر: {m}");
+            foreach (StackPanel sp in CustomFilterPanel.Items)
+                if (sp.Children[0] is TextBox tb && !string.IsNullOrWhiteSpace(tb.Text))
+                    parts.Add($"حقل مخصص: {tb.Text.Trim()}");
+            return parts.Count > 0 ? string.Join(" | ", parts) : null;
         }
 
         // ── CSV EXPORT ────────────────────────────────────────────────────────

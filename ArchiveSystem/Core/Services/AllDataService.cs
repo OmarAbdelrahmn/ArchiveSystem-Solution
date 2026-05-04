@@ -4,18 +4,7 @@ using Dapper;
 
 namespace ArchiveSystem.Core.Services
 {
-    // ── Bulk fill history DTO ──────────────────────────────────────────────────
-    public class BulkFillBatchRow
-    {
-        public int BatchId { get; set; }
-        public string FieldLabel { get; set; } = string.Empty;
-        public string? NewValue { get; set; }
-        public int RecordCount { get; set; }
-        public string? ExecutedByName { get; set; }
-        public string ExecutedAt { get; set; } = string.Empty;
 
-        public string ValueDisplay => string.IsNullOrWhiteSpace(NewValue) ? "(مسح القيمة)" : NewValue;
-    }
     // ── Filter parameters DTO ─────────────────────────────────────────────────
     public record AllDataFilter
     {
@@ -38,6 +27,19 @@ namespace ArchiveSystem.Core.Services
 
         // custom field filters: key = CustomFieldId, value = filter text ("__EMPTY__" means null/empty)
         public Dictionary<int, string> CustomFieldFilters { get; set; } = new();
+    }
+
+    public class BulkFillBatchRow
+    {
+        public int BatchId { get; set; }
+        public string FieldLabel { get; set; } = string.Empty;
+        public string? NewValue { get; set; }
+        public int RecordCount { get; set; }
+        public string? ExecutedByName { get; set; }
+        public string ExecutedAt { get; set; } = string.Empty;
+        public string? FilterSummary { get; set; }          // ← ADD
+
+        public string ValueDisplay => string.IsNullOrWhiteSpace(NewValue) ? "(مسح القيمة)" : NewValue;
     }
 
     // ── Row returned to the UI ─────────────────────────────────────────────────
@@ -233,18 +235,19 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<BulkFillBatchRow>(@"
-        SELECT
-            b.BatchId,
-            COALESCE(cf.ArabicLabel, CAST(b.CustomFieldId AS TEXT)) AS FieldLabel,
-            b.NewValue,
-            b.RecordCount,
-            u.FullName AS ExecutedByName,
-            b.ExecutedAt
-        FROM BulkFieldUpdateBatches b
-        LEFT JOIN CustomFields cf ON cf.CustomFieldId = b.CustomFieldId
-        LEFT JOIN Users        u  ON u.UserId          = b.ExecutedByUserId
-        ORDER BY b.ExecutedAt DESC
-        LIMIT @Limit",
+                    SELECT
+                        b.BatchId,
+                        COALESCE(cf.ArabicLabel, CAST(b.CustomFieldId AS TEXT)) AS FieldLabel,
+                        b.NewValue,
+                        b.RecordCount,
+                        b.FilterSummary,                          -- ← ADD
+                        u.FullName AS ExecutedByName,
+                        b.ExecutedAt
+                    FROM BulkFieldUpdateBatches b
+                    LEFT JOIN CustomFields cf ON cf.CustomFieldId = b.CustomFieldId
+                    LEFT JOIN Users        u  ON u.UserId          = b.ExecutedByUserId
+                    ORDER BY b.ExecutedAt DESC
+                    LIMIT @Limit",
                 new { Limit = limit }).AsList();
         }
 
@@ -252,7 +255,8 @@ namespace ArchiveSystem.Core.Services
         public (string? Error, int Count) BulkFillCustomField(
             List<int> recordIds,
             int customFieldId,
-            string? value)
+            string? value,
+            string? filterSummary = null)
         {
             if (recordIds.Count == 0)
                 return ("لم يتم اختيار أي سجل.", 0);
@@ -267,21 +271,17 @@ namespace ArchiveSystem.Core.Services
                 foreach (var rid in recordIds)
                 {
                     conn.Execute(@"
-                        INSERT INTO RecordCustomFieldValues
-                            (RecordId, CustomFieldId, ValueText, UpdatedAt, UpdatedByUserId)
-                        VALUES (@RecordId, @FieldId, @Value, @Now, @UserId)
-                        ON CONFLICT(RecordId, CustomFieldId)
-                        DO UPDATE SET
-                            ValueText       = @Value,
-                            UpdatedAt       = @Now,
-                            UpdatedByUserId = @UserId",
+                    INSERT INTO BulkFieldUpdateBatches
+                        (CustomFieldId, NewValue, RecordCount, ExecutedByUserId, ExecutedAt, FilterSummary)
+                    VALUES (@FieldId, @Value, @Count, @UserId, @Now, @FilterSummary)",  // ← ADD column
                         new
                         {
-                            RecordId = rid,
                             FieldId = customFieldId,
                             Value = value,
+                            Count = recordIds.Count,
+                            UserId = userId,
                             Now = now,
-                            UserId = userId
+                            FilterSummary = filterSummary      // ← ADD
                         }, tx);
                 }
 

@@ -11,12 +11,14 @@ namespace ArchiveSystem.Views.Dialogs
         private readonly List<int> _recordIds;
         private List<CustomField> _fields = new();
 
-        public BulkFillDialog(List<int> recordIds)
+        private readonly string? _filterSummary;
+
+        public BulkFillDialog(List<int> recordIds, string? filterSummary = null)
         {
             InitializeComponent();
             _service = new AllDataService(App.Database);
             _recordIds = recordIds;
-
+            _filterSummary = filterSummary;
             CountText.Text = $"سيتم تعبئة الحقل لعدد {recordIds.Count} سجل محدد.";
             Loaded += (s, e) => LoadFields();
         }
@@ -86,7 +88,7 @@ namespace ArchiveSystem.Views.Dialogs
             if (result != MessageBoxResult.Yes) return;
 
             var (error, count) = _service.BulkFillCustomField(
-                _recordIds, field.CustomFieldId, value);
+                _recordIds, field.CustomFieldId, value, _filterSummary);
 
             if (error != null) { ShowError(error); return; }
 

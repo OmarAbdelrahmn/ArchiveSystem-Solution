@@ -40,6 +40,16 @@ namespace ArchiveSystem.Data
             }
         }
 
+        private void Migration_004_BulkBatchFilterSummary(SqliteConnection conn)
+        {
+            var cols = conn.Query<string>("PRAGMA table_info(BulkFieldUpdateBatches);")
+                           .Select(c => c.ToString())
+                           .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (!cols.Contains("FilterSummary"))
+                conn.Execute("ALTER TABLE BulkFieldUpdateBatches ADD COLUMN FilterSummary TEXT;");
+        }
+
         private void RunMigrations(SqliteConnection conn)
         {
             EnsureMigrationsTable(conn);
@@ -59,6 +69,11 @@ namespace ArchiveSystem.Data
             {
                 Migration_003_DossierSoftDelete(conn);
                 RecordMigration(conn, "003", "Add DeletedAt and DeletedByUserId to Dossiers");
+            }
+            if (!MigrationApplied(conn, "004"))
+            {
+                Migration_004_BulkBatchFilterSummary(conn);
+                RecordMigration(conn, "004", "Add FilterSummary to BulkFieldUpdateBatches");
             }
         }
 

@@ -113,6 +113,9 @@
                 <DataGridTextColumn Header="عدد السجلات المتأثرة"
                                     Binding="{Binding RecordCount}"
                                     Width="*"/>
+                <DataGridTextColumn Header="الفلتر المُطبَّق"
+                                    Binding="{Binding FilterSummary}"
+                                    Width="*"/>
             </DataGrid.Columns>
 
             <!-- highlight "clear value" rows so they stand out -->
