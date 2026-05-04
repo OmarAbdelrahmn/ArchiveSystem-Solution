@@ -1,14 +1,53 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using ArchiveSystem.Core.Helpers;
+﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
 using ArchiveSystem.Views.Pages;
+using Dapper;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace ArchiveSystem
 {
     public partial class MainWindow : Window
     {
+        private bool _sidebarCollapsed = false;
+
+
+        private void SidebarToggle_Click(object sender, RoutedEventArgs e)
+        {
+            _sidebarCollapsed = !_sidebarCollapsed;
+            SidebarCol.Width = _sidebarCollapsed
+                ? new GridLength(48)
+                : new GridLength(220);
+            SidebarToggleBtn.Content = _sidebarCollapsed ? "▶" : "◀";
+
+            // Hide text on all nav buttons when collapsed
+            foreach (var btn in new[] {
+        NavEntryButton, NavAllDataButton, NavStatsButton,
+        NavImportButton, NavReportsButton, NavSuggestionsButton,
+        NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton })
+            {
+                if (btn.Visibility == Visibility.Visible)
+                    btn.Content = _sidebarCollapsed
+                        ? btn.Content.ToString()!.Substring(0, 2)   // keep emoji only
+                        : GetNavLabel(btn.Name);
+            }
+        }
+
+        private static string GetNavLabel(string name) => name switch
+        {
+            "NavEntryButton" => "➕   إدخال بيانات",
+            "NavAllDataButton" => "📋   كل البيانات",
+            "NavStatsButton" => "📊   الإحصاءات",
+            "NavImportButton" => "📥   استيراد Excel",
+            "NavReportsButton" => "🖨️   التقارير",
+            "NavSuggestionsButton" => "💡   الاقتراحات",
+            "NavAuditLogButton" => "📜   سجل المراجعة",
+            "NavBulkHistoryButton" => "📝   التعبئة الجماعية",
+            "NavSettingsButton" => "⚙️   الإعدادات",
+            _ => name
+        };
+
         public MainWindow()
         {
             InitializeComponent();
@@ -16,6 +55,19 @@ namespace ArchiveSystem
 
             var user = UserSession.CurrentUser;
             CurrentUserText.Text = user?.FullName ?? "مستخدم";
+
+            try
+            {
+                using var conn = App.Database.CreateConnection();
+                var role = conn.ExecuteScalar<string?>(@"
+                    SELECT r.RoleName FROM Roles r
+                    JOIN UserRoles ur ON ur.RoleId = r.RoleId
+                    WHERE ur.UserId = @UserId
+                    LIMIT 1",
+                    new { UserId = user?.UserId });
+                CurrentUserRoleText.Text = role ?? string.Empty;
+            }
+            catch { }
 
             AppVersionText.Text = $"v{App.AppVersion}";
 

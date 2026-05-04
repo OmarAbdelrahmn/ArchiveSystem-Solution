@@ -108,26 +108,35 @@ namespace ArchiveSystem.Core.Services
                 try
                 {
                     string todayPrefix = DateTime.UtcNow.ToString("yyyy-MM-dd");
-
                     using var conn = _db.CreateConnection();
+
+                    // Read configured backup time
+                    string backupTimeStr = conn.ExecuteScalar<string?>(
+                        "SELECT SettingValue FROM AppSettings WHERE SettingKey = 'BackupTime'")
+                        ?? "02:00";
+
+                    TimeSpan.TryParse(backupTimeStr, out var scheduledTime);
+                    var now = DateTime.Now.TimeOfDay;
+
+                    // Only run if current time is past the scheduled time
+                    if (now < scheduledTime) return;
+
                     int todayCount = conn.ExecuteScalar<int>(@"
-                        SELECT COUNT(*) FROM Backups
-                        WHERE Status = 'Success'
-                        AND   BackupType = 'Automatic'
-                        AND   CreatedAt LIKE @Prefix",
+                SELECT COUNT(*) FROM Backups
+                WHERE Status = 'Success'
+                AND   BackupType = 'Automatic'
+                AND   CreatedAt LIKE @Prefix",
                         new { Prefix = todayPrefix + "%" });
 
                     if (todayCount == 0)
                     {
                         var backupFolder = GetDefaultBackupFolder();
                         CreateBackup(backupFolder, "Automatic");
-
-                        // Prune old automatic backups
                         var retentionDays = GetRetentionDays();
                         CleanOldBackups(backupFolder, retentionDays);
                     }
                 }
-                catch { /* silently ignore — app must still start */ }
+                catch { }
             });
         }
 

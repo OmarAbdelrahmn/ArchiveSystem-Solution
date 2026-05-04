@@ -75,6 +75,11 @@ namespace ArchiveSystem.Data
                 Migration_004_BulkBatchFilterSummary(conn);
                 RecordMigration(conn, "004", "Add FilterSummary to BulkFieldUpdateBatches");
             }
+            if (!MigrationApplied(conn, "005"))
+            {
+                Migration_005_DensitySetting(conn);
+                RecordMigration(conn, "005", "Add Density setting");
+            }
         }
 
         // ─────────────────────────────────────────────
@@ -568,6 +573,7 @@ namespace ArchiveSystem.Data
                 ["AuditEditsEnabled"] = "true",
                 ["AuditPrintingEnabled"] = "true",
                 ["AuditImportsEnabled"] = "true",
+                ["Density"] = "Comfortable",
             };
 
             foreach (var s in settings)
@@ -589,6 +595,13 @@ namespace ArchiveSystem.Data
                      1, 1, 0, 1,
                      1, 8, 1, @now);
             ", new { now });
+        }
+        private void Migration_005_DensitySetting(SqliteConnection conn)
+        {
+            conn.Execute(@"
+        INSERT OR IGNORE INTO AppSettings (SettingKey, SettingValue, UpdatedAt)
+        VALUES ('Density', 'Comfortable', @Now)",
+                new { Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss") });
         }
     }
 }

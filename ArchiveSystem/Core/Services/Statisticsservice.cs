@@ -102,6 +102,17 @@ namespace ArchiveSystem.Core.Services
             };
         }
 
+        public double GetAverageDailyEntries()
+        {
+            using var conn = _db.CreateConnection();
+            return conn.ExecuteScalar<double>(@"
+        SELECT CAST(COUNT(*) AS REAL) /
+               MAX(1, CAST(julianday('now') - julianday(MIN(CreatedAt)) AS INTEGER))
+        FROM Records
+        WHERE DeletedAt IS NULL");
+        }
+
+
         // ── Records by Hijri month ─────────────────────────────────────────────
         public List<MonthlyCount> GetMonthlyBreakdown(int? filterYear = null, int topN = 18)
         {

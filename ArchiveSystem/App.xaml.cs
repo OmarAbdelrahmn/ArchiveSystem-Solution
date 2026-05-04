@@ -14,6 +14,7 @@ namespace ArchiveSystem
         public static BackupService Backup { get; private set; } = null!;
         /// <summary>Assembly version string, e.g. "1.0.0".</summary>
         public static string AppVersion { get; private set; } = "1.0.0";
+        public static string DensitySetting { get; internal set; } = "Comfortable";
 
         /// <summary>
         /// The FontScale key read from AppSettings on startup ("Normal" or "Large").

@@ -51,6 +51,10 @@ namespace ArchiveSystem.Views.Pages
             var s = _service.GetSummary();
             _totalDossiers = s.TotalDossiers > 0 ? s.TotalDossiers : 1;
 
+            // after existing 4 cards:
+            double avg = _service.GetAverageDailyEntries();
+            SummaryCards.Children.Add(MakeCard("متوسط الإدخال اليومي", avg.ToString("F1"), "#00695C", "📈"));
+
             SummaryCards.Children.Clear();
             SummaryCards.Children.Add(MakeCard("إجمالي الدوسيات", s.TotalDossiers.ToString("N0"), "#1a7a60", "📁"));
             SummaryCards.Children.Add(MakeCard("إجمالي السجلات", s.TotalRecords.ToString("N0"), "#1565C0", "👤"));

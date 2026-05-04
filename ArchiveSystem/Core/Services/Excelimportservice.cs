@@ -114,6 +114,19 @@ namespace ArchiveSystem.Core.Services
 
                 result.BatchId = batchId;
 
+                // Audit: import started
+                conn.Execute(@"
+                        INSERT INTO AuditLog (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
+                        VALUES (@UserId, @Action, 'ImportBatch', @EntityId, @Desc, @Now)",
+                    new
+                    {
+                        UserId = userId,
+                        Action = AuditActions.ExcelImportStarted,
+                        EntityId = batchId,
+                        Desc = $"بدء استيراد الملف: {result.FileName}",
+                        Now = now
+                    }, tx);
+
                 var seenInImport = new HashSet<string>();
                 var existingPrisoners = conn
                     .Query<string>("SELECT PrisonerNumber FROM Records WHERE DeletedAt IS NULL",

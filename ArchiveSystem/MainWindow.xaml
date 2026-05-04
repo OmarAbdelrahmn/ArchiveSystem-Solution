@@ -12,7 +12,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition x:Name="SidebarCol" Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -115,17 +115,29 @@
                             Height="46" Margin="0,2"
                             Click="NavSettings_Click"/>
 
+                    <Button Content="◀"
+                            x:Name="SidebarToggleBtn"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Foreground="White" FontSize="14"
+                            Height="36" HorizontalAlignment="Left"
+                            Margin="8,4"
+                            Click="SidebarToggle_Click"/>
+
                 </StackPanel>
 
-                <Border DockPanel.Dock="Bottom"
-                    BorderThickness="0,1,0,0"
-                    BorderBrush="#2a8a70"
-                    Padding="12,10">
-                                <StackPanel>
-                                    <TextBlock x:Name="CurrentUserText"
-                               Foreground="#ccffee" FontSize="12"
-                               HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="AppVersionText"
+                                <Border DockPanel.Dock="Bottom"
+                                    BorderThickness="0,1,0,0"
+                                    BorderBrush="#2a8a70"
+                                    Padding="12,10">
+                                                <StackPanel>
+                                        <TextBlock x:Name="CurrentUserText"
+                           Foreground="#ccffee" FontSize="12"
+                           HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="CurrentUserRoleText"
+                           Foreground="#aaddcc" FontSize="11"
+                           HorizontalAlignment="Center"
+                           Margin="0,2,0,0"/>
+                        <TextBlock x:Name="AppVersionText"
                                Foreground="#5a9a80" FontSize="10"
                                HorizontalAlignment="Center"
                                Margin="0,3,0,0"/>

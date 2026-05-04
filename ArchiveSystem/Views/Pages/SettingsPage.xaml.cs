@@ -372,12 +372,24 @@ namespace ArchiveSystem.Views.Pages
             else LoadCustomFields();
         }
 
+        private void ApplyCustomHex_Click(object sender, RoutedEventArgs e)
+        {
+            string hex = CustomHexBox.Text.Trim();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(hex, @"^#[0-9A-Fa-f]{6}$"))
+            {
+                ShowMsg("صيغة اللون غير صحيحة. مثال: #1a7a60");
+                return;
+            }
+            _selectedThemeColor = hex;
+            SelectedColorText.Text = $"اللون المختار: {hex}";
+            BuildColorSwatches(hex);
+        }
+
         // ═════════════════════════════════════════════════════════════════════
         // ARCHIVE STRUCTURE (LOCATIONS) TAB
         // ═════════════════════════════════════════════════════════════════════
-
         private void LoadLocations()
-            => LocationsGrid.ItemsSource = _locationService.GetAllLocations();
+            => LocationsGrid.ItemsSource = _locationService.GetOccupancy();
 
         private void AddLocation_Click(object sender, RoutedEventArgs e)
         {
@@ -583,6 +595,8 @@ namespace ArchiveSystem.Views.Pages
                 AuditPrintingChk.IsChecked = GetBool(map, SettingKeys.AuditPrintingEnabled, def: true);
                 AuditImportsChk.IsChecked = GetBool(map, SettingKeys.AuditImportsEnabled, def: true);
 
+                BackupTimeBox.Text = GetSetting(map, SettingKeys.BackupTime, "02:00");
+
                 // Font scale
                 foreach (ComboBoxItem item in FontScaleCombo.Items)
                 {
@@ -595,6 +609,13 @@ namespace ArchiveSystem.Views.Pages
                 if (FontScaleCombo.SelectedItem == null)
                     FontScaleCombo.SelectedIndex = 0;
 
+                foreach (ComboBoxItem item in DensityCombo.Items)
+                {
+                    if (item.Tag?.ToString() == GetSetting(map, SettingKeys.Density, "Comfortable"))
+                    { DensityCombo.SelectedItem = item; break; }
+                }
+                if (DensityCombo.SelectedItem == null) DensityCombo.SelectedIndex = 0;
+
                 _selectedThemeColor = GetSetting(map, SettingKeys.ThemeColor, "#178567");
                 BuildColorSwatches(_selectedThemeColor);
                 SelectedColorText.Text = $"اللون الحالي: {_selectedThemeColor}";
@@ -605,6 +626,14 @@ namespace ArchiveSystem.Views.Pages
                 ShowSettingsMsg($"خطأ أثناء تحميل الإعدادات: {ex.Message}", success: false);
             }
         }
+
+        private static void ApplyDensity(string density)
+        {
+            double padding = density == "Compact" ? 4 : 8;
+            // Apply via a global style override — simplest approach is ResourceDictionary merge
+            // For now, store and read on next launch (no runtime re-render needed)
+        }
+
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
             SettingsMsgBorder.Visibility = Visibility.Collapsed;
@@ -644,6 +673,8 @@ namespace ArchiveSystem.Views.Pages
                     [SettingKeys.AuditImportsEnabled] = BoolStr(AuditImportsChk),
                     [SettingKeys.FontScale] = fontScaleKey,
                     [SettingKeys.ThemeColor] = _selectedThemeColor,
+                    [SettingKeys.Density] = (DensityCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Comfortable",
+                    [SettingKeys.BackupTime] = BackupTimeBox.Text.Trim(),
                 };
 
                 // ── Compute diff: only keys whose value actually changed ────────

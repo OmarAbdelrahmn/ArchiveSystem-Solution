@@ -28,5 +28,6 @@
         public const string AuditPrintingEnabled = "AuditPrintingEnabled";
         public const string AuditImportsEnabled = "AuditImportsEnabled";
         public const string AppVersion = "AppVersion";
+        public const string Density = "Density";
     }
 }

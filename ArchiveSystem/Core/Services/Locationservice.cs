@@ -28,6 +28,49 @@ namespace ArchiveSystem.Core.Services
                 ORDER BY HallwayNumber, CabinetNumber, ShelfNumber").AsList();
         }
 
+        public List<LocationOccupancy> GetOccupancy()
+        {
+            using var conn = _db.CreateConnection();
+            return conn.Query<LocationOccupancy>(@"
+        SELECT
+            l.LocationId,
+            l.HallwayNumber,
+            l.CabinetNumber,
+            l.ShelfNumber,
+            l.Label,
+            l.Capacity,
+            l.IsActive,
+            COUNT(d.DossierId) AS UsedCount
+        FROM Locations l
+        LEFT JOIN Dossiers d
+            ON d.CurrentLocationId = l.LocationId
+           AND d.DeletedAt IS NULL
+        WHERE l.IsActive = 1
+        GROUP BY l.LocationId
+        ORDER BY l.HallwayNumber, l.CabinetNumber, l.ShelfNumber").AsList();
+        }
+
+        public class LocationOccupancy
+        {
+            public int LocationId { get; set; }
+            public int HallwayNumber { get; set; }
+            public int CabinetNumber { get; set; }
+            public int ShelfNumber { get; set; }
+            public string? Label { get; set; }
+            public int? Capacity { get; set; }
+            public bool IsActive { get; set; }
+            public int UsedCount { get; set; }
+            public string Display =>
+                $"ممر {HallwayNumber} - كبينة {CabinetNumber} - رف {ShelfNumber}";
+            public string OccupancyDisplay =>
+                Capacity.HasValue ? $"{UsedCount} / {Capacity}" : $"{UsedCount} دوسية";
+            public string StatusDisplay =>
+                !Capacity.HasValue ? "غير محدود" :
+                UsedCount >= Capacity ? "ممتلئ 🔴" :
+                UsedCount >= Capacity * 0.8 ? "شبه ممتلئ 🟡" : "متاح 🟢";
+        }
+
+
         public Location? GetById(int locationId)
         {
             using var conn = _db.CreateConnection();

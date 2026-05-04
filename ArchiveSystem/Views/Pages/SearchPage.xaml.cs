@@ -1,10 +1,11 @@
-﻿using System.Windows;
+﻿using ArchiveSystem.Core.Helpers;
+using ArchiveSystem.Core.Models;
+using ArchiveSystem.Core.Services;
+using QuestPDF.Fluent;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using ArchiveSystem.Core.Helpers;
-using ArchiveSystem.Core.Models;
-using ArchiveSystem.Core.Services;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -245,6 +246,48 @@ namespace ArchiveSystem.Views.Pages
                 canPrint && ResultsGrid.SelectedItem is SearchResult
                     ? Visibility.Visible
                     : Visibility.Collapsed;
+
+            QuickCardBtn.Visibility =
+                ResultsGrid.SelectedItem is SearchResult ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void QuickCard_Click(object sender, RoutedEventArgs e)
+        {
+            if (ResultsGrid.SelectedItem is not SearchResult result) return;
+            PrintRecordCard(result);
+        }
+
+        private void PrintRecordCard(SearchResult result)
+        {
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            string path = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+                $"record_card_{result.RecordId}_{DateTime.Now:yyyyMMddHHmm}.pdf");
+
+            QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(10, 6, QuestPDF.Infrastructure.Unit.Centimetre);
+                    page.Margin(0.8f, QuestPDF.Infrastructure.Unit.Centimetre);
+                    page.DefaultTextStyle(t => t.FontSize(11).FontFamily("Arial"));
+                    page.ContentFromRightToLeft();
+                    page.Content().Column(col =>
+                    {
+                        col.Item().Text($"رقم السجين: {result.PrisonerNumber}").Bold().FontSize(13);
+                        col.Item().Text($"الاسم: {result.PersonName}");
+                        col.Item().Text($"الدوسية: {result.DossierNumber}  |  تسلسل: {result.SequenceNumber}");
+                        col.Item().Text($"التاريخ: {result.HijriDisplay}");
+                        col.Item().Text($"الموقع: {result.LocationDisplay}");
+                    });
+                });
+            }).GeneratePdf(path);
+
+            try
+            {
+                System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+            }
+            catch { }
         }
 
         // ── QUICK PRINT ───────────────────────────────────────────────────────
