@@ -77,10 +77,9 @@ namespace ArchiveSystem.Views.Dialogs
             string? value = string.IsNullOrWhiteSpace(ValueBox.Text)
                 ? null : ValueBox.Text.Trim();
 
-            // Confirm
             string confirmMsg = value == null
-                ? $"سيتم مسح قيمة حقل '{field.ArabicLabel}' من عدد {_recordIds.Count} سجل. هل تريد المتابعة؟"
-                : $"سيتم تعبئة حقل '{field.ArabicLabel}' بـ '{value}' لعدد {_recordIds.Count} سجل. هل تريد المتابعة؟";
+                ? $"سيتم مسح قيمة حقل '{field.ArabicLabel}' من عدد {_recordIds.Count} ملف. هل تريد المتابعة؟"
+                : $"سيتم تعبئة حقل '{field.ArabicLabel}' لعدد {_recordIds.Count} ملف. هل تريد المتابعة؟";
 
             var result = MessageBox.Show(confirmMsg, "تأكيد التعبئة الجماعية",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
