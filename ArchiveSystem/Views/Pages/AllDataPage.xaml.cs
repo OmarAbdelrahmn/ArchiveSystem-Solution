@@ -91,18 +91,56 @@ namespace ArchiveSystem.Views.Pages
 
             foreach (var cf in _customFields)
             {
+                // Outer stack so the label, textbox, and toggle sit together
                 var sp = new StackPanel
                 {
                     Orientation = Orientation.Vertical,
-                    Margin = new Thickness(0, 0, 10, 6)
+                    Margin = new Thickness(0, 0, 10, 6),
+                    Tag = cf.CustomFieldId   // store field id on the container
                 };
 
-                var tb = new TextBox { Width = 130, Height = 40, Tag = cf.CustomFieldId };
+                // ── Text input ────────────────────────────────────────────────
+                var tb = new TextBox
+                {
+                    Width = 130,
+                    Height = 40,
+                    Tag = cf.CustomFieldId
+                };
                 MaterialDesignThemes.Wpf.HintAssist.SetHint(tb, cf.ArabicLabel);
                 tb.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
                 tb.TextChanged += CustomFilter_Changed;
 
+                // ── "فارغ" toggle button ──────────────────────────────────────
+                var emptyBtn = new System.Windows.Controls.Primitives.ToggleButton
+                {
+                    Content = "فارغ",
+                    Width = 130,
+                    Height = 28,
+                    FontSize = 11,
+                    Margin = new Thickness(0, 3, 0, 0),
+                    Tag = cf.CustomFieldId,
+                    ToolTip = "عرض السجلات التي لم تُعبَّأ فيها هذا الحقل"
+                };
+
+                // Style it to look like a flat chip
+                emptyBtn.Style = (Style)FindResource("MaterialDesignFlatButton");
+                emptyBtn.Foreground = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#C62828"));
+
+                emptyBtn.Checked += (s, e) =>
+                {
+                    tb.IsEnabled = false;
+                    tb.Text = string.Empty;   // clear text so it doesn't conflict
+                    StartDebounce();
+                };
+                emptyBtn.Unchecked += (s, e) =>
+                {
+                    tb.IsEnabled = true;
+                    StartDebounce();
+                };
+
                 sp.Children.Add(tb);
+                sp.Children.Add(emptyBtn);
                 CustomFilterPanel.Items.Add(sp);
             }
         }
@@ -169,14 +207,27 @@ namespace ArchiveSystem.Views.Pages
             _filter.HallwayNumber = int.TryParse(HallwayBox.Text, out int hw) ? hw : null;
             _filter.CabinetNumber = int.TryParse(CabinetBox.Text, out int cab) ? cab : null;
             _filter.ShelfNumber = int.TryParse(ShelfBox.Text, out int sh) ? sh : null;
-
             _filter.CustomFieldFilters.Clear();
             foreach (StackPanel sp in CustomFilterPanel.Items)
             {
-                if (sp.Children[0] is not TextBox tb) continue;
-                if (tb.Tag is not int cfId) continue;
-                if (!string.IsNullOrWhiteSpace(tb.Text))
+                if (sp.Tag is not int cfId) continue;
+
+                // Child 0 = TextBox, Child 1 = ToggleButton
+                var tb = sp.Children.Count > 0
+                                    ? sp.Children[0] as TextBox : null;
+                var emptyBtn = sp.Children.Count > 1
+                                    ? sp.Children[1] as System.Windows.Controls.Primitives.ToggleButton
+                                    : null;
+
+                if (emptyBtn?.IsChecked == true)
+                {
+                    // User wants records where this field is empty
+                    _filter.CustomFieldFilters[cfId] = "__EMPTY__";
+                }
+                else if (tb != null && !string.IsNullOrWhiteSpace(tb.Text))
+                {
                     _filter.CustomFieldFilters[cfId] = tb.Text.Trim();
+                }
             }
 
             if (SortCombo.SelectedItem is ComboBoxItem si && si.Tag is string col)
@@ -233,10 +284,21 @@ namespace ArchiveSystem.Views.Pages
             ShelfBox.Text = string.Empty;
             YearCombo.SelectedIndex = 0;
             MonthCombo.SelectedIndex = 0;
-            StatusCombo.SelectedIndex = 0; // back to "Active"
+            StatusCombo.SelectedIndex = 0;
 
             foreach (StackPanel sp in CustomFilterPanel.Items)
-                if (sp.Children[0] is TextBox tb) tb.Text = string.Empty;
+            {
+                if (sp.Children.Count > 0 && sp.Children[0] is TextBox tb)
+                {
+                    tb.IsEnabled = true;
+                    tb.Text = string.Empty;
+                }
+                if (sp.Children.Count > 1
+                    && sp.Children[1] is System.Windows.Controls.Primitives.ToggleButton btn)
+                {
+                    btn.IsChecked = false;
+                }
+            }
 
             _filter.Page = 1;
             Load();

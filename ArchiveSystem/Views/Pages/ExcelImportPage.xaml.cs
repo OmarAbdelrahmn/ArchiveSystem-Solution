@@ -30,6 +30,8 @@ namespace ArchiveSystem.Views.Pages
                 PermissionHelper.Apply(ApproveButton, Permissions.ApproveExcelImport, hideInstead: true);
                 // Hide rollback button too — only approvers can rollback
                 PermissionHelper.Apply(RollbackBtn, Permissions.ApproveExcelImport, hideInstead: true);
+
+
             };
         }
 
@@ -333,7 +335,7 @@ namespace ArchiveSystem.Views.Pages
         {
             if (RecentGrid.SelectedItem is not ImportBatch batch) return;
 
-            if (batch.Status is "Imported" or "RolledBack" or "Failed")
+            if (batch.Status is "RolledBack" or "Failed")
             {
                 MessageBox.Show(
                     $"حالة هذه الدفعة '{batch.Status}' — لا يمكن إعادة فتحها للمراجعة.",

@@ -241,12 +241,31 @@ namespace ArchiveSystem.Views.Pages
             CustomStatsBorder.Visibility = Visibility.Visible;
             CustomFieldCombo.ItemsSource = fields;
             CustomFieldCombo.SelectedIndex = 0;
+
+            // Populate Hijri year filter for custom field stats
+            var hijriYears = _service.GetMonthlyBreakdown(topN: 200)
+                .Select(m => m.HijriYear)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToList();
+
+            CustomFieldYearCombo.Items.Clear();
+            CustomFieldYearCombo.Items.Add(new ComboBoxItem { Content = "كل السنوات", Tag = 0 });
+            foreach (var y in hijriYears)
+                CustomFieldYearCombo.Items.Add(new ComboBoxItem { Content = $"{y}هـ", Tag = y });
+            CustomFieldYearCombo.SelectedIndex = 0;
         }
 
         private void CustomField_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (CustomFieldCombo.SelectedValue is not int fieldId) return;
-            CustomStatsGrid.ItemsSource = _service.GetCustomFieldStats(fieldId);
+
+            int? hijriYear = null;
+            if (CustomFieldYearCombo.SelectedItem is ComboBoxItem yi
+                && yi.Tag is int y && y > 0)
+                hijriYear = y;
+
+            CustomStatsGrid.ItemsSource = _service.GetCustomFieldStats(fieldId, hijriYear: hijriYear);
         }
 
         // ── REFRESH ───────────────────────────────────────────────────────────

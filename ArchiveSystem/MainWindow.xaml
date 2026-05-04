@@ -83,6 +83,14 @@
                             Height="46" Margin="0,2"
                             Click="NavReports_Click"/>
 
+                    <Button x:Name="NavSuggestionsButton"
+                            Content="💡   الاقتراحات"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Foreground="White" FontSize="14"
+                            HorizontalContentAlignment="Right"
+                            Height="46" Margin="0,2"
+                            Click="NavSuggestions_Click"/>
+
                     <Button x:Name="NavAuditLogButton"
                             Content="📜   سجل المراجعة"
                             Style="{StaticResource MaterialDesignFlatButton}"

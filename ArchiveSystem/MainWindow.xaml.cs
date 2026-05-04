@@ -46,6 +46,8 @@ namespace ArchiveSystem
 
             PermissionHelper.Apply(NavBulkHistoryButton, Permissions.ViewAuditLog, hideInstead: true);
 
+            PermissionHelper.Apply(NavSuggestionsButton, Permissions.ManageFieldSuggestions, hideInstead: true);
+
             // Reports — requires PrintReports OR PrintDossierFace
             bool canReports = PermissionHelper.Can(Permissions.PrintReports)
                            || PermissionHelper.Can(Permissions.PrintDossierFace);
@@ -94,5 +96,8 @@ namespace ArchiveSystem
 
         private void NavBulkHistory_Click(object sender, RoutedEventArgs e)
             => MainFrame.Navigate(new BulkFillHistoryPage());
+
+        private void NavSuggestions_Click(object sender, RoutedEventArgs e)
+             => MainFrame.Navigate(new FieldSuggestionsPage());
     }
 }

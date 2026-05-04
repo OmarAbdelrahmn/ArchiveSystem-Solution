@@ -23,6 +23,48 @@ namespace ArchiveSystem.Views.Pages
         // Suppress SelectionChanged feedback loop while we set status programmatically
         private bool _suppressStatusChange = false;
 
+        private void AddRecord_Click(object sender, RoutedEventArgs e)
+        {
+            int nextSeq = _recordService.GetNextSequenceNumber(_dossierId);
+
+            // Reuse EditRecordDialog with a blank record
+            var blankRecord = new ArchiveSystem.Core.Models.Record
+            {
+                RecordId = 0,
+                DossierId = _dossierId,
+                SequenceNumber = nextSeq,
+                PersonName = string.Empty,
+                PrisonerNumber = string.Empty
+            };
+
+            var dlg = new ArchiveSystem.Views.Dialogs.EditRecordDialog(
+                blankRecord, _customFields, new Dictionary<int, string?>())
+            {
+                Owner = Window.GetWindow(this),
+                Title = "إضافة سجل جديد"
+            };
+
+            if (dlg.ShowDialog() != true) return;
+
+            var (err, newRecordId) = _recordService.AddRecord(
+                _dossierId,
+                nextSeq,
+                dlg.PersonName,
+                dlg.PrisonerNumber,
+                dlg.Notes);
+
+            if (err != null)
+            {
+                MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            foreach (var (fieldId, value) in dlg.CustomFieldValues)
+                _customFieldService.SaveFieldValue(newRecordId, fieldId, value);
+
+            LoadRecords();
+        }
+
         public DossierDetailsPage(int dossierId)
         {
             InitializeComponent();
@@ -55,7 +97,9 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(DeleteRecordBtn, Permissions.DeleteRecord, hideInstead: true);
             PermissionHelper.Apply(RegisterMoveBtn, Permissions.MoveDossier, hideInstead: true);
             PermissionHelper.Apply(DeleteDossierBtn, Permissions.DeleteDossier, hideInstead: true);
+            PermissionHelper.Apply(AddRecordBtn, Permissions.AddRecord, hideInstead: true);
         }
+
 
         private void DeleteDossier_Click(object sender, RoutedEventArgs e)
         {

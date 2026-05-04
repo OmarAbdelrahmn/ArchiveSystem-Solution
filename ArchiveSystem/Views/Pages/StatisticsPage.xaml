@@ -338,19 +338,27 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0"
-                                       Text="إحصاءات الحقول المخصصة"
-                                       FontSize="14" FontWeight="Bold"
-                                       Foreground="#1a7a60"/>
-                            <ComboBox Grid.Column="1"
-                                      x:Name="CustomFieldCombo"
-                                      materialDesign:HintAssist.Hint="اختر الحقل"
-                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                      DisplayMemberPath="ArabicLabel"
-                                      SelectedValuePath="CustomFieldId"
-                                      Width="180" Height="34"
-                                      SelectionChanged="CustomField_Changed"/>
+                                   Text="إحصاءات الحقول المخصصة"
+                                   FontSize="14" FontWeight="Bold"
+                                   Foreground="#1a7a60"/>
+                                                <ComboBox Grid.Column="1"
+                                  x:Name="CustomFieldCombo"
+                                  materialDesign:HintAssist.Hint="اختر الحقل"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                  DisplayMemberPath="ArabicLabel"
+                                  SelectedValuePath="CustomFieldId"
+                                  Width="180" Height="34"
+                                  SelectionChanged="CustomField_Changed"/>
+                                                <ComboBox Grid.Column="3"
+                                  x:Name="CustomFieldYearCombo"
+                                  materialDesign:HintAssist.Hint="السنة الهجرية"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                  Width="140" Height="34"
+                                  SelectionChanged="CustomField_Changed"/>
                         </Grid>
 
                         <DataGrid x:Name="CustomStatsGrid"

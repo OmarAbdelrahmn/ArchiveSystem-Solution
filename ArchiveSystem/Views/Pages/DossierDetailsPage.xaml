@@ -181,6 +181,12 @@
                                             Style="{StaticResource MaterialDesignOutlinedButton}"
                                             Height="32" Margin="0,0,8,0"
                                             Click="EditRecord_Click"/>
+                                    <Button x:Name="AddRecordBtn"
+                                            Content="➕ إضافة سجل"
+                                            Style="{StaticResource MaterialDesignRaisedButton}"
+                                            Background="#1a7a60" Foreground="White"
+                                            Height="32" Margin="0,0,8,0"
+                                            Click="AddRecord_Click"/>
                                     <Button x:Name="DeleteRecordBtn"
                                             Content="🗑 حذف السجل"
                                             Style="{StaticResource MaterialDesignOutlinedButton}"

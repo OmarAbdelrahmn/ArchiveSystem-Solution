@@ -221,70 +221,91 @@ GROUP BY Status;").AsList();
         }
 
         // ── Custom field value distribution ───────────────────────────────────
-        public List<CustomFieldStat> GetCustomFieldStats(int customFieldId, int topN = 15)
+        public List<CustomFieldStat> GetCustomFieldStats(int customFieldId,
+       int topN = 15, int? hijriYear = null)
         {
             using var conn = _db.CreateConnection();
 
-            // filled values
-            var filled = conn.Query<CustomFieldStat>(@"
-                SELECT ValueText AS Value, COUNT(*) AS Count, 0 AS IsEmpty
-                FROM RecordCustomFieldValues
-                WHERE CustomFieldId = @Id
-                AND   ValueText IS NOT NULL AND ValueText != ''
-                GROUP BY ValueText
-                ORDER BY Count DESC
-                LIMIT @TopN",
-                new { Id = customFieldId, TopN = topN }).AsList();
+            // Build optional Hijri year JOIN condition
+            string yearJoin = hijriYear.HasValue
+                ? "JOIN Dossiers d ON d.DossierId = r.DossierId AND d.HijriYear = @HijriYear"
+                : string.Empty;
 
-            // ── Denominator: only records created ON OR AFTER the field was created.
-            //
-            // The old code used COUNT(*) FROM Records (all active records globally).
-            // That inflates "غير مدخلة" for fields added after many records already
-            // existed, because those older records were never expected to have the
-            // field filled in the first place.
-            //
-            // The correct denominator is: active records whose CreatedAt is >= the
-            // field's own CreatedAt. Records predating the field are excluded because
-            // they pre-date the field's existence and cannot fairly be called "missing".
+            var p = new DynamicParameters();
+            p.Add("Id", customFieldId);
+            p.Add("TopN", topN);
+            if (hijriYear.HasValue)
+                p.Add("HijriYear", hijriYear.Value);
+
+            // Filled values
+            var filled = conn.Query<CustomFieldStat>($@"
+        SELECT rcfv.ValueText AS Value, COUNT(*) AS Count, 0 AS IsEmpty
+        FROM RecordCustomFieldValues rcfv
+        JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
+        {yearJoin}
+        WHERE rcfv.CustomFieldId = @Id
+        AND   rcfv.ValueText IS NOT NULL AND rcfv.ValueText != ''
+        GROUP BY rcfv.ValueText
+        ORDER BY Count DESC
+        LIMIT @TopN", p).AsList();
+
+            // Denominator
             string? fieldCreatedAt = conn.ExecuteScalar<string?>(
                 "SELECT CreatedAt FROM CustomFields WHERE CustomFieldId = @Id",
                 new { Id = customFieldId });
 
             int relevantTotal;
-            if (string.IsNullOrEmpty(fieldCreatedAt))
+            if (hijriYear.HasValue)
             {
-                // Fallback: field creation date unknown — count all active records
+                // Scoped to the selected Hijri year only
+                var tp = new DynamicParameters();
+                tp.Add("HijriYear", hijriYear.Value);
+                if (!string.IsNullOrEmpty(fieldCreatedAt))
+                    tp.Add("FieldCreatedAt", fieldCreatedAt);
+
+                relevantTotal = conn.ExecuteScalar<int>($@"
+            SELECT COUNT(*)
+            FROM Records r
+            JOIN Dossiers d ON d.DossierId = r.DossierId AND d.HijriYear = @HijriYear
+            WHERE r.DeletedAt IS NULL
+            {(!string.IsNullOrEmpty(fieldCreatedAt) ? "AND r.CreatedAt >= @FieldCreatedAt" : "")}",
+                    tp);
+            }
+            else if (string.IsNullOrEmpty(fieldCreatedAt))
+            {
                 relevantTotal = conn.ExecuteScalar<int>(
                     "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL");
             }
             else
             {
-                // Only records created on or after the field was introduced
                 relevantTotal = conn.ExecuteScalar<int>(@"
-                    SELECT COUNT(*)
-                    FROM Records
-                    WHERE DeletedAt IS NULL
-                    AND   CreatedAt >= @FieldCreatedAt",
+            SELECT COUNT(*) FROM Records
+            WHERE DeletedAt IS NULL AND CreatedAt >= @FieldCreatedAt",
                     new { FieldCreatedAt = fieldCreatedAt });
             }
 
-            int filledCount = conn.ExecuteScalar<int>(@"
-                SELECT COUNT(DISTINCT RecordId)
-                FROM RecordCustomFieldValues
-                WHERE CustomFieldId = @Id
-                AND   ValueText IS NOT NULL AND ValueText != ''",
-                new { Id = customFieldId });
+            // Filled count scoped to year if needed
+            var fp = new DynamicParameters();
+            fp.Add("Id", customFieldId);
+            if (hijriYear.HasValue)
+                fp.Add("HijriYear", hijriYear.Value);
+
+            int filledCount = conn.ExecuteScalar<int>($@"
+        SELECT COUNT(DISTINCT rcfv.RecordId)
+        FROM RecordCustomFieldValues rcfv
+        JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
+        {yearJoin}
+        WHERE rcfv.CustomFieldId = @Id
+        AND   rcfv.ValueText IS NOT NULL AND rcfv.ValueText != ''", fp);
 
             int emptyCount = relevantTotal - filledCount;
             if (emptyCount > 0)
-            {
                 filled.Add(new CustomFieldStat
                 {
                     Value = "غير مدخلة",
                     Count = emptyCount,
                     IsEmpty = true
                 });
-            }
 
             return filled;
         }
