@@ -22,13 +22,22 @@ namespace ArchiveSystem.Data
             using var conn = CreateConnection();
             RunMigrations(conn);
         }
-       
+
         private void Migration_003_DossierSoftDelete(SqliteConnection conn)
         {
-            conn.Execute(@"
-        ALTER TABLE Dossiers ADD COLUMN DeletedAt TEXT;
-        ALTER TABLE Dossiers ADD COLUMN DeletedByUserId INTEGER;
-    ");
+            var existingColumns = conn.Query<string>("PRAGMA table_info(Dossiers);")
+                .Select(c => c.ToString())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (!existingColumns.Contains("DeletedAt"))
+            {
+                conn.Execute("ALTER TABLE Dossiers ADD COLUMN DeletedAt TEXT;");
+            }
+
+            if (!existingColumns.Contains("DeletedByUserId"))
+            {
+                conn.Execute("ALTER TABLE Dossiers ADD COLUMN DeletedByUserId INTEGER;");
+            }
         }
 
         private void RunMigrations(SqliteConnection conn)

@@ -422,7 +422,7 @@ namespace ArchiveSystem.Core.Services
                         ImportWarningTypes.InvalidPrisonerNumber,
                         $"رقم السجين غير صحيح '{cleanNum}' في الصف {r} (يجب أن يكون 10 أرقام)",
                         "يرجى تصحيح الرقم");
-                    warnings++; rowHasWarning = true; rowStatus = "HasWarning"; duplicates++;
+                    warnings++; rowHasWarning = true; rowStatus = "HasWarning";
                 }
                 else
                 {

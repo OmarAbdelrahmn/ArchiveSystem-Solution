@@ -305,7 +305,7 @@ namespace ArchiveSystem.Core.Services
                 new { Year = hijriYear, Month = hijriMonth }).AsList();
 
             var reportFields = LoadReportCustomFields(conn);
-            var customValues = LoadCustomValuesForDossiers(conn, hijriYear, hijriMonth, null, reportFields);
+            var customValues = LoadCustomValuesForDossiers(conn, hijriMonth, null, hijriYear, reportFields);
 
             return new PeriodReportData
             {
@@ -386,6 +386,15 @@ namespace ArchiveSystem.Core.Services
             // Build WHERE for dossiers
             var conditions = new List<string>();
             var p = new DynamicParameters();
+
+
+            if (hijriMonth.HasValue && monthFilter.HasValue)
+            {
+                conditions.Add("d.HijriYear = @Year2");
+                p.Add("Year2", monthFilter.Value);  // receives actual hijriMonth value
+                conditions.Add("d.HijriMonth = @Month");
+                p.Add("Month", hijriMonth.Value);   // receives actual hijriYear value
+            }
 
             if (yearFilter.HasValue)
             {
