@@ -1,0 +1,131 @@
+﻿<Page x:Class="ArchiveSystem.Views.Pages.BulkFillHistoryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      Title="سجل التعبئة الجماعية"
+      Background="#F5F5F5"
+      FlowDirection="RightToLeft">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Background="White"
+                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
+            <Grid Margin="24,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="📝  سجل التعبئة الجماعية"
+                           FontSize="22" FontWeight="Bold"
+                           Foreground="#1a7a60"
+                           VerticalAlignment="Center"/>
+                <Button Grid.Column="1"
+                        Content="📤 تصدير CSV"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Height="36"
+                        Click="Export_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- FILTER BAR -->
+        <Border Grid.Row="1" Background="White"
+                BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
+                Padding="20,12">
+            <WrapPanel>
+
+                <ComboBox x:Name="FieldCombo"
+                          materialDesign:HintAssist.Hint="الحقل"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Width="200" Height="40" Margin="0,0,10,0"
+                          SelectionChanged="Filter_Changed"/>
+
+                <TextBox x:Name="UserBox"
+                         materialDesign:HintAssist.Hint="المستخدم"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Width="160" Height="40" Margin="0,0,10,0"
+                         TextChanged="Filter_Changed"/>
+
+                <TextBox x:Name="DateFromBox"
+                         materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd)"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Width="180" Height="40" Margin="0,0,10,0"
+                         TextChanged="Filter_Changed"/>
+
+                <TextBox x:Name="DateToBox"
+                         materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd)"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Width="180" Height="40" Margin="0,0,10,0"
+                         TextChanged="Filter_Changed"/>
+
+                <Button Content="مسح"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Foreground="#C62828" Height="40"
+                        Click="Reset_Click"/>
+            </WrapPanel>
+        </Border>
+
+        <!-- SUMMARY BAR -->
+        <Border Grid.Row="2" Background="#F0F7F4"
+                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0"
+                Padding="20,8">
+            <TextBlock x:Name="SummaryText"
+                       FontSize="13" FontWeight="SemiBold"
+                       Foreground="#1a7a60"
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- TABLE -->
+        <DataGrid Grid.Row="3"
+                  x:Name="HistoryGrid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  Style="{StaticResource MaterialDesignDataGrid}"
+                  materialDesign:DataGridAssist.CellPadding="12 8 12 8"
+                  RowBackground="White"
+                  AlternatingRowBackground="#F9FBF9"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  Margin="12,0,12,12">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="التاريخ والوقت"
+                                    Binding="{Binding ExecutedAt}"
+                                    Width="155"/>
+                <DataGridTextColumn Header="المستخدم"
+                                    Binding="{Binding ExecutedByName}"
+                                    Width="150"/>
+                <DataGridTextColumn Header="الحقل"
+                                    Binding="{Binding FieldLabel}"
+                                    Width="170"/>
+                <DataGridTextColumn Header="القيمة الجديدة"
+                                    Binding="{Binding ValueDisplay}"
+                                    Width="200"/>
+                <DataGridTextColumn Header="عدد السجلات المتأثرة"
+                                    Binding="{Binding RecordCount}"
+                                    Width="*"/>
+            </DataGrid.Columns>
+
+            <!-- highlight "clear value" rows so they stand out -->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding NewValue}" Value="{x:Null}">
+                            <Setter Property="Background" Value="#FFF9E6"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
+        </DataGrid>
+    </Grid>
+</Page>

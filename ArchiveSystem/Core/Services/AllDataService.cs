@@ -4,6 +4,18 @@ using Dapper;
 
 namespace ArchiveSystem.Core.Services
 {
+    // ── Bulk fill history DTO ──────────────────────────────────────────────────
+    public class BulkFillBatchRow
+    {
+        public int BatchId { get; set; }
+        public string FieldLabel { get; set; } = string.Empty;
+        public string? NewValue { get; set; }
+        public int RecordCount { get; set; }
+        public string? ExecutedByName { get; set; }
+        public string ExecutedAt { get; set; } = string.Empty;
+
+        public string ValueDisplay => string.IsNullOrWhiteSpace(NewValue) ? "(مسح القيمة)" : NewValue;
+    }
     // ── Filter parameters DTO ─────────────────────────────────────────────────
     public record AllDataFilter
     {
@@ -196,6 +208,24 @@ namespace ArchiveSystem.Core.Services
                 {where}
                 ORDER BY r.RecordId",
                 p).AsList();
+        }
+        public List<BulkFillBatchRow> GetBulkFillHistory(int limit = 200)
+        {
+            using var conn = _db.CreateConnection();
+            return conn.Query<BulkFillBatchRow>(@"
+        SELECT
+            b.BatchId,
+            COALESCE(cf.ArabicLabel, CAST(b.CustomFieldId AS TEXT)) AS FieldLabel,
+            b.NewValue,
+            b.RecordCount,
+            u.FullName AS ExecutedByName,
+            b.ExecutedAt
+        FROM BulkFieldUpdateBatches b
+        LEFT JOIN CustomFields cf ON cf.CustomFieldId = b.CustomFieldId
+        LEFT JOIN Users        u  ON u.UserId          = b.ExecutedByUserId
+        ORDER BY b.ExecutedAt DESC
+        LIMIT @Limit",
+                new { Limit = limit }).AsList();
         }
 
         // ── Bulk fill custom field ─────────────────────────────────────────────

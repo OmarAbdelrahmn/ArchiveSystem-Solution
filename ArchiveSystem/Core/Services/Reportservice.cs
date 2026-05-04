@@ -1,5 +1,6 @@
 ﻿using ArchiveSystem.Core.Models;
 using ArchiveSystem.Data;
+using ArchiveSystem.Views.Pages;
 using Dapper;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -949,6 +950,140 @@ namespace ArchiveSystem.Core.Services
             return OpenPdfForDirectPrint(tempPath, "تقرير جودة البيانات");
         }
 
+
+
+        /// <summary>
+        /// Generates an audit-log PDF from a pre-loaded list of rows.
+        /// Returns null on success, error string on failure.
+        /// </summary>
+        public string? GenerateAuditLogPdf(
+            List<AuditLogRow> rows,
+            string outputPath,
+            string periodLabel = "")
+        {
+            try
+            {
+                QuestPDF.Settings.License = LicenseType.Community;
+
+                Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        page.Size(PageSizes.A4.Landscape());   // landscape — more columns
+                        page.Margin(1.2f, Unit.Centimetre);
+                        page.DefaultTextStyle(t => t.FontSize(9).FontFamily("Arial"));
+                        page.ContentFromRightToLeft();
+
+                        // ── Header ───────────────────────────────────────────────────
+                        page.Header().Column(col =>
+                        {
+                            col.Item().AlignCenter()
+                                .Text("سجل المراجعة — أرشيف الملفات")
+                                .FontSize(16).Bold();
+
+                            if (!string.IsNullOrWhiteSpace(periodLabel))
+                                col.Item().AlignCenter()
+                                    .Text(periodLabel)
+                                    .FontSize(11).FontColor(Colors.Grey.Darken2);
+
+                            col.Item().AlignCenter()
+                                .Text($"تاريخ الطباعة: {DateTime.Now:yyyy-MM-dd HH:mm}  |  " +
+                                      $"إجمالي السجلات: {rows.Count:N0}")
+                                .FontSize(10).FontColor(Colors.Grey.Darken1);
+
+                            col.Item().PaddingVertical(4)
+                                .LineHorizontal(1).LineColor(Colors.Teal.Medium);
+                        });
+
+                        // ── Table ────────────────────────────────────────────────────
+                        page.Content().Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.ConstantColumn(118);   // التاريخ والوقت
+                                cols.ConstantColumn(100);   // المستخدم
+                                cols.ConstantColumn(120);   // نوع الحدث
+                                cols.ConstantColumn(80);    // الكيان
+                                cols.RelativeColumn();      // الوصف
+                            });
+
+                            // Header row
+                            table.Header(h =>
+                            {
+                                HeaderCell(h, "التاريخ والوقت");
+                                HeaderCell(h, "المستخدم");
+                                HeaderCell(h, "نوع الحدث");
+                                HeaderCell(h, "الكيان");
+                                HeaderCell(h, "الوصف");
+                            });
+
+                            // Data rows
+                            foreach (var row in rows)
+                            {
+                                // Colour-code certain action types
+                                string bg = row.ActionType switch
+                                {
+                                    "LoginFailure" => Colors.Red.Lighten5,
+                                    "RecordDeleted" or "DossierDeleted" => Colors.Orange.Lighten5,
+                                    "RestoreCompleted" => Colors.Blue.Lighten5,
+                                    _ => rows.IndexOf(row) % 2 == 0
+                                             ? Colors.Grey.Lighten4
+                                             : Colors.White
+                                };
+
+                                DataCell(table, row.CreatedAt ?? "", bg);
+                                DataCell(table, row.UserFullName ?? "(نظام)", bg);
+                                DataCell(table, row.ActionTypeArabic, bg);
+                                DataCell(table, row.EntityDisplay, bg);
+                                DataCell(table, row.Description, bg);
+                            }
+                        });
+
+                        // ── Footer ───────────────────────────────────────────────────
+                        page.Footer().AlignCenter().Text(x =>
+                        {
+                            x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                            x.CurrentPageNumber().FontSize(8);
+                            x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                            x.TotalPages().FontSize(8);
+                        });
+                    });
+                }).GeneratePdf(outputPath);
+
+                // Audit the print action itself
+                using var conn = _db.CreateConnection();
+                conn.Execute(@"
+            INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
+            VALUES (@UserId, 'ReportPrinted', @Desc, @Now)",
+                    new
+                    {
+                        UserId = UserSession.CurrentUser?.UserId,
+                        Desc = $"تصدير سجل المراجعة إلى PDF — {rows.Count} سجل",
+                        Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
+                    });
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Generates the audit-log PDF to a temp file then opens it via the
+        /// system default PDF handler so the user can print directly.
+        /// </summary>
+        public string? PrintAuditLogDirect(List<AuditLogRow> rows, string periodLabel = "")
+        {
+            string tempPath = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                $"audit_log_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+
+            var err = GenerateAuditLogPdf(rows, tempPath, periodLabel);
+            if (err != null) return err;
+            return OpenPdfForDirectPrint(tempPath, "سجل المراجعة");
+        }
         // ─────────────────────────────────────────────────────────────────────
         // DIRECT WPF PRINT  (PrintDialog → XPS)
         // ─────────────────────────────────────────────────────────────────────

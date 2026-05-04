@@ -44,6 +44,8 @@ namespace ArchiveSystem
             // Excel Import — requires ImportExcel
             PermissionHelper.Apply(NavImportButton, Permissions.ImportExcel, hideInstead: true);
 
+            PermissionHelper.Apply(NavBulkHistoryButton, Permissions.ViewAuditLog, hideInstead: true);
+
             // Reports — requires PrintReports OR PrintDossierFace
             bool canReports = PermissionHelper.Can(Permissions.PrintReports)
                            || PermissionHelper.Can(Permissions.PrintDossierFace);
@@ -89,5 +91,8 @@ namespace ArchiveSystem
 
         private void NavSettings_Click(object sender, RoutedEventArgs e)
             => MainFrame.Navigate(new SettingsPage());
+
+        private void NavBulkHistory_Click(object sender, RoutedEventArgs e)
+            => MainFrame.Navigate(new BulkFillHistoryPage());
     }
 }

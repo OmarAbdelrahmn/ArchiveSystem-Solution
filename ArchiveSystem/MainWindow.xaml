@@ -91,6 +91,14 @@
                             Height="46" Margin="0,2"
                             Click="NavAuditLog_Click"/>
 
+                    <Button x:Name="NavBulkHistoryButton"
+                            Content="📝   التعبئة الجماعية"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Foreground="White" FontSize="14"
+                            HorizontalContentAlignment="Right"
+                            Height="46" Margin="0,2"
+                            Click="NavBulkHistory_Click"/>
+
                     <Button x:Name="NavSettingsButton"
                             Content="⚙️   الإعدادات"
                             Style="{StaticResource MaterialDesignFlatButton}"

@@ -311,6 +311,102 @@ namespace ArchiveSystem.Views.Pages
             MessageBox.Show($"تم التصدير:\n{dlg.FileName}", "تصدير", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        // ── PDF EXPORT ────────────────────────────────────────────────────────────
+
+        private void ExportPdf_Click(object sender, RoutedEventArgs e)
+        {
+            var rows = LoadAllRowsForExport();
+            if (rows.Count == 0)
+            {
+                MessageBox.Show("لا توجد سجلات تطابق الفلتر الحالي.",
+                    "تصدير PDF", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Let the user pick where to save
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "PDF Files (*.pdf)|*.pdf",
+                FileName = $"audit_log_{DateTime.Now:yyyyMMdd_HHmm}.pdf"
+            };
+
+            if (dlg.ShowDialog() != true) return;
+
+            string periodLabel = BuildPeriodLabel();
+            var reportService = new ReportService(App.Database);
+            var err = reportService.GenerateAuditLogPdf(rows, dlg.FileName, periodLabel);
+
+            if (err != null)
+            {
+                MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Open the file so the user can review / print
+            try
+            {
+                System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo(dlg.FileName)
+                    { UseShellExecute = true });
+            }
+            catch { /* viewer not available — file was still saved */ }
+
+            MessageBox.Show($"تم التصدير بنجاح:\n{dlg.FileName}",
+                "تصدير PDF", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// Fetches every row matching the current filter — no paging limit.
+        /// Reuses the same WHERE builder used by the paged Load() method.
+        /// </summary>
+        private List<AuditLogRow> LoadAllRowsForExport()
+        {
+            var (where, p) = BuildWhere();
+            var allP = new DynamicParameters(p);
+            allP.Add("PageSize", 999_999);
+            allP.Add("Offset", 0);
+
+            using var conn = App.Database.CreateConnection();
+            return conn.Query<AuditLogRow>($@"
+        SELECT al.AuditId, al.UserId, al.ActionType, al.EntityType,
+               al.EntityId, al.Description, al.CreatedAt,
+               COALESCE(u.FullName, '(نظام)') AS UserFullName
+        FROM AuditLog al
+        LEFT JOIN Users u ON u.UserId = al.UserId
+        {where}
+        ORDER BY al.AuditId DESC
+        LIMIT @PageSize OFFSET @Offset",
+                allP).AsList();
+        }
+
+        /// <summary>
+        /// Builds a human-readable period label from the active filter controls,
+        /// shown as a subtitle inside the PDF header.
+        /// </summary>
+        private string BuildPeriodLabel()
+        {
+            var parts = new List<string>();
+
+            if (ActionCombo.SelectedItem is ComboBoxItem ac
+                && ac.Tag is string at && !string.IsNullOrEmpty(at))
+                parts.Add($"الحدث: {ac.Content}");
+
+            if (UserCombo.SelectedItem is ComboBoxItem uc
+                && uc.Tag is int uid && uid > 0)
+                parts.Add($"المستخدم: {uc.Content}");
+
+            if (!string.IsNullOrWhiteSpace(SearchBox.Text))
+                parts.Add($"بحث: {SearchBox.Text.Trim()}");
+
+            if (!string.IsNullOrWhiteSpace(DateFromBox.Text))
+                parts.Add($"من: {DateFromBox.Text.Trim()}");
+
+            if (!string.IsNullOrWhiteSpace(DateToBox.Text))
+                parts.Add($"إلى: {DateToBox.Text.Trim()}");
+
+            return parts.Count > 0 ? string.Join("  |  ", parts) : "كل السجلات";
+        }
+
         private static string Esc(string? s)
         {
             s ??= "";

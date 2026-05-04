@@ -27,6 +27,8 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0"
@@ -34,6 +36,12 @@
                            FontSize="22" FontWeight="Bold"
                            Foreground="#1a7a60"
                            VerticalAlignment="Center"/>
+
+                <Button Grid.Column="1"
+                        Content="🖨️ تصدير PDF"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Height="36" Margin="0,0,8,0"
+                        Click="ExportPdf_Click"/>
 
                 <Button Grid.Column="1"
                         Content="📤 تصدير CSV"
