@@ -5,6 +5,7 @@ using ArchiveSystem.Views.Pages;
 using Dapper;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace ArchiveSystem
 {
@@ -12,6 +13,26 @@ namespace ArchiveSystem
     {
         private bool _sidebarCollapsed = false;
 
+        private Button? _activeNavBtn;
+
+        private void SetActiveNav(Button clicked)
+        {
+            // Reset all nav buttons
+            foreach (var btn in new[] {
+        NavSearchButton, NavEntryButton, NavAllDataButton, NavStatsButton,
+        NavImportButton, NavReportsButton, NavSuggestionsButton,
+        NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton })
+            {
+                if (btn == null) continue;
+                btn.Background = Brushes.Transparent;
+                btn.Foreground = Brushes.White;
+            }
+
+            // Highlight the clicked one
+            clicked.Background = new SolidColorBrush(Color.FromArgb(50, 255, 255, 255));
+            clicked.Foreground = Brushes.White;
+            _activeNavBtn = clicked;
+        }
 
         private void SidebarToggle_Click(object sender, RoutedEventArgs e)
         {
@@ -72,6 +93,9 @@ namespace ArchiveSystem
             AppVersionText.Text = $"v{App.AppVersion}";
 
             ApplyNavPermissions();
+
+            SetActiveNav(NavSearchButton); // default page is Search
+
             MainFrame.Navigate(new SearchPage());
         }
         // ── Permission-gated navigation ───────────────────────────────────────
@@ -123,33 +147,63 @@ namespace ArchiveSystem
         // ── Nav click handlers ────────────────────────────────────────────────
 
         private void NavSearch_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new SearchPage());
+        {
+            SetActiveNav(NavSearchButton);
+            MainFrame.Navigate(new SearchPage());
+        }
 
         private void NavEntry_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new EntryPage());
+        {
+            SetActiveNav(NavEntryButton);
+            MainFrame.Navigate(new EntryPage());
+        }
 
         private void NavAllData_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new AllDataPage());
+        {
+            SetActiveNav(NavAllDataButton);
+            MainFrame.Navigate(new AllDataPage());
+        }
 
         private void NavStats_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new StatisticsPage());
+        {
+            SetActiveNav(NavStatsButton);
+            MainFrame.Navigate(new StatisticsPage());
+        }
 
         private void NavImport_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new ExcelImportPage());
+        {
+            SetActiveNav(NavImportButton);
+            MainFrame.Navigate(new ExcelImportPage());
+        }
 
         private void NavReports_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new ReportsPage());
+        {
+            SetActiveNav(NavReportsButton);
+            MainFrame.Navigate(new ReportsPage());
+        }
 
         private void NavAuditLog_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new AuditLogPage());
+        {
+            SetActiveNav(NavAuditLogButton);
+            MainFrame.Navigate(new AuditLogPage());
+        }
 
         private void NavSettings_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new SettingsPage());
+        {
+            SetActiveNav(NavSettingsButton);
+            MainFrame.Navigate(new SettingsPage());
+        }
 
         private void NavBulkHistory_Click(object sender, RoutedEventArgs e)
-            => MainFrame.Navigate(new BulkFillHistoryPage());
+        {
+            SetActiveNav(NavBulkHistoryButton);
+            MainFrame.Navigate(new BulkFillHistoryPage());
+        }
 
         private void NavSuggestions_Click(object sender, RoutedEventArgs e)
-             => MainFrame.Navigate(new FieldSuggestionsPage());
+        {
+            SetActiveNav(NavSuggestionsButton);
+            MainFrame.Navigate(new FieldSuggestionsPage());
+        }
     }
 }

@@ -36,7 +36,8 @@
                 <StackPanel DockPanel.Dock="Top" Margin="8,0">
 
                     <!-- Search: open to all — no name needed, never hidden -->
-                    <Button Content="🔍   البحث"
+                    <Button x:Name="NavSearchButton"
+                            Content="🔍   البحث"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
