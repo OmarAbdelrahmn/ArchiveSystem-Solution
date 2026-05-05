@@ -20,6 +20,6 @@
         public string? ManagementName { get; set; }
 
         public string HijriDisplay => $"{HijriMonth}/{HijriYear}هـ";
-        public string StatusDisplay => DeletedAt == null ? "مفتوح" : "محذوف";
+        public string StatusDisplay => DeletedAt != null ? "محذوف" : Status == "Open" ? "مفتوح" : Status;
     }
 }

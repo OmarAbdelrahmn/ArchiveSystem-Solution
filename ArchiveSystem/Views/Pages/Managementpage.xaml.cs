@@ -55,8 +55,9 @@ namespace ArchiveSystem.Views.Pages
         {
             _selectedManagement = ManagementsList.SelectedItem as Management;
             bool hasSelection = _selectedManagement != null;
+            bool isRoot = _selectedManagement?.ParentManagementId == null;
 
-            AddSubManagementBtn.IsEnabled = hasSelection;
+            AddSubManagementBtn.IsEnabled = hasSelection && isRoot;
             EditManagementBtn.IsEnabled = hasSelection;
             DeleteManagementBtn.IsEnabled = hasSelection;
             AddDossierBtn.IsEnabled = hasSelection;
@@ -392,9 +393,9 @@ namespace ArchiveSystem.Views.Pages
                 ? "لا توجد دوسيات تطابق شروط الفرز."
                 : $"{dossiers.Count} دوسية";
 
-            // Refresh management list (to update dossier count badge)
-            // Reload silently keeping selection
+            // ── Refresh sidebar count WITHOUT triggering SelectionChanged ──
             int selectedId = _selectedManagement.ManagementId;
+            ManagementsList.SelectionChanged -= ManagementsList_SelectionChanged; // detach
             var all = _service.GetAllManagements();
             ManagementsList.ItemsSource = all;
             foreach (Management mg in ManagementsList.Items)
@@ -402,10 +403,13 @@ namespace ArchiveSystem.Views.Pages
                 if (mg.ManagementId == selectedId)
                 {
                     ManagementsList.SelectedItem = mg;
+                    _selectedManagement = mg; // update reference
                     break;
                 }
             }
+            ManagementsList.SelectionChanged += ManagementsList_SelectionChanged; // reattach
         }
+
 
         private void DossiersGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -441,13 +445,12 @@ namespace ArchiveSystem.Views.Pages
             var types = _service.GetDossierTypes(_selectedManagement.ManagementId);
             bool isEdit = existing != null;
 
-            // Build a simple dialog window
             var win = new Window
             {
                 Title = isEdit ? "تعديل دوسية" : "إضافة دوسية جديدة",
                 Width = 440,
-                Height = 380,
-                ResizeMode = ResizeMode.NoResize,
+                Height = 420,
+                ResizeMode = ResizeMode.CanResizeWithGrip,          // ← allow resize
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = Window.GetWindow(this),
                 FlowDirection = FlowDirection.RightToLeft,
@@ -456,6 +459,7 @@ namespace ArchiveSystem.Views.Pages
 
             var panel = new StackPanel { Margin = new Thickness(24) };
 
+            // ... all existing panel.Children.Add(...) code stays exactly the same ...
             panel.Children.Add(new TextBlock
             {
                 Text = isEdit ? "تعديل بيانات الدوسية" : "إضافة دوسية جديدة",
@@ -467,12 +471,10 @@ namespace ArchiveSystem.Views.Pages
                 Margin = new Thickness(0, 0, 0, 20)
             });
 
-            // Dossier number
             var numBox = MakeTextBox("رقم الدوسية *");
             if (isEdit) numBox.Text = existing!.DossierNumber.ToString();
             panel.Children.Add(numBox);
 
-            // Month + Year row
             var dateGrid = new Grid { Margin = new Thickness(0, 0, 0, 14) };
             dateGrid.ColumnDefinitions.Add(new ColumnDefinition());
             dateGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
@@ -492,7 +494,6 @@ namespace ArchiveSystem.Views.Pages
             dateGrid.Children.Add(yearBox);
             panel.Children.Add(dateGrid);
 
-            // Type combo
             var typeCombo = new ComboBox { Margin = new Thickness(0, 0, 0, 14) };
             MaterialDesignThemes.Wpf.HintAssist.SetHint(typeCombo, "النوع (اختياري)");
             typeCombo.Style = (Style)FindResource("MaterialDesignOutlinedComboBox");
@@ -512,16 +513,14 @@ namespace ArchiveSystem.Views.Pages
             }
             panel.Children.Add(typeCombo);
 
-            // Notes
             var notesBox = MakeTextBox("ملاحظات (اختياري)");
             notesBox.AcceptsReturn = true;
-            notesBox.Height = 60;
+            notesBox.Height = 80;
             notesBox.TextWrapping = TextWrapping.Wrap;
             notesBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             if (isEdit) notesBox.Text = existing!.Notes ?? string.Empty;
             panel.Children.Add(notesBox);
 
-            // Error label
             var errorBlock = new TextBlock
             {
                 Foreground = new System.Windows.Media.SolidColorBrush(
@@ -534,7 +533,6 @@ namespace ArchiveSystem.Views.Pages
             };
             panel.Children.Add(errorBlock);
 
-            // Buttons
             var btnPanel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -599,7 +597,21 @@ namespace ArchiveSystem.Views.Pages
             btnPanel.Children.Add(cancelBtn);
             panel.Children.Add(btnPanel);
 
-            win.Content = panel;
+            // ── Wrap panel in a Grid with ScrollViewer ────────────────────────────
+            var outerGrid = new Grid();
+            outerGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            outerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var scrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Content = panel
+            };
+            Grid.SetRow(scrollViewer, 0);
+            outerGrid.Children.Add(scrollViewer);
+
+            win.Content = outerGrid;
             win.ShowDialog();
         }
 

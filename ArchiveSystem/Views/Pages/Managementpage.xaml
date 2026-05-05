@@ -84,38 +84,83 @@
                     </Border>
 
                     <ListBox Grid.Row="1"
-                             x:Name="ManagementsList"
-                             BorderThickness="0"
-                             Background="Transparent"
-                             VirtualizingPanel.IsVirtualizing="True"
-                             SelectionChanged="ManagementsList_SelectionChanged">
+         x:Name="ManagementsList"
+         BorderThickness="0"
+         Background="Transparent"
+         VirtualizingPanel.IsVirtualizing="True"
+         SelectionChanged="ManagementsList_SelectionChanged">
+
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="4,3">
-                                    <TextBlock FontSize="13" FontWeight="SemiBold"
-                                               Foreground="#222">
-                                        <Run Text="{Binding DisplayName}"/>
-                                    </TextBlock>
-                                    <TextBlock FontSize="11" Foreground="#888"
-                                               Margin="4,1,0,0">
-                                        <Run Text="{Binding DossierCount}"/>
-                                        <Run Text=" دوسية"/>
-                                    </TextBlock>
+                                <StackPanel Margin="0,1">
+
+                                    <!-- ROOT — hidden by default, shown when ParentManagementId = null -->
+                                    <Border x:Name="RootIndicator"
+                        Background="#E8F5E9"
+                        CornerRadius="4"
+                        Padding="10,7"
+                        Visibility="Collapsed">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🏢 " FontSize="14" VerticalAlignment="Center"/>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name, Mode=OneWay}"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="#1a7a60"/>
+                                                <TextBlock FontSize="10" Foreground="#888" Margin="0,1,0,0">
+                                <Run Text="{Binding DossierCount, Mode=OneWay}"/>
+                                <Run Text=" دوسية"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- SUB — visible by default (fallback for non-null parent) -->
+                                    <Border x:Name="SubIndicator"
+                        Padding="8,6"
+                        Margin="16,0,0,0"
+                        CornerRadius="3"
+                        Background="#F9F9F9">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="└  " FontSize="12"
+                                   Foreground="#AAAAAA"
+                                   VerticalAlignment="Center"/>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name, Mode=OneWay}"
+                                       FontSize="12" Foreground="#444"/>
+                                                <TextBlock FontSize="10" Foreground="#BBB" Margin="0,1,0,0">
+                                <Run Text="{Binding DossierCount, Mode=OneWay}"/>
+                                <Run Text=" دوسية"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
                                 </StackPanel>
+
+                                <DataTemplate.Triggers>
+                                    <!-- When root (no parent): show root, hide sub -->
+                                    <DataTrigger Binding="{Binding ParentManagementId, Mode=OneWay}"
+                             Value="{x:Null}">
+                                        <Setter TargetName="RootIndicator" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="SubIndicator"  Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
+
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                <Setter Property="Padding" Value="10,6"/>
+                                <Setter Property="Padding" Value="4,2"/>
+                                <Setter Property="Background" Value="Transparent"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ParentManagementId}" Value="{x:Null}">
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Background" Value="#F9FFFE"/>
-                                    </DataTrigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#C8E6C9"/>
+                                    </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </ListBox.ItemContainerStyle>
+
                     </ListBox>
 
                     <!-- Delete management button at the bottom -->
@@ -347,8 +392,9 @@
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding DeletedAt}" Value="{x:Null}">
-                                    <Setter Property="Opacity" Value="1"/>
+                                <DataTrigger Binding="{Binding StatusDisplay}" Value="محذوف">
+                                    <Setter Property="Background" Value="#FFF0F0"/>
+                                    <Setter Property="Opacity" Value="0.6"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

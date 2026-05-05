@@ -85,6 +85,28 @@ namespace ArchiveSystem.Data
                 Migration_006_ManagementTables(conn);
                 RecordMigration(conn, "006", "Add Managements, ManagementDossierTypes, ManagementDossiers tables");
             }
+            if (!MigrationApplied(conn, "007"))
+            {
+                Migration_007_SeedManagementPermission(conn);
+                RecordMigration(conn, "007", "Seed ManageManagements permission for Archive Manager");
+            }
+        }
+
+        private void Migration_007_SeedManagementPermission(SqliteConnection conn)
+        {
+            string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+
+            // Get the Archive Manager role id
+            int managerRoleId = conn.ExecuteScalar<int>(
+                "SELECT RoleId FROM Roles WHERE RoleName = 'مدير الأرشيف'");
+
+            // Insert the missing permission if it doesn't already exist
+            conn.Execute(@"
+        INSERT OR IGNORE INTO RolePermissions 
+            (RoleId, PermissionKey, IsAllowed, UpdatedAt)
+        VALUES 
+            (@RoleId, 'ManageManagements', 1, @Now)",
+                new { RoleId = managerRoleId, Now = now });
         }
 
         private void Migration_006_ManagementTables(SqliteConnection conn)
