@@ -21,7 +21,7 @@ namespace ArchiveSystem
             foreach (var btn in new[] {
         NavSearchButton, NavEntryButton, NavAllDataButton, NavStatsButton,
         NavImportButton, NavReportsButton, NavSuggestionsButton,
-        NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton })
+        NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton,NavManagementButton })
             {
                 if (btn == null) continue;
                 btn.Background = Brushes.Transparent;
@@ -46,7 +46,7 @@ namespace ArchiveSystem
             foreach (var btn in new[] {
         NavEntryButton, NavAllDataButton, NavStatsButton,
         NavImportButton, NavReportsButton, NavSuggestionsButton,
-        NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton })
+        NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton, NavManagementButton })
             {
                 if (btn.Visibility == Visibility.Visible)
                     btn.Content = _sidebarCollapsed
@@ -66,6 +66,7 @@ namespace ArchiveSystem
             "NavAuditLogButton" => "📜   سجل المراجعة",
             "NavBulkHistoryButton" => "📝   التعبئة الجماعية",
             "NavSettingsButton" => "⚙️   الإعدادات",
+            "NavManagementButton" => "🏢   الإدارة",
             _ => name
         };
 
@@ -132,6 +133,8 @@ namespace ArchiveSystem
 
             // Audit Log — requires ViewAuditLog
             PermissionHelper.Apply(NavAuditLogButton, Permissions.ViewAuditLog, hideInstead: true);
+
+            PermissionHelper.Apply(NavManagementButton, Permissions.ManageManagements, hideInstead: true);
 
             // Settings — requires at least one management permission
             bool canSettings = PermissionHelper.Can(Permissions.ManageUsers)
@@ -204,6 +207,12 @@ namespace ArchiveSystem
         {
             SetActiveNav(NavSuggestionsButton);
             MainFrame.Navigate(new FieldSuggestionsPage());
+        }
+
+        private void NavManagement_Click(object sender, RoutedEventArgs e)
+        {
+            SetActiveNav(NavManagementButton);
+            MainFrame.Navigate(new ManagementPage());
         }
     }
 }

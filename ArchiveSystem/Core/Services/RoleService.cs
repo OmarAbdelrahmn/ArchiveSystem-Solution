@@ -180,6 +180,7 @@ namespace ArchiveSystem.Core.Services
             [Permissions.RestoreBackup] = "استعادة نسخة احتياطية",
             [Permissions.ViewAuditLog] = "عرض سجل المراجعة",
             [Permissions.ManageFieldSuggestions] = "إدارة قوائم الاقتراحات (الجنسيات وغيرها)",
+            [Permissions.ManageManagements] = "إدارة الإدارات والشعب",
         };
 
         private void WriteAudit(Microsoft.Data.Sqlite.SqliteConnection conn,

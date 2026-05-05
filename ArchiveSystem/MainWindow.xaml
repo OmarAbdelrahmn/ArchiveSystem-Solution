@@ -76,6 +76,14 @@
                             Height="46" Margin="0,2"
                             Click="NavImport_Click"/>
 
+                    <Button x:Name="NavManagementButton"
+                            Content="🏢   الإدارة"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Foreground="White" FontSize="14"
+                            HorizontalContentAlignment="Right"
+                            Height="46" Margin="0,2"
+                            Click="NavManagement_Click"/>
+
                     <Button x:Name="NavReportsButton"
                             Content="🖨️   التقارير"
                             Style="{StaticResource MaterialDesignFlatButton}"

@@ -24,7 +24,7 @@
         public const string ViewAuditLog = "ViewAuditLog";
         public const string ManageFieldSuggestions = "ManageFieldSuggestions"; // ← add
         public const string DeleteDossier = "DeleteDossier";   // ← add
-
+        public const string ManageManagements = "ManageManagements";
 
     }
 }

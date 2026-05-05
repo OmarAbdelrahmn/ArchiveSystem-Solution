@@ -80,6 +80,57 @@ namespace ArchiveSystem.Data
                 Migration_005_DensitySetting(conn);
                 RecordMigration(conn, "005", "Add Density setting");
             }
+            if (!MigrationApplied(conn, "006"))
+            {
+                Migration_006_ManagementTables(conn);
+                RecordMigration(conn, "006", "Add Managements, ManagementDossierTypes, ManagementDossiers tables");
+            }
+        }
+
+        private void Migration_006_ManagementTables(SqliteConnection conn)
+        {
+            conn.Execute(@"
+        CREATE TABLE IF NOT EXISTS Managements (
+            ManagementId         INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name                 TEXT    NOT NULL,
+            ParentManagementId   INTEGER,
+            Description          TEXT,
+            IsActive             INTEGER NOT NULL DEFAULT 1,
+            CreatedByUserId      INTEGER,
+            CreatedAt            TEXT    NOT NULL,
+            UpdatedAt            TEXT,
+            FOREIGN KEY (ParentManagementId) REFERENCES Managements (ManagementId),
+            FOREIGN KEY (CreatedByUserId)    REFERENCES Users        (UserId)
+        );
+
+        CREATE TABLE IF NOT EXISTS ManagementDossierTypes (
+            TypeId          INTEGER PRIMARY KEY AUTOINCREMENT,
+            ManagementId    INTEGER NOT NULL,
+            TypeName        TEXT    NOT NULL,
+            IsActive        INTEGER NOT NULL DEFAULT 1,
+            CreatedAt       TEXT    NOT NULL,
+            UpdatedAt       TEXT,
+            FOREIGN KEY (ManagementId) REFERENCES Managements (ManagementId)
+        );
+
+        CREATE TABLE IF NOT EXISTS ManagementDossiers (
+            ManagementDossierId  INTEGER PRIMARY KEY AUTOINCREMENT,
+            ManagementId         INTEGER NOT NULL,
+            DossierNumber        INTEGER NOT NULL,
+            HijriMonth           INTEGER NOT NULL,
+            HijriYear            INTEGER NOT NULL,
+            TypeId               INTEGER,
+            Notes                TEXT,
+            Status               TEXT    NOT NULL DEFAULT 'Open',
+            CreatedByUserId      INTEGER,
+            CreatedAt            TEXT    NOT NULL,
+            UpdatedAt            TEXT,
+            DeletedAt            TEXT,
+            FOREIGN KEY (ManagementId)     REFERENCES Managements           (ManagementId),
+            FOREIGN KEY (TypeId)           REFERENCES ManagementDossierTypes (TypeId),
+            FOREIGN KEY (CreatedByUserId)  REFERENCES Users                  (UserId)
+        );
+    ");
         }
 
         // ─────────────────────────────────────────────
@@ -511,7 +562,7 @@ namespace ArchiveSystem.Data
                 "CreateDossier","EditDossier","MoveDossier","PrintReports","PrintDossierFace",
                 "ImportExcel","ApproveExcelImport","ViewStatistics","ManageArchiveStructure",
                 "ManageCustomFields","ManageUsers","ManageSettings","CreateBackup",
-                "RestoreBackup","ViewAuditLog","DeleteDossier"
+                "RestoreBackup","ViewAuditLog","DeleteDossier","ManageManagements"
             };
 
             var managerRoleId = conn.ExecuteScalar<int>(
@@ -604,5 +655,6 @@ namespace ArchiveSystem.Data
         VALUES ('Density', 'Comfortable', @Now)",
                 new { Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss") });
         }
+
     }
 }
