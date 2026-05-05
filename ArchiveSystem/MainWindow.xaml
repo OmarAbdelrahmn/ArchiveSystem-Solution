@@ -2,13 +2,15 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Title="أرشيف الملفات"
+        Title="أرشفة الوثائق DMS DMS"
         Height="700" Width="1100"
         MinHeight="500" MinWidth="800"
         FlowDirection="RightToLeft"
-        FontFamily="Segoe UI"
+        FontFamily="Noto Kufi Arabic, Segoe UI"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}">
+    <!-- Icon="pack://application:,,,/Assets/app.ico" -->
+    <!-- Uncomment the Icon attribute above after placing app.ico in the Assets folder -->
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -22,20 +24,20 @@
 
                 <!-- App title -->
                 <StackPanel DockPanel.Dock="Top" Margin="0,24,0,24">
-                    <TextBlock Text="أرشيف الملفات"
+                    <TextBlock Text="أرشفة الوثائق"
                                Foreground="White"
-                               FontSize="20" FontWeight="Bold"
+                               FontSize="18" FontWeight="Bold"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="النظام غير متصل بالإنترنت"
-                               Foreground="#aaffdd" FontSize="11"
+                    <TextBlock Text="DMS"
+                               Foreground="#aaffdd" FontSize="13"
+                               FontWeight="SemiBold"
                                HorizontalAlignment="Center"
-                               Margin="0,4,0,0"/>
+                               Margin="0,2,0,0"/>
                 </StackPanel>
 
-                <!-- Nav buttons — each has x:Name so ApplyNavPermissions() can show/hide them -->
+                <!-- Nav buttons -->
                 <StackPanel DockPanel.Dock="Top" Margin="8,0">
 
-                    <!-- Search: open to all — no name needed, never hidden -->
                     <Button x:Name="NavSearchButton"
                             Content="🔍   البحث"
                             Style="{StaticResource MaterialDesignFlatButton}"
@@ -101,7 +103,7 @@
                             Click="NavSuggestions_Click"/>
 
                     <Button x:Name="NavAuditLogButton"
-                            Content="📜   سجل المراجعة"
+                            Content="📜   سجل الاحداث"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Right"
@@ -124,32 +126,32 @@
                             Height="46" Margin="0,2"
                             Click="NavSettings_Click"/>
 
-                    <Button Content="◀"
-                            x:Name="SidebarToggleBtn"
-                            Style="{StaticResource MaterialDesignFlatButton}"
-                            Foreground="White" FontSize="14"
-                            Height="36" HorizontalAlignment="Left"
-                            Margin="8,4"
-                            Click="SidebarToggle_Click"/>
-
                 </StackPanel>
 
-                                <Border DockPanel.Dock="Bottom"
-                                    BorderThickness="0,1,0,0"
-                                    BorderBrush="#2a8a70"
-                                    Padding="12,10">
-                                                <StackPanel>
-                                        <TextBlock x:Name="CurrentUserText"
-                           Foreground="#ccffee" FontSize="12"
-                           HorizontalAlignment="Center"/>
-                                        <TextBlock x:Name="CurrentUserRoleText"
-                           Foreground="#aaddcc" FontSize="11"
-                           HorizontalAlignment="Center"
-                           Margin="0,2,0,0"/>
-                        <TextBlock x:Name="AppVersionText"
-                               Foreground="#5a9a80" FontSize="10"
-                               HorizontalAlignment="Center"
-                               Margin="0,3,0,0"/>
+                <Border DockPanel.Dock="Bottom"
+                        BorderThickness="0,1,0,0"
+                        BorderBrush="#2a8a70"
+                        Padding="12,10">
+                            <StackPanel>
+                                <TextBlock x:Name="CurrentUserText"
+                       Foreground="#ccffee" FontSize="12"
+                       HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="CurrentUserRoleText"
+                       Foreground="#aaddcc" FontSize="11"
+                       HorizontalAlignment="Center"
+                       Margin="0,2,0,0"/>
+                                <TextBlock x:Name="AppVersionText"
+                       Foreground="#5a9a80" FontSize="10"
+                       HorizontalAlignment="Center"
+                       Margin="0,3,0,0"/>
+                                <Button Content="🚪  تسجيل الخروج"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    Foreground="#ffccaa"
+                    FontSize="12"
+                    Height="32"
+                    HorizontalAlignment="Stretch"
+                    Margin="0,6,0,0"
+                    Click="Logout_Click"/>
                     </StackPanel>
                 </Border>
 

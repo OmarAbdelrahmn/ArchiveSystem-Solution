@@ -18,8 +18,6 @@ namespace ArchiveSystem
 
         /// <summary>
         /// The FontScale key read from AppSettings on startup ("Normal" or "Large").
-        /// Windows call <see cref="FontScaleManager.ToMultiplier"/> to convert this
-        /// to a numeric scale factor.  SettingsPage updates this after saving.
         /// </summary>
         public static string FontScaleSetting { get; internal set; } = FontScaleManager.KeyNormal;
 
@@ -30,7 +28,7 @@ namespace ArchiveSystem
             // ── Initialize database ──────────────────────────────────────────
             var appDataFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ArchiveSystem");
+                "DMS_ArchiveSystem");
 
             Directory.CreateDirectory(appDataFolder);
 
@@ -55,8 +53,6 @@ namespace ArchiveSystem
             Backup = new BackupService(Database, DbPath);
 
             // ── Schedule auto-daily backup (runs on background thread) ───────
-            // NOTE: UserSession is not yet logged in here, so BackupCreated audit
-            //       entries will have UserId = null (logged as system).
             Backup.ScheduleDailyBackupIfNeeded();
 
             // ── Open login window ────────────────────────────────────────────
@@ -65,8 +61,7 @@ namespace ArchiveSystem
         }
 
         /// <summary>
-        /// Reads the assembly version (set in .csproj &lt;Version&gt;) and upserts it
-        /// into AppSettings so the running version is always recorded in the DB.
+        /// Reads the assembly version and upserts it into AppSettings.
         /// </summary>
         private static void WriteVersionToDatabase()
         {
@@ -76,13 +71,11 @@ namespace ArchiveSystem
                               .GetExecutingAssembly()
                               .GetName().Version;
 
-                // Format as "Major.Minor.Patch" — drop the always-zero revision
                 string version = raw != null
                     ? $"{raw.Major}.{raw.Minor}.{raw.Build}"
                     : "1.0.0";
 
-                AppVersion = version;   // ← ADD HERE, before the DB write
-
+                AppVersion = version;
 
                 using var conn = Database.CreateConnection();
                 conn.Execute(@"

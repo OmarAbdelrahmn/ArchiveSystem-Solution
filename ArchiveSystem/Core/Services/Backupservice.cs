@@ -35,7 +35,7 @@ namespace ArchiveSystem.Core.Services
 
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 string destPath = System.IO.Path.Combine(
-                    backupFolder, $"archive_backup_{timestamp}.db");
+                    backupFolder, $"dms_backup_{timestamp}.db");
 
                 // WAL checkpoint before copy
                 using (var conn = _db.CreateConnection())
@@ -96,11 +96,6 @@ namespace ArchiveSystem.Core.Services
 
         // ── AUTO DAILY BACKUP ─────────────────────────────────────────────────
 
-        /// <summary>
-        /// Called on application startup. Creates an automatic backup if no
-        /// successful backup exists for today's date.  Non-blocking — runs on
-        /// a background thread so the UI is not delayed.
-        /// </summary>
         public void ScheduleDailyBackupIfNeeded()
         {
             Task.Run(() =>
@@ -110,7 +105,6 @@ namespace ArchiveSystem.Core.Services
                     string todayPrefix = DateTime.UtcNow.ToString("yyyy-MM-dd");
                     using var conn = _db.CreateConnection();
 
-                    // Read configured backup time
                     string backupTimeStr = conn.ExecuteScalar<string?>(
                         "SELECT SettingValue FROM AppSettings WHERE SettingKey = 'BackupTime'")
                         ?? "02:00";
@@ -118,7 +112,6 @@ namespace ArchiveSystem.Core.Services
                     TimeSpan.TryParse(backupTimeStr, out var scheduledTime);
                     var now = DateTime.Now.TimeOfDay;
 
-                    // Only run if current time is past the scheduled time
                     if (now < scheduledTime) return;
 
                     int todayCount = conn.ExecuteScalar<int>(@"
@@ -165,7 +158,6 @@ namespace ArchiveSystem.Core.Services
 
             try
             {
-                // First backup current state
                 CreateBackup(System.IO.Path.GetDirectoryName(_dbPath), "BeforeRestore");
 
                 System.IO.File.Copy(backupPath, _dbPath, overwrite: true);
@@ -204,7 +196,7 @@ namespace ArchiveSystem.Core.Services
 
             return System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "ArchiveBackups");
+                "DMS_Backups");
         }
 
         private int GetRetentionDays()
@@ -227,7 +219,7 @@ namespace ArchiveSystem.Core.Services
             {
                 var cutoff = DateTime.Now.AddDays(-retentionDays);
                 foreach (var file in System.IO.Directory.GetFiles(
-                    backupFolder, "archive_backup_*.db"))
+                    backupFolder, "dms_backup_*.db"))
                 {
                     if (System.IO.File.GetCreationTime(file) < cutoff)
                         System.IO.File.Delete(file);

@@ -55,6 +55,24 @@ namespace ArchiveSystem
             }
         }
 
+        private void Logout_Click(object sender, RoutedEventArgs e)
+        {
+            var confirm = MessageBox.Show(
+                "هل تريد تسجيل الخروج؟",
+                "تسجيل الخروج",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            var authService = new Core.Services.AuthService(App.Database);
+            authService.Logout();
+
+            var loginWindow = new LoginWindow();
+            loginWindow.Show();
+            Close();
+        }
+
         private static string GetNavLabel(string name) => name switch
         {
             "NavEntryButton" => "➕   إدخال بيانات",
@@ -63,7 +81,7 @@ namespace ArchiveSystem
             "NavImportButton" => "📥   استيراد Excel",
             "NavReportsButton" => "🖨️   التقارير",
             "NavSuggestionsButton" => "💡   الاقتراحات",
-            "NavAuditLogButton" => "📜   سجل المراجعة",
+            "NavAuditLogButton" => "📜   سجل الاحداث",
             "NavBulkHistoryButton" => "📝   التعبئة الجماعية",
             "NavSettingsButton" => "⚙️   الإعدادات",
             "NavManagementButton" => "🏢   الإدارة",

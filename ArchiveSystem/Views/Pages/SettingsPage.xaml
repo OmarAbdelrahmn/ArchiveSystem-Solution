@@ -581,7 +581,7 @@
                                 <DropShadowEffect BlurRadius="4" Opacity="0.08" ShadowDepth="1"/>
                             </Border.Effect>
                             <StackPanel>
-                                <TextBlock Text="📜  تتبع التغييرات (سجل المراجعة)"
+                                <TextBlock Text="📜  تتبع التغييرات (سجل الاحداث)"
                                            FontSize="14" FontWeight="Bold"
                                            Foreground="#1a7a60" Margin="0,0,0,16"/>
 

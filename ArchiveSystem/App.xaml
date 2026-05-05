@@ -10,6 +10,51 @@
                                              SecondaryColor="Teal"/>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Global Arabic font override -->
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+            <Style TargetType="Window">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

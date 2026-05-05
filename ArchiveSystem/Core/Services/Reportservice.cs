@@ -500,7 +500,7 @@ namespace ArchiveSystem.Core.Services
                     {
                         page.Size(PageSizes.A4);
                         page.Margin(1.5f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(11).FontFamily("Arial"));
+                        page.DefaultTextStyle(t => t.FontSize(11).FontFamily("Noto Kufi Arabic"));
                         page.ContentFromRightToLeft();
 
                         page.Header().Element(c => ComposeHeader(c, data));
@@ -611,7 +611,7 @@ namespace ArchiveSystem.Core.Services
                     {
                         page.Size(PageSizes.A4);
                         page.Margin(1.5f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily("Arial"));
+                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily("Noto Kufi Arabic"));
                         page.ContentFromRightToLeft();
 
                         page.Header().Column(col =>
@@ -672,7 +672,7 @@ namespace ArchiveSystem.Core.Services
                             {
                                 page2.Size(PageSizes.A4);
                                 page2.Margin(1.5f, Unit.Centimetre);
-                                page2.DefaultTextStyle(t => t.FontSize(10).FontFamily("Arial"));
+                                page2.DefaultTextStyle(t => t.FontSize(10).FontFamily("Noto Kufi Arabic"));
                                 page2.ContentFromRightToLeft();
 
                                 page2.Header().Column(col =>
@@ -876,7 +876,7 @@ namespace ArchiveSystem.Core.Services
                     {
                         page.Size(PageSizes.A4);
                         page.Margin(1.5f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily("Arial"));
+                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily("Noto Kufi Arabic"));
                         page.ContentFromRightToLeft();
 
                         page.Header().Column(col =>
@@ -1099,14 +1099,14 @@ namespace ArchiveSystem.Core.Services
                     {
                         page.Size(PageSizes.A4.Landscape());   // landscape — more columns
                         page.Margin(1.2f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(9).FontFamily("Arial"));
+                        page.DefaultTextStyle(t => t.FontSize(9).FontFamily("Noto Kufi Arabic"));
                         page.ContentFromRightToLeft();
 
                         // ── Header ───────────────────────────────────────────────────
                         page.Header().Column(col =>
                         {
                             col.Item().AlignCenter()
-                                .Text("سجل المراجعة — أرشيف الملفات")
+                                .Text("سجل الاحداث — أرشيف الملفات")
                                 .FontSize(16).Bold();
 
                             if (!string.IsNullOrWhiteSpace(periodLabel))
@@ -1186,7 +1186,7 @@ namespace ArchiveSystem.Core.Services
                     new
                     {
                         UserId = UserSession.CurrentUser?.UserId,
-                        Desc = $"تصدير سجل المراجعة إلى PDF — {rows.Count} سجل",
+                        Desc = $"تصدير سجل الاحداث إلى PDF — {rows.Count} سجل",
                         Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                     });
 
@@ -1210,7 +1210,7 @@ namespace ArchiveSystem.Core.Services
 
             var err = GenerateAuditLogPdf(rows, tempPath, periodLabel);
             if (err != null) return err;
-            return OpenPdfForDirectPrint(tempPath, "سجل المراجعة");
+            return OpenPdfForDirectPrint(tempPath, "سجل الاحداث");
         }
         // ─────────────────────────────────────────────────────────────────────
         // DIRECT WPF PRINT  (PrintDialog → XPS)

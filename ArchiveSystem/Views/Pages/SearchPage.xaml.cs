@@ -269,7 +269,7 @@ namespace ArchiveSystem.Views.Pages
                 {
                     page.Size(10, 6, QuestPDF.Infrastructure.Unit.Centimetre);
                     page.Margin(0.8f, QuestPDF.Infrastructure.Unit.Centimetre);
-                    page.DefaultTextStyle(t => t.FontSize(11).FontFamily("Arial"));
+                    page.DefaultTextStyle(t => t.FontSize(11).FontFamily("Noto Kufi Arabic"));
                     page.ContentFromRightToLeft();
                     page.Content().Column(col =>
                     {

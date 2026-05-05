@@ -178,7 +178,7 @@ namespace ArchiveSystem.Core.Services
             [Permissions.ManageSettings] = "إدارة الإعدادات",
             [Permissions.CreateBackup] = "إنشاء نسخة احتياطية",
             [Permissions.RestoreBackup] = "استعادة نسخة احتياطية",
-            [Permissions.ViewAuditLog] = "عرض سجل المراجعة",
+            [Permissions.ViewAuditLog] = "عرض سجل الاحداث",
             [Permissions.ManageFieldSuggestions] = "إدارة قوائم الاقتراحات (الجنسيات وغيرها)",
             [Permissions.ManageManagements] = "إدارة الإدارات والشعب",
         };
