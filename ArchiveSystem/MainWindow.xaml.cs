@@ -11,7 +11,7 @@ namespace ArchiveSystem
 {
     public partial class MainWindow : Window
     {
-        private bool _sidebarCollapsed = false;
+        //private bool _sidebarCollapsed = false;
 
         private Button? _activeNavBtn;
 
@@ -34,26 +34,26 @@ namespace ArchiveSystem
             _activeNavBtn = clicked;
         }
 
-        private void SidebarToggle_Click(object sender, RoutedEventArgs e)
-        {
-            _sidebarCollapsed = !_sidebarCollapsed;
-            SidebarCol.Width = _sidebarCollapsed
-                ? new GridLength(48)
-                : new GridLength(220);
-            SidebarToggleBtn.Content = _sidebarCollapsed ? "▶" : "◀";
+        //private void SidebarToggle_Click(object sender, RoutedEventArgs e)
+        //{
+        //    _sidebarCollapsed = !_sidebarCollapsed;
+        //    SidebarCol.Width = _sidebarCollapsed
+        //        ? new GridLength(48)
+        //        : new GridLength(220);
+        //    SidebarToggleBtn.Content = _sidebarCollapsed ? "▶" : "◀";
 
-            // Hide text on all nav buttons when collapsed
-            foreach (var btn in new[] {
-        NavEntryButton, NavAllDataButton, NavStatsButton,
-        NavImportButton, NavReportsButton, NavSuggestionsButton,
-        NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton, NavManagementButton })
-            {
-                if (btn.Visibility == Visibility.Visible)
-                    btn.Content = _sidebarCollapsed
-                        ? btn.Content.ToString()!.Substring(0, 2)   // keep emoji only
-                        : GetNavLabel(btn.Name);
-            }
-        }
+        //    // Hide text on all nav buttons when collapsed
+        //    foreach (var btn in new[] {
+        //NavEntryButton, NavAllDataButton, NavStatsButton,
+        //NavImportButton, NavReportsButton, NavSuggestionsButton,
+        //NavAuditLogButton, NavBulkHistoryButton, NavSettingsButton, NavManagementButton })
+        //    {
+        //        if (btn.Visibility == Visibility.Visible)
+        //            btn.Content = _sidebarCollapsed
+        //                ? btn.Content.ToString()!.Substring(0, 2)   // keep emoji only
+        //                : GetNavLabel(btn.Name);
+        //    }
+        //}
 
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
@@ -73,20 +73,20 @@ namespace ArchiveSystem
             Close();
         }
 
-        private static string GetNavLabel(string name) => name switch
-        {
-            "NavEntryButton" => "➕   إدخال بيانات",
-            "NavAllDataButton" => "📋   كل البيانات",
-            "NavStatsButton" => "📊   الإحصاءات",
-            "NavImportButton" => "📥   استيراد Excel",
-            "NavReportsButton" => "🖨️   التقارير",
-            "NavSuggestionsButton" => "💡   الاقتراحات",
-            "NavAuditLogButton" => "📜   سجل الاحداث",
-            "NavBulkHistoryButton" => "📝   التعبئة الجماعية",
-            "NavSettingsButton" => "⚙️   الإعدادات",
-            "NavManagementButton" => "🏢   الإدارة",
-            _ => name
-        };
+        //private static string GetNavLabel(string name) => name switch
+        //{
+        //    "NavEntryButton" => "➕   إدخال بيانات",
+        //    "NavAllDataButton" => "📋   كل البيانات",
+        //    "NavStatsButton" => "📊   الإحصاءات",
+        //    "NavImportButton" => "📥   استيراد Excel",
+        //    "NavReportsButton" => "🖨️   التقارير",
+        //    "NavSuggestionsButton" => "💡   الاقتراحات",
+        //    "NavAuditLogButton" => "📜   سجل الاحداث",
+        //    "NavBulkHistoryButton" => "📝   التعبئة الجماعية",
+        //    "NavSettingsButton" => "⚙️   الإعدادات",
+        //    "NavManagementButton" => "🏢   الإدارة",
+        //    _ => name
+        //};
 
         public MainWindow()
         {

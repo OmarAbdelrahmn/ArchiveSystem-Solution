@@ -10,8 +10,8 @@
         FlowDirection="RightToLeft"
         FontFamily="Noto Kufi Arabic, Segoe UI"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        Background="#F5F5F5">
-    <!-- Icon="pack://application:,,,/Assets/app.ico" -->
+        Background="#F5F5F5"
+        Icon="pack://application:,,,/Assets/app.ico">
     <!-- Uncomment the Icon attribute above after placing app.ico in the Assets folder -->
 
     <Grid>
