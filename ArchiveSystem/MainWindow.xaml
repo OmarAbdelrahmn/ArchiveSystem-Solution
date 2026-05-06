@@ -42,6 +42,7 @@
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
                             HorizontalContentAlignment="Left"
+                            
                             Height="46" Margin="0,2"
                             Click="NavSearch_Click"/>
 
