@@ -505,6 +505,8 @@ namespace ArchiveSystem.Views.Pages
                 DossierStatusText.Text = $"✅ دوسية موجودة — {countInfo}";
                 DossierStatusText.Foreground = new SolidColorBrush(
                     Color.FromRgb(30, 120, 80));
+                DossierStatusText.Foreground = new SolidColorBrush(Color.FromRgb(30, 120, 80));
+
 
                 int nextSeq = _recordService.GetNextSequenceNumber(_currentDossierId);
                 SequenceBox.Text = nextSeq.ToString();
@@ -517,8 +519,10 @@ namespace ArchiveSystem.Views.Pages
                 DossierStatusText.Foreground = new SolidColorBrush(
                     Color.FromRgb(100, 100, 100));
                 UnlockDossierFields();
+
             }
         }
+
 
         // ══════════════════════════════════════════════════════════════════════
         // LOCK / UNLOCK DOSSIER FIELDS

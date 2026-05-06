@@ -84,7 +84,7 @@
                 <ComboBox x:Name="StatusCombo"
                           materialDesign:HintAssist.Hint="الحالة"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Width="130" Height="40" Margin="0,0,10,6"
+                          Width="130" Height="50" Margin="0,0,10,6"
                           SelectionChanged="Filter_Changed">
                     <ComboBoxItem Content="نشط"     Tag="Active"/>
                     <ComboBoxItem Content="محذوف"   Tag="Deleted"/>
@@ -95,21 +95,21 @@
                 <TextBox x:Name="NameBox"
                          materialDesign:HintAssist.Hint="الاسم"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="160" Height="40" Margin="0,0,10,6"
+                         Width="160" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 
                 <!-- Prisoner number -->
                 <TextBox x:Name="PNumBox"
                          materialDesign:HintAssist.Hint="رقم السجين"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="140" Height="40" Margin="0,0,10,6"
+                         Width="140" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 
                 <!-- Dossier number -->
                 <TextBox x:Name="DossierNumBox"
                          materialDesign:HintAssist.Hint="رقم الدوسية"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="130" Height="40" Margin="0,0,10,6"
+                         Width="130" Height="50" Margin="0,0,10,6"
                          PreviewTextInput="NumberOnly"
                          TextChanged="Filter_Changed"/>
 
@@ -117,14 +117,14 @@
                 <ComboBox x:Name="YearCombo"
                           materialDesign:HintAssist.Hint="السنة الهجرية"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Width="140" Height="40" Margin="0,0,10,6"
+                          Width="140" Height="50" Margin="0,0,10,6"
                           SelectionChanged="Filter_Changed"/>
 
                 <!-- Month -->
                 <ComboBox x:Name="MonthCombo"
                           materialDesign:HintAssist.Hint="الشهر"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Width="100" Height="40" Margin="0,0,10,6"
+                          Width="100" Height="50" Margin="0,0,10,6"
                           SelectionChanged="Filter_Changed">
                     <ComboBoxItem Content="الكل" Tag="0"/>
                     <ComboBoxItem Content="1"  Tag="1"/>
@@ -145,7 +145,7 @@
                 <TextBox x:Name="HallwayBox"
                          materialDesign:HintAssist.Hint="ممر"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="80" Height="40" Margin="0,0,10,6"
+                         Width="80" Height="50" Margin="0,0,10,6"
                          PreviewTextInput="NumberOnly"
                          TextChanged="Filter_Changed"/>
 
@@ -153,7 +153,7 @@
                 <TextBox x:Name="CabinetBox"
                          materialDesign:HintAssist.Hint="كبينة"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="80" Height="40" Margin="0,0,10,6"
+                         Width="80" Height="50" Margin="0,0,10,6"
                          PreviewTextInput="NumberOnly"
                          TextChanged="Filter_Changed"/>
 
@@ -161,7 +161,7 @@
                 <TextBox x:Name="ShelfBox"
                          materialDesign:HintAssist.Hint="رف"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="80" Height="40" Margin="0,0,10,6"
+                         Width="80" Height="50" Margin="0,0,10,6"
                          PreviewTextInput="NumberOnly"
                          TextChanged="Filter_Changed"/>
 
