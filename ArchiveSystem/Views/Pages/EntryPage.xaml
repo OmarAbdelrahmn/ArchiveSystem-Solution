@@ -3,264 +3,864 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       Title="إدخال بيانات"
-      Background="#F5F5F5"
+      Background="#F0F2F5"
       FlowDirection="RightToLeft">
 
+    <Page.Resources>
+        <!-- Sidebar nav button style -->
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#B0BEC5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+            <Setter Property="Padding" Value="20,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Margin="8,1"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#1E3A30"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Active nav button -->
+        <Style x:Key="NavButtonActiveStyle" TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Background" Value="#1a7a60"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Card style -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+
+        <!-- Small label -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <!-- Value box -->
+        <Style x:Key="ValueBox" TargetType="Border">
+            <Setter Property="Background" Value="#F7F8FA"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+
+        <!-- Tag chip style -->
+        <Style x:Key="TagChip" TargetType="Border">
+            <Setter Property="Background" Value="#E8F5E9"/>
+            <Setter Property="BorderBrush" Value="#A5D6A7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+        </Style>
+    </Page.Resources>
+
+    <!-- Root: sidebar (right) + main content (left) -->
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="64"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <!-- Col 0 = RIGHT side in RTL = Sidebar -->
+            <ColumnDefinition Width="230"/>
+            <!-- Col 1 = Main content -->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="White"
-                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
-            <TextBlock Text="➕  إدخال بيانات"
-                       FontSize="22" FontWeight="Bold"
-                       Foreground="#1a7a60"
-                       VerticalAlignment="Center"
-                       Margin="32,0"/>
-        </Border>
+        <!-- ══════════════════════════════════════
+             SIDEBAR  (right panel, dark)
+             ══════════════════════════════════════ -->
+        <Grid Grid.Column="0" Background="#152030">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="1"
-                      VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="40,28,40,40"
-                        MaxWidth="700">
+            <!-- Logo / App name -->
+            <StackPanel Grid.Row="0" Margin="20,24,20,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0"
+                            Width="36" Height="36"
+                            Background="#1a7a60"
+                            CornerRadius="8"
+                            Margin="0,0,10,0">
+                        <TextBlock Text="أ"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="أرشيف الملفات"
+                                   FontSize="14" FontWeight="Bold"
+                                   Foreground="White"/>
+                        <TextBlock Text="إدخال ذكي"
+                                   FontSize="11"
+                                   Foreground="#78909C"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
 
-                <!-- ══ DOSSIER SECTION ══ -->
-                <Border Background="White"
-                        CornerRadius="8"
-                        Padding="24"
-                        Margin="0,0,0,20">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+            <!-- Nav items -->
+            <StackPanel Grid.Row="1" Margin="0,8,0,0">
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_Search_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔍" Margin="0,0,8,0"/>
+                        <TextBlock Text="البحث"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonActiveStyle}"
+                        Click="Nav_Entry_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="+" Margin="0,0,8,0" FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Text="الإدخال"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_Dossiers_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="■" Margin="0,0,8,0" FontSize="10"/>
+                        <TextBlock Text="الدوسيات"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_AllData_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="☰" Margin="0,0,8,0"/>
+                        <TextBlock Text="كل البيانات"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_Stats_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="○" Margin="0,0,8,0"/>
+                        <TextBlock Text="الإحصائيات"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_Import_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="↑" Margin="0,0,8,0"/>
+                        <TextBlock Text="استيراد Excel"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_Transfer_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⇄" Margin="0,0,8,0"/>
+                        <TextBlock Text="النقل"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_Reports_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📋" Margin="0,0,8,0"/>
+                        <TextBlock Text="التقارير"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource NavButtonStyle}"
+                        Click="Nav_Settings_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙" Margin="0,0,8,0"/>
+                        <TextBlock Text="الإعدادات"/>
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+
+            <!-- Bottom: current dossier + logout -->
+            <StackPanel Grid.Row="2" Margin="12,0,12,16">
+                <Border Background="#1E3A30" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
                     <StackPanel>
-
-                        <TextBlock Text="بيانات الدوسية"
-                                   FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60"
-                                   Margin="0,0,0,16"/>
-
-                        <!-- Dossier Number + auto suggest -->
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBox Grid.Column="0"
-                                     x:Name="DossierNumberBox"
-                                     materialDesign:HintAssist.Hint="رقم الدوسية *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"
-                                     TextChanged="DossierNumberBox_TextChanged"/>
-
-                            <Button Grid.Column="1"
-                                    Content="تلقائي"
-                                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                                    Height="40" Width="80"
-                                    Margin="8,0,0,0"
-                                    ToolTip="اقتراح رقم الدوسية التالي"
-                                    Click="AutoDossierNumber_Click"/>
-                        </Grid>
-
-                        <!-- Status text -->
-                        <TextBlock x:Name="DossierStatusText"
-                                   FontSize="12"
-                                   Margin="0,-8,0,10"
-                                   Foreground="#888"/>
-
-                        <!-- Hijri Month + Year -->
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBox Grid.Column="0"
-                                     x:Name="HijriMonthBox"
-                                     materialDesign:HintAssist.Hint="الشهر الهجري (1-12) *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
-
-                            <TextBox Grid.Column="2"
-                                     x:Name="HijriYearBox"
-                                     materialDesign:HintAssist.Hint="السنة الهجرية *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
-                        </Grid>
-
-                        <!-- Expected file count -->
-                        <TextBox x:Name="ExpectedCountBox"
-                                 materialDesign:HintAssist.Hint="عدد الملفات المتوقع (اختياري)"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Margin="0,0,0,14"
-                                 PreviewTextInput="NumberOnly_PreviewTextInput"/>
-
-                        <!-- Location -->
-                        <TextBlock Text="الموقع الفيزيائي"
-                                   FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#555"
-                                   Margin="0,0,0,10"/>
-
-                        <Grid Margin="0,0,0,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBox Grid.Column="0"
-                                     x:Name="HallwayBox"
-                                     materialDesign:HintAssist.Hint="ممر *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
-
-                            <TextBox Grid.Column="2"
-                                     x:Name="CabinetBox"
-                                     materialDesign:HintAssist.Hint="كبينة *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
-
-                            <TextBox Grid.Column="4"
-                                     x:Name="ShelfBox"
-                                     materialDesign:HintAssist.Hint="رف *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
-                        </Grid>
-
+                        <TextBlock Text="الاقتراضي الحالي"
+                                   FontSize="11" Foreground="#78909C"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="CurrentDossierLabel"
+                                   Text="دوسية 506"
+                                   FontSize="17" FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
-
-                <!-- ══ RECORD SECTION ══ -->
-                <Border Background="White"
-                        CornerRadius="8"
-                        Padding="24"
-                        Margin="0,0,0,20">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
-                    <StackPanel>
-
-                        <TextBlock Text="بيانات السجين"
-                                   FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60"
-                                   Margin="0,0,0,16"/>
-
-                        <!-- Sequence -->
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBox Grid.Column="0"
-                                     x:Name="SequenceBox"
-                                     materialDesign:HintAssist.Hint="رقم التسلسل *"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
-
-                            <Button Grid.Column="1"
-                                    Content="تلقائي"
-                                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                                    Height="40" Width="80"
-                                    Margin="8,0,0,0"
-                                    Click="AutoSequence_Click"/>
-                        </Grid>
-
-                        <!-- Person name -->
-                        <TextBox x:Name="PersonNameBox"
-                                 materialDesign:HintAssist.Hint="اسم السجين *"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Margin="0,0,0,14"/>
-
-                        <!-- Prisoner number -->
-                        <TextBox x:Name="PrisonerNumberBox"
-                                 materialDesign:HintAssist.Hint="رقم السجين (10 أرقام) *"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 MaxLength="10"
-                                 Margin="0,0,0,14"
-                                 PreviewTextInput="NumberOnly_PreviewTextInput"/>
-
-                        <!-- Notes -->
-                        <TextBox x:Name="NotesBox"
-                                 materialDesign:HintAssist.Hint="ملاحظات (اختياري)"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 AcceptsReturn="True"
-                                 Height="80"
-                                 TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Margin="0,0,0,14"/>
-
-                        <!-- ══ DYNAMIC CUSTOM FIELDS ══
-                             All active ShowInEntry custom fields are injected here at runtime.
-                             TextWithSuggestions fields get a suggestion popup.
-                             SingleChoice / MultiChoice fields get a ComboBox / CheckBoxes.
-                             Boolean fields get a CheckBox.
-                             Number fields get a numeric-only TextBox. -->
-                        <StackPanel x:Name="CustomFieldsPanel"/>
-
-                    </StackPanel>
-                </Border>
-
-                <!-- ══ ERROR + SAVE ══ -->
-                <Border x:Name="ErrorBorder"
-                        Background="#FFEBEE"
-                        BorderBrush="#EF9A9A"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="14,10"
-                        Margin="0,0,0,14"
-                        Visibility="Collapsed">
-                    <TextBlock x:Name="ErrorText"
-                               Foreground="#C62828"
-                               FontSize="13"
-                               TextWrapping="Wrap"/>
-                </Border>
-
-                <Border x:Name="SuccessBorder"
-                        Background="#E8F5E9"
-                        BorderBrush="#A5D6A7"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="14,10"
-                        Margin="0,0,0,14"
-                        Visibility="Collapsed">
-                    <TextBlock x:Name="SuccessText"
-                               Foreground="#2E7D32"
-                               FontSize="13"
-                               TextWrapping="Wrap"/>
-                </Border>
-
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0"
+                            Content="تسجيل الخروج"
+                            Height="34" FontSize="12"
+                            Background="#1a7a60" Foreground="White"
+                            BorderThickness="0"
+                            Click="Logout_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        CornerRadius="6"
+                                        Padding="4,0">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button Grid.Column="2"
+                            Content="خروج"
+                            Height="34" FontSize="12"
+                            Background="#243447" Foreground="#B0BEC5"
+                            BorderThickness="0"
+                            Click="Exit_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        CornerRadius="6"
+                                        Padding="4,0">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <!-- ══════════════════════════════════════
+             MAIN CONTENT AREA
+             ══════════════════════════════════════ -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ── Top bar ── -->
+            <Border Grid.Row="0"
+                    Background="White"
+                    BorderBrush="#E0E0E0"
+                    BorderThickness="0,0,0,1"
+                    Padding="24,0">
+                <Grid Height="60">
+                    <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="1"
-                            Content="مسح الحقول"
+                    <!-- Pre-check button (left in LTR / Col 0 in RTL visual right) -->
+                    <Button Grid.Column="0"
+                            Content="فحص قبل الحفظ"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Height="42" Width="130"
-                            Margin="0,0,12,0"
-                            Click="ClearRecord_Click"/>
+                            Height="34" Padding="12,0"
+                            FontSize="13"
+                            Click="PreCheck_Click"/>
 
-                    <Button Grid.Column="2"
-                            Content="💾  حفظ السجل"
-                            Style="{StaticResource MaterialDesignRaisedButton}"
-                            Background="#1a7a60"
-                            Foreground="White"
-                            FontSize="14"
-                            Height="42" Width="150"
-                            Click="SaveRecord_Click"/>
+                    <!-- Page title (center-right) -->
+                    <StackPanel Grid.Column="2"
+                                Orientation="Vertical"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Right">
+                        <TextBlock Text="إضافة ملف جديد"
+                                   FontSize="11"
+                                   Foreground="#1a7a60"
+                                   HorizontalAlignment="Right"/>
+                        <TextBlock Text="إدخال بيانات داخل دوسية"
+                                   FontSize="22" FontWeight="Bold"
+                                   Foreground="#1C2B2A"
+                                   HorizontalAlignment="Right"/>
+                    </StackPanel>
                 </Grid>
+            </Border>
 
-            </StackPanel>
-        </ScrollViewer>
+            <!-- ── Three-column content ── -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <Grid Margin="20,18,20,24">
+                    <Grid.ColumnDefinitions>
+                        <!-- Col 0 = RIGHT in RTL = إعدادات الإدخال الحالية -->
+                        <ColumnDefinition Width="240"/>
+                        <!-- Col 1 = MIDDLE = بيانات الشخص -->
+                        <ColumnDefinition Width="*"/>
+                        <!-- Col 2 = LEFT in RTL = الموقع الورقي -->
+                        <ColumnDefinition Width="220"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ══════════════════════════════
+                         RIGHT CARD: إعدادات الإدخال
+                         ══════════════════════════════ -->
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="إعدادات الإدخال الحالية"
+                                       FontSize="14" FontWeight="Bold"
+                                       Foreground="#1C2B2A"
+                                       Margin="0,0,0,16"/>
+
+                            <!-- Current / Next dossier -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="الدوسية التالية"/>
+                                    <Border Style="{StaticResource ValueBox}">
+                                        <TextBlock x:Name="NextDossierLabel" Text="507"
+                                                   FontSize="16" FontWeight="Bold"
+                                                   Foreground="#1a7a60"
+                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="الدوسية الحالية"/>
+                                    <Border Style="{StaticResource ValueBox}">
+                                        <TextBlock x:Name="CurrentDossierValue" Text="506"
+                                                   FontSize="16" FontWeight="Bold"
+                                                   Foreground="#333"
+                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Month / Year -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="السنة"/>
+                                    <Border Style="{StaticResource ValueBox}">
+                                        <TextBlock x:Name="YearSettingLabel" Text="1446"
+                                                   FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="#333"
+                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="الشهر"/>
+                                    <Border Style="{StaticResource ValueBox}">
+                                        <TextBlock x:Name="MonthSettingLabel" Text="8"
+                                                   FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="#333"
+                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Next sequence / Auto count -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="العد التلقائي"/>
+                                    <Border Style="{StaticResource ValueBox}">
+                                        <TextBlock x:Name="AutoCountLabel" Text="مفعل"
+                                                   FontSize="13"
+                                                   Foreground="#1a7a60"
+                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="التسلسل التالي"/>
+                                    <Border Style="{StaticResource ValueBox}">
+                                        <TextBlock x:Name="NextSequenceLabel" Text="17"
+                                                   FontSize="15" FontWeight="Bold"
+                                                   Foreground="#333"
+                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Active field tags -->
+                            <Separator Margin="0,0,0,12" Background="#F0F0F0"/>
+                            <WrapPanel Margin="0,0,0,12">
+                                <Border Style="{StaticResource TagChip}">
+                                    <TextBlock Text="الجنسية" FontSize="12" Foreground="#2E7D32"/>
+                                </Border>
+                                <Border Style="{StaticResource TagChip}">
+                                    <TextBlock Text="أخر 8 قيم" FontSize="12" Foreground="#2E7D32"/>
+                                </Border>
+                                <Border Style="{StaticResource TagChip}">
+                                    <TextBlock Text="رقم القضية" FontSize="12" Foreground="#2E7D32"/>
+                                </Border>
+                                <Border Style="{StaticResource TagChip}">
+                                    <TextBlock Text="نوع المخالفة" FontSize="12" Foreground="#2E7D32"/>
+                                </Border>
+                                <Border Style="{StaticResource TagChip}">
+                                    <TextBlock Text="تاريخ إضافي" FontSize="12" Foreground="#2E7D32"/>
+                                </Border>
+                            </WrapPanel>
+
+                            <Button Content="+ إضافة حقل"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="34" FontSize="12"
+                                    HorizontalAlignment="Stretch"
+                                    Click="AddField_Click"/>
+
+                            <!-- Info note -->
+                            <Border Background="#F0FBF7"
+                                    BorderBrush="#B2DFDB"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10,8"
+                                    Margin="0,12,0,0">
+                                <TextBlock Text="عند اكتمال الدوسية، يقترح النظام رقم الدوسية التالية تلقائياً مع إمكانية التعديل البدوي."
+                                           FontSize="11"
+                                           Foreground="#00695C"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Right"/>
+                            </Border>
+
+                            <!-- Apply button -->
+                            <Button Content="تطبق تلقائياً"
+                                    Background="#E8F5E9"
+                                    Foreground="#2E7D32"
+                                    BorderThickness="1"
+                                    BorderBrush="#A5D6A7"
+                                    Height="34" FontSize="12"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,10,0,0"
+                                    Padding="14,0"
+                                    Click="ApplyAuto_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="6"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ══════════════════════════════
+                         MIDDLE CARD: بيانات الشخص
+                         ══════════════════════════════ -->
+                    <Border Grid.Column="1"
+                            Style="{StaticResource CardStyle}"
+                            Margin="16,0">
+                        <StackPanel>
+
+                            <!-- Section title + tabs -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Right">
+                                    <!-- Tab: إضافية -->
+                                    <Border Background="#F5F5F5"
+                                            BorderBrush="#E0E0E0"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="12,5"
+                                            Margin="0,0,0,0"
+                                            Cursor="Hand">
+                                        <TextBlock Text="إضافية" FontSize="12" Foreground="#888"/>
+                                    </Border>
+                                    <!-- Tab: أساسية (active) -->
+                                    <Border Background="#1a7a60"
+                                            CornerRadius="6"
+                                            Padding="12,5"
+                                            Margin="0,0,6,0"
+                                            Cursor="Hand">
+                                        <TextBlock Text="أساسية" FontSize="12" Foreground="White"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Grid.Column="0"
+                                           Text="بيانات الشخص"
+                                           FontSize="14" FontWeight="Bold"
+                                           Foreground="#1C2B2A"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Row 1: Name + Prisoner number -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         x:Name="PrisonerNumberBox"
+                                         materialDesign:HintAssist.Hint="رقم السجين *"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         MaxLength="10"
+                                         PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                                <TextBox Grid.Column="2"
+                                         x:Name="PersonNameBox"
+                                         materialDesign:HintAssist.Hint="اسم السجين *"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                            </Grid>
+
+                            <!-- Row 2: Sequence in dossier + Dossier number -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0"
+                                             x:Name="DossierNumberBox"
+                                             materialDesign:HintAssist.Hint="رقم الدوسية *"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             PreviewTextInput="NumberOnly_PreviewTextInput"
+                                             TextChanged="DossierNumberBox_TextChanged"/>
+                                </Grid>
+                                <Grid Grid.Column="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0"
+                                             x:Name="SequenceBox"
+                                             materialDesign:HintAssist.Hint="التسلسل داخل الدوسية *"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                                    <Button Grid.Column="1"
+                                            Content="تلقائي"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Height="40" Width="70"
+                                            FontSize="12"
+                                            Margin="6,0,0,0"
+                                            Click="AutoSequence_Click"/>
+                                </Grid>
+                            </Grid>
+
+                            <!-- Nationality with suggestions (custom field) -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="NationalityBox"
+                                         materialDesign:HintAssist.Hint="الجنسية (اقتراحات حديثة)"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         TextChanged="NationalityBox_TextChanged"/>
+                            </Grid>
+
+                            <!-- Notes -->
+                            <TextBox x:Name="NotesBox"
+                                     materialDesign:HintAssist.Hint="ملاحظات"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     AcceptsReturn="True"
+                                     Height="72"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Margin="0,0,0,12"/>
+
+                            <!-- Dynamic custom fields panel -->
+                            <StackPanel x:Name="CustomFieldsPanel"/>
+
+                            <!-- Info note box -->
+                            <Border Background="#FFF8E1"
+                                    BorderBrush="#FFE082"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10,8"
+                                    Margin="0,4,0,10">
+                                <TextBlock Text="أي حقل تضيفه لاحقاً، مثل الجنسية، يظهر فارغاً لكل الملفات القديمة إلى أن يتم تعبئته يدوياً أو دفعة واحدة."
+                                           FontSize="11"
+                                           Foreground="#795548"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Right"/>
+                            </Border>
+
+                            <!-- Status check text -->
+                            <Border x:Name="SequenceCheckBorder"
+                                    Background="#E8F5E9"
+                                    BorderBrush="#A5D6A7"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10,8"
+                                    Margin="0,0,0,0">
+                                <TextBlock x:Name="SequenceCheckText"
+                                           Text="فحص النظام: لا يوجد رقم مكرر. التسلسل التالي داخل الدوسية هو 17."
+                                           FontSize="11"
+                                           Foreground="#2E7D32"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Right"/>
+                            </Border>
+
+                            <!-- Error / Success banners -->
+                            <Border x:Name="ErrorBorder"
+                                    Background="#FFEBEE"
+                                    BorderBrush="#EF9A9A"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="12,8"
+                                    Margin="0,10,0,0"
+                                    Visibility="Collapsed">
+                                <TextBlock x:Name="ErrorText"
+                                           Foreground="#C62828"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"/>
+                            </Border>
+
+                            <Border x:Name="SuccessBorder"
+                                    Background="#E8F5E9"
+                                    BorderBrush="#A5D6A7"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="12,8"
+                                    Margin="0,10,0,0"
+                                    Visibility="Collapsed">
+                                <TextBlock x:Name="SuccessText"
+                                           Foreground="#2E7D32"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"/>
+                            </Border>
+
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ══════════════════════════════
+                         LEFT CARD: الموقع الورقي
+                         ══════════════════════════════ -->
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+
+                            <!-- Title + Quick Test -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0"
+                                        Background="#E8F5E9"
+                                        BorderBrush="#A5D6A7"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="8,4"
+                                        Cursor="Hand">
+                                    <TextBlock Text="اختبار سريع" FontSize="11" Foreground="#2E7D32"/>
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           Text="الموقع الورقي"
+                                           FontSize="14" FontWeight="Bold"
+                                           Foreground="#1C2B2A"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Hallway / Cabinet / Shelf labels -->
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="4" Text="الممر"
+                                           FontSize="11" Foreground="#888"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="الكبينة"
+                                           FontSize="11" Foreground="#888"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" Text="الرف"
+                                           FontSize="11" Foreground="#888"
+                                           HorizontalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Hallway / Cabinet / Shelf inputs -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="4"
+                                         x:Name="HallwayBox"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         materialDesign:HintAssist.Hint="3"
+                                         FontSize="18" FontWeight="Bold"
+                                         TextAlignment="Center"
+                                         PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                                <TextBox Grid.Column="2"
+                                         x:Name="CabinetBox"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         materialDesign:HintAssist.Hint="4"
+                                         FontSize="18" FontWeight="Bold"
+                                         TextAlignment="Center"
+                                         PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                                <TextBox Grid.Column="0"
+                                         x:Name="ShelfBox"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         materialDesign:HintAssist.Hint="3"
+                                         FontSize="18" FontWeight="Bold"
+                                         TextAlignment="Center"
+                                         PreviewTextInput="NumberOnly_PreviewTextInput"/>
+                            </Grid>
+
+                            <!-- Shelf quick-select buttons -->
+                            <TextBlock Text="اختر الرف"
+                                       FontSize="11" Foreground="#888"
+                                       Margin="0,0,0,8"
+                                       HorizontalAlignment="Right"/>
+
+                            <UniformGrid Rows="3" Columns="1" Margin="0,0,0,16">
+                                <Button x:Name="Shelf1Btn" Content="الرف 1"
+                                        Height="34" FontSize="13"
+                                        Background="#F5F5F5" Foreground="#555"
+                                        BorderThickness="0"
+                                        Margin="0,3"
+                                        Click="ShelfButton_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="6">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button x:Name="Shelf2Btn" Content="الرف 2"
+                                        Height="34" FontSize="13"
+                                        Background="#F5F5F5" Foreground="#555"
+                                        BorderThickness="0"
+                                        Margin="0,3"
+                                        Click="ShelfButton_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="6">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button x:Name="Shelf3Btn" Content="الرف 3"
+                                        Height="34" FontSize="13"
+                                        Background="#1a7a60" Foreground="White"
+                                        BorderThickness="0"
+                                        Margin="0,3"
+                                        Click="ShelfButton_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="6">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </UniformGrid>
+
+                            <!-- Expected file count (optional) -->
+                            <TextBox x:Name="ExpectedCountBox"
+                                     materialDesign:HintAssist.Hint="عدد الملفات المتوقع (اختياري)"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Margin="0,0,0,16"
+                                     PreviewTextInput="NumberOnly_PreviewTextInput"/>
+
+                            <!-- Dossier status text -->
+                            <TextBlock x:Name="DossierStatusText"
+                                       FontSize="11"
+                                       Margin="0,0,0,12"
+                                       Foreground="#888"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Right"/>
+
+                            <!-- Action buttons -->
+                            <Button Content="حفظ الملف"
+                                    Background="#1a7a60"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Height="42"
+                                    FontSize="14" FontWeight="SemiBold"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,0,0,8"
+                                    Click="SaveRecord_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="8">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <Button Content="مسح الحقول"
+                                    Background="Transparent"
+                                    Foreground="#888"
+                                    Height="34"
+                                    FontSize="12"
+                                    BorderThickness="1"
+                                    BorderBrush="#E0E0E0"
+                                    HorizontalAlignment="Stretch"
+                                    Click="ClearRecord_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="6">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Page>

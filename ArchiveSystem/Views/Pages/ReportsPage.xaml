@@ -66,8 +66,7 @@
                                      x:Name="DossierFaceNumberBox"
                                      materialDesign:HintAssist.Hint="رقم الدوسية *"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     Height="44"
-                                     PreviewTextInput="NumberOnly"/>
+                                     PreviewTextInput="NumberOnly" RenderTransformOrigin="0.502,0.638" Margin="0,0,0,-10"/>
 
                             <!-- Preview (open PDF in viewer) -->
                             <Button x:Name="DossierFacePreviewBtn"
@@ -138,15 +137,13 @@
                                      x:Name="MonthlyMonthBox"
                                      materialDesign:HintAssist.Hint="الشهر (1-12) *"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     Height="44"
-                                     PreviewTextInput="NumberOnly"/>
+                                     PreviewTextInput="NumberOnly" Grid.ColumnSpan="2" Margin="0,0,10,-10"/>
 
                             <TextBox Grid.Column="2"
                                      x:Name="MonthlyYearBox"
                                      materialDesign:HintAssist.Hint="السنة الهجرية *"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     Height="44"
-                                     PreviewTextInput="NumberOnly"/>
+                                     PreviewTextInput="NumberOnly" Margin="0,0,0,-10"/>
 
                             <Button x:Name="MonthlyPreviewBtn"
                                     Grid.Column="4"
@@ -214,13 +211,12 @@
                      x:Name="WeeklyFromBox"
                      materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd) *"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     Height="44"/>
+                     Height="53" Grid.ColumnSpan="2" Margin="0,0,10,0" VerticalAlignment="Top"/>
 
                             <TextBox Grid.Column="2"
                      x:Name="WeeklyToBox"
                      materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd) *"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     Height="44"/>
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,4,0,0"/>
 
                             <Button x:Name="WeeklyPreviewBtn"
                     Grid.Column="4"
@@ -286,8 +282,7 @@
                                      x:Name="YearlyYearBox"
                                      materialDesign:HintAssist.Hint="السنة الهجرية *"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     Height="44"
-                                     PreviewTextInput="NumberOnly"/>
+                                     PreviewTextInput="NumberOnly" Margin="0,0,0,-9"/>
 
                             <Button x:Name="YearlyPreviewBtn"
                                     Grid.Column="2"

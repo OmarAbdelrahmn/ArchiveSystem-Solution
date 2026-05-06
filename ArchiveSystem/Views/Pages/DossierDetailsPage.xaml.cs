@@ -198,8 +198,7 @@ namespace ArchiveSystem.Views.Pages
                 .ConvertFromString(bg) as System.Windows.Media.Brush;
             StatusBadgeText.Foreground = new System.Windows.Media.BrushConverter()
                 .ConvertFromString(fg) as System.Windows.Media.Brush;
-
-            // Sync status combo without triggering change handler
+           
             _suppressStatusChange = true;
             foreach (ComboBoxItem item in StatusCombo.Items)
             {
@@ -211,6 +210,8 @@ namespace ArchiveSystem.Views.Pages
             }
             _suppressStatusChange = false;
         }
+
+
 
         private void LoadRecords()
         {

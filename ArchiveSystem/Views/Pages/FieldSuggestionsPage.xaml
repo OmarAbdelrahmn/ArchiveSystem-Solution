@@ -86,13 +86,13 @@
                                    Foreground="#1a7a60"
                                    VerticalAlignment="Center"/>
 
-                        <TextBox Grid.Column="1"
+                        <TextBox
                                  x:Name="NewSuggestionBox"
                                  materialDesign:HintAssist.Hint="قيمة اقتراح جديدة"
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Width="220" Height="40"
-                                 Margin="0,0,10,0"
-                                 IsEnabled="False"/>
+                                 Width="220"
+                                 Margin="121,0,10,-6"
+                                 IsEnabled="False" Grid.ColumnSpan="2"/>
 
                         <Button Grid.Column="2"
                                 x:Name="AddSuggestionBtn"

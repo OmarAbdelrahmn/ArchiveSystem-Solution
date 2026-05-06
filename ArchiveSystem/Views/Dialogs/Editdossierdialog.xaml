@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="تعديل بيانات الدوسية"
-        Height="440" Width="460"
+        Height="480" Width="460"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
