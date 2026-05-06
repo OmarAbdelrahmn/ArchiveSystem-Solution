@@ -87,7 +87,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddCustomFilterInputs()
         {
-            CustomFilterPanel.Items.Clear();
+            //CustomFilterPanel.Items.Clear();
 
             foreach (var cf in _customFields)
             {
@@ -141,7 +141,7 @@ namespace ArchiveSystem.Views.Pages
 
                 sp.Children.Add(tb);
                 sp.Children.Add(emptyBtn);
-                CustomFilterPanel.Items.Add(sp);
+                //CustomFilterPanel.Items.Add(sp);
             }
         }
 
@@ -208,27 +208,27 @@ namespace ArchiveSystem.Views.Pages
             _filter.CabinetNumber = int.TryParse(CabinetBox.Text, out int cab) ? cab : null;
             _filter.ShelfNumber = int.TryParse(ShelfBox.Text, out int sh) ? sh : null;
             _filter.CustomFieldFilters.Clear();
-            foreach (StackPanel sp in CustomFilterPanel.Items)
-            {
-                if (sp.Tag is not int cfId) continue;
+            //foreach (StackPanel sp in CustomFilterPanel.Items)
+            //{
+            //    if (sp.Tag is not int cfId) continue;
 
-                // Child 0 = TextBox, Child 1 = ToggleButton
-                var tb = sp.Children.Count > 0
-                                    ? sp.Children[0] as TextBox : null;
-                var emptyBtn = sp.Children.Count > 1
-                                    ? sp.Children[1] as System.Windows.Controls.Primitives.ToggleButton
-                                    : null;
+            //    // Child 0 = TextBox, Child 1 = ToggleButton
+            //    var tb = sp.Children.Count > 0
+            //                        ? sp.Children[0] as TextBox : null;
+            //    var emptyBtn = sp.Children.Count > 1
+            //                        ? sp.Children[1] as System.Windows.Controls.Primitives.ToggleButton
+            //                        : null;
 
-                if (emptyBtn?.IsChecked == true)
-                {
-                    // User wants records where this field is empty
-                    _filter.CustomFieldFilters[cfId] = "__EMPTY__";
-                }
-                else if (tb != null && !string.IsNullOrWhiteSpace(tb.Text))
-                {
-                    _filter.CustomFieldFilters[cfId] = tb.Text.Trim();
-                }
-            }
+            //    if (emptyBtn?.IsChecked == true)
+            //    {
+            //        // User wants records where this field is empty
+            //        _filter.CustomFieldFilters[cfId] = "__EMPTY__";
+            //    }
+            //    else if (tb != null && !string.IsNullOrWhiteSpace(tb.Text))
+            //    {
+            //        _filter.CustomFieldFilters[cfId] = tb.Text.Trim();
+            //    }
+            //}
 
             if (SortCombo.SelectedItem is ComboBoxItem si && si.Tag is string col)
                 _filter.SortColumn = col;
@@ -247,8 +247,8 @@ namespace ArchiveSystem.Views.Pages
             if (!string.IsNullOrWhiteSpace(ShelfBox.Text)) return true;
             if (YearCombo.SelectedItem is ComboBoxItem yi && yi.Tag is int y && y > 0) return true;
             if (MonthCombo.SelectedItem is ComboBoxItem mi && mi.Tag is int m && m > 0) return true;
-            foreach (StackPanel sp in CustomFilterPanel.Items)
-                if (sp.Children[0] is TextBox tb && !string.IsNullOrWhiteSpace(tb.Text)) return true;
+            //foreach (StackPanel sp in CustomFilterPanel.Items)
+            //    if (sp.Children[0] is TextBox tb && !string.IsNullOrWhiteSpace(tb.Text)) return true;
 
             return false;
         }
@@ -286,19 +286,19 @@ namespace ArchiveSystem.Views.Pages
             MonthCombo.SelectedIndex = 0;
             StatusCombo.SelectedIndex = 0;
 
-            foreach (StackPanel sp in CustomFilterPanel.Items)
-            {
-                if (sp.Children.Count > 0 && sp.Children[0] is TextBox tb)
-                {
-                    tb.IsEnabled = true;
-                    tb.Text = string.Empty;
-                }
-                if (sp.Children.Count > 1
-                    && sp.Children[1] is System.Windows.Controls.Primitives.ToggleButton btn)
-                {
-                    btn.IsChecked = false;
-                }
-            }
+            //foreach (StackPanel sp in CustomFilterPanel.Items)
+            //{
+            //    if (sp.Children.Count > 0 && sp.Children[0] is TextBox tb)
+            //    {
+            //        tb.IsEnabled = true;
+            //        tb.Text = string.Empty;
+            //    }
+            //    if (sp.Children.Count > 1
+            //        && sp.Children[1] is System.Windows.Controls.Primitives.ToggleButton btn)
+            //    {
+            //        btn.IsChecked = false;
+            //    }
+            //}
 
             _filter.Page = 1;
             Load();
@@ -416,9 +416,9 @@ namespace ArchiveSystem.Views.Pages
                 parts.Add($"سنة: {y}هـ");
             if (MonthCombo.SelectedItem is ComboBoxItem mi && mi.Tag is int m && m > 0)
                 parts.Add($"شهر: {m}");
-            foreach (StackPanel sp in CustomFilterPanel.Items)
-                if (sp.Children[0] is TextBox tb && !string.IsNullOrWhiteSpace(tb.Text))
-                    parts.Add($"حقل مخصص: {tb.Text.Trim()}");
+            //foreach (StackPanel sp in CustomFilterPanel.Items)
+            //    if (sp.Children[0] is TextBox tb && !string.IsNullOrWhiteSpace(tb.Text))
+            //        parts.Add($"حقل مخصص: {tb.Text.Trim()}");
             return parts.Count > 0 ? string.Join(" | ", parts) : null;
         }
 

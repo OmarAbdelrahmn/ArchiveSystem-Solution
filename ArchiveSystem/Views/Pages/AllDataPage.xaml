@@ -166,7 +166,6 @@
                          TextChanged="Filter_Changed"/>
 
                 <!-- Custom field filters populated dynamically in code-behind -->
-                <ItemsControl x:Name="CustomFilterPanel"/>
 
                 <!-- Reset -->
                 <Button Content="مسح الفرز"

@@ -61,7 +61,7 @@
                 <ComboBox x:Name="ActionCombo"
                           materialDesign:HintAssist.Hint="نوع الحدث"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Width="200" Height="40" Margin="0,0,10,6"
+                          Width="200" Height="50" Margin="0,0,10,6"
                           SelectionChanged="Filter_Changed"/>
 
                 <!-- User -->
@@ -70,34 +70,34 @@
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
                           DisplayMemberPath="FullName"
                           SelectedValuePath="UserId"
-                          Width="180" Height="40" Margin="0,0,10,6"
+                          Width="180" Height="50" Margin="0,0,10,6"
                           SelectionChanged="Filter_Changed"/>
 
                 <!-- Search description -->
                 <TextBox x:Name="SearchBox"
                          materialDesign:HintAssist.Hint="بحث في الوصف..."
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="220" Height="40" Margin="0,0,10,6"
+                         Width="220" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 
                 <!-- Date from -->
                 <TextBox x:Name="DateFromBox"
                          materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd)"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="180" Height="40" Margin="0,0,10,6"
+                         Width="180" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 
                 <!-- Date to -->
                 <TextBox x:Name="DateToBox"
                          materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd)"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="180" Height="40" Margin="0,0,10,6"
+                         Width="180" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 
                 <!-- Reset -->
                 <Button Content="مسح"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        Foreground="#C62828" Height="40" Margin="4,0,0,6"
+                        Foreground="#C62828" Height="50" Margin="4,0,0,6"
                         Click="Reset_Click"/>
 
             </WrapPanel>

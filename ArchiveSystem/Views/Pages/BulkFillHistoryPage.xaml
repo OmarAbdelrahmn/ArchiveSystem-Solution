@@ -44,25 +44,24 @@
                 <ComboBox x:Name="FieldCombo"
                           materialDesign:HintAssist.Hint="الحقل"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Width="186" Height="52"
-                          SelectionChanged="Filter_Changed" RenderTransformOrigin="0.443,0.5"/>
+                          Width="172" Height="50"
+                          SelectionChanged="Filter_Changed" RenderTransformOrigin="0.443,0.5">
+                </ComboBox>
 
                 <TextBox x:Name="UserBox"
                          materialDesign:HintAssist.Hint="المستخدم"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="160" Height="52"
+                         Width="160" Height="50"
                          TextChanged="Filter_Changed"/>
-
                 <TextBox x:Name="DateFromBox"
                          materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd)"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="180" Height="56" Margin="0,0,10,0"
+                         Width="180" Height="50"
                          TextChanged="Filter_Changed"/>
-
                 <TextBox x:Name="DateToBox"
                          materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd)"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Width="180" Height="50" Margin="0,0,10,0"
+                         Width="180" Height="50"
                          TextChanged="Filter_Changed"/>
 
                 <Button Content="مسح"
