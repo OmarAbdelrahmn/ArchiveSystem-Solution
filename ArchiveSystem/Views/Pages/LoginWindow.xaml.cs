@@ -8,6 +8,7 @@ namespace ArchiveSystem
     {
         private readonly AuthService _authService;
         private bool _isFirstRun = false;
+        private bool _passwordVisible = false;
 
         public LoginWindow()
         {
@@ -16,8 +17,6 @@ namespace ArchiveSystem
             _authService = new AuthService(App.Database);
             Loaded += LoginWindow_Loaded;
         }
-
-        private bool _passwordVisible = false;
 
         private void TogglePasswordButton_Click(object sender, RoutedEventArgs e)
         {
@@ -47,23 +46,38 @@ namespace ArchiveSystem
                 SetupBorder.Visibility = Visibility.Visible;
                 FullNameBox.Visibility = Visibility.Visible;
                 LoginButton.Content = "إنشاء الحساب وتسجيل الدخول";
+                SubtitleText.Text = "أول تشغيل — أنشئ حساب مدير الأرشيف للبدء.";
+            }
+            var lastBackup = _authService.GetLastBackupTime();
+
+            if (DateTime.TryParse(lastBackup, out var parsedDate))
+            {
+                LastBackupTimeText.Text = parsedDate.ToString("HH:mm yyyy-MM-dd");
+            }
+            else
+            {
+                LastBackupTimeText.Text = "--:--";
             }
 
-            // Show last backup time
-            var lastBackup = _authService.GetLastBackupTime();
-            LastBackupText.Text = lastBackup != null
-                ? $"آخر نسخة احتياطية: {lastBackup}"
-                : "لا توجد نسخة احتياطية بعد";
-
-            VersionText.Text = $"الإصدار {App.AppVersion}";
+            // Total files & folders — load from DB if the service exposes them,
+            // otherwise fall back to zero placeholders.
+            try
+            {
+                long fileCount = _authService.GetTotalFileCount();
+                long folderCount = _authService.GetTotalFolderCount();
+                TotalFilesText.Text = fileCount.ToString("N0");
+                TotalFoldersText.Text = folderCount.ToString("N0");
+            }
+            catch
+            {
+                TotalFilesText.Text = "—";
+                TotalFoldersText.Text = "—";
+            }
 
             UsernameBox.Focus();
         }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
-        {
-            DoLogin();
-        }
+        private void LoginButton_Click(object sender, RoutedEventArgs e) => DoLogin();
 
         private void Input_KeyDown(object sender, KeyEventArgs e)
         {
@@ -75,9 +89,8 @@ namespace ArchiveSystem
             HideError();
 
             string username = UsernameBox.Text.Trim();
-            string password = PasswordBox.Password;
+            string password = _passwordVisible ? PasswordVisibleBox.Text : PasswordBox.Password;
 
-            // Basic validation
             if (string.IsNullOrEmpty(username))
             {
                 ShowError("يرجى إدخال اسم المستخدم.");
@@ -92,7 +105,7 @@ namespace ArchiveSystem
                 return;
             }
 
-            // First run — create admin account first
+            // First run — create admin account
             if (_isFirstRun)
             {
                 string fullName = FullNameBox.Text.Trim();
@@ -126,6 +139,7 @@ namespace ArchiveSystem
             {
                 ShowError("اسم المستخدم أو كلمة المرور غير صحيحة.");
                 PasswordBox.Clear();
+                PasswordVisibleBox.Clear();
                 PasswordBox.Focus();
                 return;
             }

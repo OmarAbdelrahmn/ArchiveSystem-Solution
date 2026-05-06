@@ -18,7 +18,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- SIDEBAR -->
-        <Border Grid.Column="0" Background="#1a7a60">
+        <Border Grid.Column="0" Background="#0F2E2E">
             <DockPanel>
 
                 <!-- App title -->
@@ -41,7 +41,7 @@
                             Content="🔍   البحث"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavSearch_Click"/>
 
@@ -49,7 +49,7 @@
                             Content="➕   إدخال بيانات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavEntry_Click"/>
 
@@ -57,7 +57,7 @@
                             Content="📋   كل البيانات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavAllData_Click"/>
 
@@ -65,7 +65,7 @@
                             Content="📊   الإحصاءات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavStats_Click"/>
 
@@ -73,7 +73,7 @@
                             Content="📥   استيراد Excel"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavImport_Click"/>
 
@@ -81,7 +81,7 @@
                             Content="🏢   الإدارة"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavManagement_Click"/>
 
@@ -89,7 +89,7 @@
                             Content="🖨️   التقارير"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavReports_Click"/>
 
@@ -97,7 +97,7 @@
                             Content="💡   الاقتراحات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavSuggestions_Click"/>
 
@@ -105,7 +105,7 @@
                             Content="📜   سجل الاحداث"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavAuditLog_Click"/>
 
@@ -113,7 +113,7 @@
                             Content="📝   التعبئة الجماعية"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavBulkHistory_Click"/>
 
@@ -121,7 +121,7 @@
                             Content="⚙️   الإعدادات"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="White" FontSize="14"
-                            HorizontalContentAlignment="Right"
+                            HorizontalContentAlignment="Left"
                             Height="46" Margin="0,2"
                             Click="NavSettings_Click"/>
 

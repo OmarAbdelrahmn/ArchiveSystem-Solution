@@ -82,6 +82,21 @@ namespace ArchiveSystem.Core.Services
             UserSession.Logout();
         }
 
+
+        public long GetTotalFileCount()
+        {
+            using var conn = _db.CreateConnection();
+            return conn.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL");
+        }
+
+        public long GetTotalFolderCount()
+        {
+            using var conn = _db.CreateConnection();
+            return conn.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM Dossiers WHERE DeletedAt IS NULL");
+        }
+
         /// <summary>
         /// Creates the first archive manager account during first-run setup.
         /// Only works if no users exist yet.
