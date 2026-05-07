@@ -419,7 +419,7 @@ namespace ArchiveSystem.Views.Pages
 
         private void EditLocation_Click(object sender, RoutedEventArgs e)
         {
-            if (LocationsGrid.SelectedItem is not Location loc)
+            if (LocationsGrid.SelectedItem is not LocationService.LocationOccupancy loc)
             { ShowMsg("يرجى اختيار موقع أولاً."); return; }
 
             string? newLabel = Microsoft.VisualBasic.Interaction.InputBox(
@@ -438,14 +438,14 @@ namespace ArchiveSystem.Views.Pages
 
         private void ToggleLocation_Click(object sender, RoutedEventArgs e)
         {
-            if (LocationsGrid.SelectedItem is not Location loc)
+            if (LocationsGrid.SelectedItem is not LocationService.LocationOccupancy loc)
             { ShowMsg("يرجى اختيار موقع أولاً."); return; }
 
             bool newState = !loc.IsActive;
             string action = newState ? "تفعيل" : "تعطيل";
 
             if (MessageBox.Show(
-                $"هل تريد {action} الموقع '{loc.DisplayName}'؟",
+                $"هل تريد {action} الموقع '{loc.Display}'؟",
                 action, MessageBoxButton.YesNo, MessageBoxImage.Question)
                 != MessageBoxResult.Yes) return;
 

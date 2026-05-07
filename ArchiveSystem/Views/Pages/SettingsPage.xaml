@@ -298,7 +298,7 @@
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="الموقع"
-                                                Binding="{Binding DisplayName}" Width="*"/>
+                                                Binding="{Binding Display}" Width="*"/>
                             <DataGridTextColumn Header="تسمية"
                                                 Binding="{Binding Label}" Width="130"/>
                             <DataGridTextColumn Header="السعة"
