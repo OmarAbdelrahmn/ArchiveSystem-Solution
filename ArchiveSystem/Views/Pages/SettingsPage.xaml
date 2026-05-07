@@ -632,7 +632,7 @@
                                                             <TextBox Grid.Column="1" x:Name="CustomHexBox"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      materialDesign:HintAssist.Hint="#RRGGBB"
-                                     Height="36" MaxLength="7"/>
+                                     Height="49" MaxLength="7"/>
                                                             <Button Grid.Column="2" Content="تطبيق"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
                                     Height="36" Width="70" Margin="8,0,0,0"
@@ -657,7 +657,7 @@
 
                                                     <ComboBox x:Name="FontScaleCombo"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                      Width="220" Height="40"
+                                      Width="220" Height="49"
                                       HorizontalAlignment="Right">
                                     <ComboBoxItem Content="عادي (Normal)"  Tag="Normal"/>
                                     <ComboBoxItem Content="كبير (Large)"   Tag="Large"/>
@@ -677,7 +677,7 @@
                                FontSize="12" Foreground="#555" Margin="0,0,0,10"/>
                                             <ComboBox x:Name="DensityCombo"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              Width="220" Height="40" HorizontalAlignment="Right">
+                              Width="220" Height="49" HorizontalAlignment="Right">
                                                 <ComboBoxItem Content="مريح (Comfortable)" Tag="Comfortable"/>
                                                 <ComboBoxItem Content="مدمج (Compact)"     Tag="Compact"/>
                                 </ComboBox>

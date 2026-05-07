@@ -78,9 +78,9 @@
                   Foreground="Black"
                   Height="49" Width="145"
                   SelectionChanged="StatusCombo_SelectionChanged">
-                                <ComboBoxItem Content="مفتوحة"  Tag="Open"/>
-                                <ComboBoxItem Content="مكتملة"  Tag="Complete"/>
-                                <ComboBoxItem Content="مؤرشفة"  Tag="Archived"/>
+                    <ComboBoxItem Content="مفتوحة"  Tag="Open"/>
+                    <ComboBoxItem Content="مكتملة"  Tag="Complete"/>
+                    <ComboBoxItem Content="مؤرشفة"  Tag="Archived"/>
                     </ComboBox>
                     <Button x:Name="DeleteDossierBtn"
                     Content="🗑 حذف الدوسية"

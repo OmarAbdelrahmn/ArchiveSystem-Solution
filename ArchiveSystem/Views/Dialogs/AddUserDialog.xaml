@@ -41,7 +41,7 @@
                 <TextBox x:Name="FullNameBox"
                          materialDesign:HintAssist.Hint="الاسم الكامل *"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="20,0,20,14" TextChanged="FullNameBox_TextChanged"/>
+                         Margin="20,0,20,14"/>
 
                 <TextBox x:Name="UsernameBox"
                          materialDesign:HintAssist.Hint="اسم المستخدم *"

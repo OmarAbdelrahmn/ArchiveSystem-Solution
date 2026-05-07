@@ -202,7 +202,7 @@ namespace ArchiveSystem.Views.Pages
             var newTypeBox = new TextBox
             {
                 Margin = new Thickness(0, 0, 8, 12),
-                Height = 40
+                Height = 50
             };
             MaterialDesignThemes.Wpf.HintAssist.SetHint(newTypeBox, "اسم النوع الجديد");
             newTypeBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");

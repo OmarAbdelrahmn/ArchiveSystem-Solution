@@ -291,21 +291,21 @@
                         <TextBox x:Name="DossierNumBox"
                                  materialDesign:HintAssist.Hint="رقم الدوسية"
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Width="130" Height="38" Margin="0,0,8,0"
+                                 Width="130" Height="50" Margin="0,0,8,0"
                                  TextChanged="Filter_Changed"/>
 
                         <!-- Year -->
                         <ComboBox x:Name="YearCombo"
                                   materialDesign:HintAssist.Hint="السنة الهجرية"
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                  Width="140" Height="38" Margin="0,0,8,0"
+                                  Width="140" Height="50" Margin="0,0,8,0"
                                   SelectionChanged="Filter_Changed"/>
 
                         <!-- Month -->
                         <ComboBox x:Name="MonthCombo"
                                   materialDesign:HintAssist.Hint="الشهر"
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                  Width="90" Height="38" Margin="0,0,8,0"
+                                  Width="90" Height="50" Margin="0,0,8,0"
                                   SelectionChanged="Filter_Changed">
                             <ComboBoxItem Content="الكل" Tag="0"/>
                             <ComboBoxItem Content="1"  Tag="1"/>
@@ -328,7 +328,7 @@
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                   DisplayMemberPath="TypeName"
                                   SelectedValuePath="TypeId"
-                                  Width="160" Height="38" Margin="0,0,8,0"
+                                  Width="160" Height="50" Margin="0,0,8,0"
                                   SelectionChanged="Filter_Changed"/>
 
                         <!-- Reset -->
