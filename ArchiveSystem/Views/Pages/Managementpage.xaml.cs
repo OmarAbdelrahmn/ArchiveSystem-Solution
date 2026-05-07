@@ -102,12 +102,12 @@ namespace ArchiveSystem.Views.Pages
         private void AddRootManagement_Click(object sender, RoutedEventArgs e)
         {
             string name = Microsoft.VisualBasic.Interaction.InputBox(
-                "أدخل اسم الإدارة الرئيسية الجديدة:",
-                "إضافة إدارة رئيسية", "");
+                "أدخل اسم الإدارة الجديدة:",
+                "إضافة إدارة", "");
             if (string.IsNullOrWhiteSpace(name)) return;
 
             string? desc = Microsoft.VisualBasic.Interaction.InputBox(
-                "وصف الإدارة (اختياري):", "وصف الإدارة", "");
+                "(وصف الإدارة (اختياري", "وصف الإدارة", "");
 
             var err = _service.CreateManagement(name, null, desc);
             if (err != null) { ShowError(err); return; }
@@ -120,8 +120,8 @@ namespace ArchiveSystem.Views.Pages
             if (_selectedManagement == null) return;
 
             string name = Microsoft.VisualBasic.Interaction.InputBox(
-                $"أدخل اسم الإدارة الفرعية تحت '{_selectedManagement.Name}':",
-                "إضافة إدارة فرعية", "");
+                $"أدخل اسم الشعبة او القسم تحت '{_selectedManagement.Name}':",
+                "إضافة الشعبة او القسم", "");
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var err = _service.CreateManagement(name, _selectedManagement.ManagementId, null);
@@ -140,7 +140,7 @@ namespace ArchiveSystem.Views.Pages
             if (string.IsNullOrWhiteSpace(name)) return;
 
             string? desc = Microsoft.VisualBasic.Interaction.InputBox(
-                "وصف الإدارة (اختياري):",
+                "(وصف الإدارة (اختياري",
                 "وصف الإدارة", _selectedManagement.Description ?? "");
 
             var err = _service.UpdateManagement(_selectedManagement.ManagementId, name, desc);
@@ -154,7 +154,7 @@ namespace ArchiveSystem.Views.Pages
             if (_selectedManagement == null) return;
 
             var confirm = MessageBox.Show(
-                $"هل تريد حذف الإدارة '{_selectedManagement.Name}'؟\n\nلا يمكن حذفها إذا كانت تحتوي على إدارات فرعية أو دوسيات.",
+                $"هل تريد حذف الإدارة '{_selectedManagement.Name}'؟\n\nلا يمكن حذفها إذا كانت تحتوي على شعبة او قسم أو دوسيات.",
                 "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirm != MessageBoxResult.Yes) return;
 
@@ -495,7 +495,7 @@ namespace ArchiveSystem.Views.Pages
             panel.Children.Add(dateGrid);
 
             var typeCombo = new ComboBox { Margin = new Thickness(0, 0, 0, 14) };
-            MaterialDesignThemes.Wpf.HintAssist.SetHint(typeCombo, "النوع (اختياري)");
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(typeCombo, "(النوع (اختياري");
             typeCombo.Style = (Style)FindResource("MaterialDesignOutlinedComboBox");
             typeCombo.Items.Add(new ComboBoxItem { Content = "-- بدون نوع --", Tag = null });
             foreach (var t in types)
@@ -513,7 +513,7 @@ namespace ArchiveSystem.Views.Pages
             }
             panel.Children.Add(typeCombo);
 
-            var notesBox = MakeTextBox("ملاحظات (اختياري)");
+            var notesBox = MakeTextBox("(ملاحظات (اختياري");
             notesBox.AcceptsReturn = true;
             notesBox.Height = 80;
             notesBox.TextWrapping = TextWrapping.Wrap;

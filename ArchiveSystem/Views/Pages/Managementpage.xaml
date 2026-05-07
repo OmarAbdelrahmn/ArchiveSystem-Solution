@@ -31,7 +31,7 @@
 
                 <Button x:Name="AddRootManagementBtn"
                         Grid.Column="1"
-                        Content="➕ إدارة رئيسية"
+                        Content="➕ إدارة جديدة"
                         Style="{StaticResource MaterialDesignRaisedButton}"
                         Background="#1a7a60" Foreground="White"
                         Height="36" Margin="0,0,8,0"
@@ -39,7 +39,7 @@
 
                 <Button x:Name="AddSubManagementBtn"
                         Grid.Column="2"
-                        Content="➕ إدارة فرعية"
+                        Content="➕ شعبة او قسم"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Height="36" Margin="0,0,8,0"
                         IsEnabled="False"
