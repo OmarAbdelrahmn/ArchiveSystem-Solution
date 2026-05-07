@@ -74,7 +74,7 @@
                                           x:Name="MonthlyYearCombo"
                                           materialDesign:HintAssist.Hint="السنة"
                                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                          Width="120" Height="34"
+                                          Width="120" Height="49"
                                           SelectionChanged="MonthlyYear_Changed"/>
                             </Grid>
                             <DataGrid x:Name="MonthlyGrid"
@@ -188,7 +188,7 @@
                                       x:Name="WeeklyYearCombo"
                                       materialDesign:HintAssist.Hint="السنة"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                      Width="120" Height="34"
+                                      Width="120" Height="49"
                                       SelectionChanged="WeeklyYear_Changed"/>
 
                             <!-- Total badge -->
@@ -351,13 +351,13 @@
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                   DisplayMemberPath="ArabicLabel"
                                   SelectedValuePath="CustomFieldId"
-                                  Width="180" Height="34"
+                                  Width="180" Height="49"
                                   SelectionChanged="CustomField_Changed"/>
                                                 <ComboBox Grid.Column="3"
                                   x:Name="CustomFieldYearCombo"
                                   materialDesign:HintAssist.Hint="السنة الهجرية"
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                  Width="140" Height="34"
+                                  Width="140" Height="49"
                                   SelectionChanged="CustomField_Changed"/>
                         </Grid>
 

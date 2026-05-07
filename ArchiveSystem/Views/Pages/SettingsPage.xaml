@@ -228,28 +228,28 @@
                                 <TextBox Grid.Column="0" x:Name="LocHallwayBox"
                                          materialDesign:HintAssist.Hint="ممر *"
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                         Height="40" PreviewTextInput="NumberOnly"/>
+                                         Height="49" PreviewTextInput="NumberOnly"/>
                                 <TextBox Grid.Column="2" x:Name="LocCabinetBox"
                                          materialDesign:HintAssist.Hint="كبينة *"
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                         Height="40" PreviewTextInput="NumberOnly"/>
+                                         Height="49" PreviewTextInput="NumberOnly"/>
                                 <TextBox Grid.Column="4" x:Name="LocShelfBox"
                                          materialDesign:HintAssist.Hint="رف *"
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                         Height="40" PreviewTextInput="NumberOnly"/>
+                                         Height="49" PreviewTextInput="NumberOnly"/>
                                 <TextBox Grid.Column="6" x:Name="LocLabelBox"
                                          materialDesign:HintAssist.Hint="تسمية (اختياري)"
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                         Height="40"/>
+                                         Height="49"/>
                                 <TextBox Grid.Column="8" x:Name="LocCapacityBox"
                                          materialDesign:HintAssist.Hint="السعة (اختياري)"
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                         Height="40" PreviewTextInput="NumberOnly"/>
+                                         Height="49" PreviewTextInput="NumberOnly"/>
                                 <Button Grid.Column="10"
                                         Content="➕ إضافة"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
                                         Background="#1a7a60" Foreground="White"
-                                        Height="40" Width="90"
+                                        Height="49" Width="90"
                                         Click="AddLocation_Click"/>
                             </Grid>
 

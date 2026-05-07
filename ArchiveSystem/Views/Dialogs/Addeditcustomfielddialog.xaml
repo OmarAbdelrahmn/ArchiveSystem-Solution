@@ -4,6 +4,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="حقل مخصص"
         Height="620" Width="500"
+        Padding="20"
         MinHeight="500"
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"

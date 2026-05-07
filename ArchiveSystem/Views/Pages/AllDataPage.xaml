@@ -200,7 +200,7 @@
                                VerticalAlignment="Center"/>
                     <ComboBox x:Name="SortCombo"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              Width="160" Height="32"
+                              Width="160" Height="49"
                               SelectionChanged="Sort_Changed">
                         <ComboBoxItem Content="رقم الدوسية"   Tag="DossierNumber"/>
                         <ComboBoxItem Content="التسلسل"       Tag="SequenceNumber"/>
