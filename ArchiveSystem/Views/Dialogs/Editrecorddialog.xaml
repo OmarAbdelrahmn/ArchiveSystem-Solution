@@ -44,20 +44,20 @@
                          materialDesign:HintAssist.Hint="رقم التسلسل"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          IsReadOnly="True" Opacity="0.6"
-                         Margin="0,0,0,14"/>
+                         Margin="20,0,20,14"/>
 
                 <!-- Person name -->
                 <TextBox x:Name="PersonNameBox"
                          materialDesign:HintAssist.Hint="اسم السجين *"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,14"/>
+                         Margin="20,0,20,14"/>
 
                 <!-- Prisoner number -->
                 <TextBox x:Name="PrisonerNumberBox"
                          materialDesign:HintAssist.Hint="رقم السجين (10 أرقام) *"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          MaxLength="10"
-                         Margin="0,0,0,14"/>
+                         Margin="20,0,20,14"/>
 
                 <!-- Notes -->
                 <TextBox x:Name="NotesBox"
@@ -67,7 +67,7 @@
                          Height="70"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,14"/>
+                         Margin="20,0,20,14"/>
 
                 <!-- Custom fields injected in code-behind -->
                 <StackPanel x:Name="CustomFieldsPanel"/>

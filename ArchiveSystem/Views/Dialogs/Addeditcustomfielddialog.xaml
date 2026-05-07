@@ -46,13 +46,13 @@
                 <TextBox x:Name="ArabicLabelBox"
                          materialDesign:HintAssist.Hint="التسمية العربية *"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,14"/>
+                         Margin="20,0,20,14"/>
 
                 <!-- Field type -->
                 <ComboBox x:Name="FieldTypeCombo"
                           materialDesign:HintAssist.Hint="نوع الحقل *"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,0,14"
+                          Margin="20,0,20,14"
                           SelectionChanged="FieldTypeCombo_SelectionChanged">
                     <ComboBoxItem Content="نص"                  Tag="Text"/>
                     <ComboBoxItem Content="نص مع اقتراحات"      Tag="TextWithSuggestions"/>
@@ -64,7 +64,7 @@
                 </ComboBox>
 
                 <!-- Suggestion limit (TextWithSuggestions only) -->
-                <StackPanel x:Name="SuggestionPanel" Visibility="Collapsed" Margin="0,0,0,14">
+                <StackPanel x:Name="SuggestionPanel" Visibility="Collapsed" Margin="20,0,20,14">
                     <TextBox x:Name="SuggestionLimitBox"
                              materialDesign:HintAssist.Hint="حد الاقتراحات (0 = بلا حد)"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
@@ -72,13 +72,13 @@
                 </StackPanel>
 
                 <!-- Options panel (SingleChoice / MultiChoice) -->
-                <StackPanel x:Name="OptionsPanel" Visibility="Collapsed" Margin="0,0,0,14">
+                <StackPanel x:Name="OptionsPanel" Visibility="Collapsed" Margin="20,0,20,14">
                     <TextBlock Text="خيارات القائمة"
                                FontSize="13" FontWeight="SemiBold"
                                Foreground="#555" Margin="0,0,0,8"/>
 
                     <!-- Add option row -->
-                    <Grid Margin="0,0,0,8">
+                    <Grid Margin="20,0,20,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -133,7 +133,7 @@
                 <TextBox x:Name="SortOrderBox"
                          materialDesign:HintAssist.Hint="ترتيب العرض (0 = أول)"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16"
+                         Margin="20,0,20,16"
                          PreviewTextInput="NumberOnly"/>
 
                 <!-- Checkboxes -->
