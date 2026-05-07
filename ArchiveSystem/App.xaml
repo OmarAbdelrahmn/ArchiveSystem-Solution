@@ -48,9 +48,9 @@
                 <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
             </Style>
             <!-- CORRECT - bases on MaterialDesign style, keeps all MD styling -->
-<Style TargetType="TabItem" BasedOn="{StaticResource MaterialDesignTabItem}">
-    <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
-</Style>
+            <Style TargetType="TabItem" BasedOn="{StaticResource MaterialDesignTabItem}">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+            </Style>
             <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
                 <Setter Property="FontFamily"    Value="Noto Kufi Arabic, Segoe UI"/>
                 <Setter Property="FlowDirection" Value="RightToLeft"/>
