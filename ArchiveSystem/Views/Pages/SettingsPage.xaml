@@ -518,7 +518,7 @@
                                     <TextBox Grid.Column="0"
                                              x:Name="BackupPathBox"
                                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                             Height="40" Margin="0,0,8,0"
+                                             Height="50" Margin="0,0,8,0"
                                              materialDesign:HintAssist.Hint="مسار مجلد النسخ الاحتياطية"/>
                                     <Button Grid.Column="1"
                                             Content="📂 تصفح"
@@ -532,7 +532,7 @@
                                            FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
                                 <TextBox x:Name="RetentionDaysBox"
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                         Height="40" Width="200"
+                                         Height="50" Width="200"
                                          HorizontalAlignment="Right"
                                          Margin="0,0,0,0"
                                          PreviewTextInput="NumberOnly"
@@ -543,7 +543,7 @@
                                 <TextBox x:Name="BackupTimeBox"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      materialDesign:HintAssist.Hint="مثال: 02:00"
-                                     Height="40" Width="200"
+                                     Height="50" Width="200"
                                      HorizontalAlignment="Right"/>
                             </StackPanel>
                         </Border>
@@ -657,7 +657,7 @@
 
                                                     <ComboBox x:Name="FontScaleCombo"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                      Width="220" Height="49"
+                                      Width="220" Height="50"
                                       HorizontalAlignment="Right">
                                     <ComboBoxItem Content="عادي (Normal)"  Tag="Normal"/>
                                     <ComboBoxItem Content="كبير (Large)"   Tag="Large"/>
@@ -677,7 +677,7 @@
                                FontSize="12" Foreground="#555" Margin="0,0,0,10"/>
                                             <ComboBox x:Name="DensityCombo"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              Width="220" Height="49" HorizontalAlignment="Right">
+                              Width="220" Height="50" HorizontalAlignment="Right">
                                                 <ComboBoxItem Content="مريح (Comfortable)" Tag="Comfortable"/>
                                                 <ComboBoxItem Content="مدمج (Compact)"     Tag="Compact"/>
                                 </ComboBox>
