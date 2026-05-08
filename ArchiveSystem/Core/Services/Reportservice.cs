@@ -19,8 +19,6 @@ namespace ArchiveSystem.Core.Services
         public List<DossierFaceRecord> Records { get; set; } = new();
     }
 
-
-
     public class DataQualityReportData
     {
         public string GeneratedAt { get; set; } = string.Empty;
@@ -32,6 +30,7 @@ namespace ArchiveSystem.Core.Services
         public List<DataQualityMismatchRow> MismatchDossiers { get; set; } = new();
         public List<DataQualityFieldRow> MissingFieldRows { get; set; } = new();
     }
+
     public class DataQualityFieldRow
     {
         public string FieldLabel { get; set; } = string.Empty;
@@ -63,18 +62,16 @@ namespace ArchiveSystem.Core.Services
         public string DifferenceDisplay => Difference >= 0 ? $"+{Difference}" : Difference.ToString();
     }
 
-
     public class DossierFaceRecord
     {
         public int Sequence { get; set; }
         public string PersonName { get; set; } = string.Empty;
         public string PrisonerNumber { get; set; } = string.Empty;
         public string? Nationality { get; set; }
-        // Additional custom field values keyed by ArabicLabel
         public Dictionary<string, string?> ExtraFields { get; set; } = new();
     }
 
-    // ─── DTO for monthly/weekly report ─────────────────────────────────────────
+    // ─── DTO for monthly/weekly/yearly report ───────────────────────────────────
     public class PeriodReportData
     {
         public string Title { get; set; } = string.Empty;
@@ -82,17 +79,11 @@ namespace ArchiveSystem.Core.Services
         public int TotalDossiers { get; set; }
         public int TotalRecords { get; set; }
         public List<PeriodReportRow> Rows { get; set; } = new();
-        // Custom report fields (ShowInReports = true)
         public List<CustomField> ReportCustomFields { get; set; } = new();
-        // Values per record: RecordId → (CustomFieldId → ValueText)
         public Dictionary<int, Dictionary<int, string?>> RecordCustomValues { get; set; } = new();
-        // ── أضف هذا ──────────────────────────────────────────────────────────
-        /// <summary>
-        /// Per-field aggregation for the summary section.
-        /// Key = ArabicLabel, Value = list of (ValueText, Count) ordered by count desc.
-        /// </summary>
         public Dictionary<string, List<(string Value, int Count)>> FieldAggregates { get; set; } = new();
     }
+
     public class PeriodReportRow
     {
         public int DossierNumber { get; set; }
@@ -108,6 +99,16 @@ namespace ArchiveSystem.Core.Services
     {
         private readonly DatabaseContext _db = db;
 
+        // ─── Shared style constants ────────────────────────────────────────────
+        private static readonly string FontName = "Noto Kufi Arabic";
+        private static readonly string HeaderBg = Colors.Teal.Medium;
+        private static readonly string HeaderFg = Colors.White;
+        private static readonly string AltRowBg = Colors.Grey.Lighten4;
+        private static readonly string TotalRowBg = Colors.Teal.Lighten4;
+        private static readonly string AccentGreen = Colors.Teal.Darken3;
+        private static readonly string AccentRed = Colors.Red.Darken3;
+        private static readonly string AccentOrange = Colors.Orange.Darken3;
+
         // ─────────────────────────────────────────────────────────────────────
         // DATA LOADING
         // ─────────────────────────────────────────────────────────────────────
@@ -117,27 +118,17 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
 
             var rows = conn.Query<PeriodReportRow>(@"
-    SELECT
-        d.DossierNumber,
-        d.HijriMonth,
-        d.HijriYear,
-        d.Status,
-        COALESCE(
-            l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber,
-            'غير محدد'
-        ) AS LocationDisplay,
-        COUNT(r.RecordId) AS RecordCount
-    FROM Dossiers d
-    LEFT JOIN Locations l
-        ON l.LocationId = d.CurrentLocationId
-    LEFT JOIN Records r
-        ON r.DossierId = d.DossierId
-       AND r.DeletedAt IS NULL
-    WHERE d.DeletedAt IS NULL
-      AND r.CreatedAt >= @From
-      AND r.CreatedAt < @To
-    GROUP BY d.DossierId
-    ORDER BY d.HijriMonth, d.DossierNumber",
+                SELECT
+                    d.DossierNumber, d.HijriMonth, d.HijriYear, d.Status,
+                    COALESCE(l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber, 'غير محدد') AS LocationDisplay,
+                    COUNT(r.RecordId) AS RecordCount
+                FROM Dossiers d
+                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+                LEFT JOIN Records r   ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                WHERE d.DeletedAt IS NULL
+                  AND r.CreatedAt >= @From AND r.CreatedAt < @To
+                GROUP BY d.DossierId
+                ORDER BY d.HijriMonth, d.DossierNumber",
                 new { From = gregorianDateFrom, To = gregorianDateTo }).AsList();
 
             var reportFields = LoadReportCustomFields(conn);
@@ -152,67 +143,8 @@ namespace ArchiveSystem.Core.Services
                 Rows = rows,
                 ReportCustomFields = reportFields,
                 RecordCustomValues = customValues,
-                FieldAggregates = BuildFieldAggregates(customValues, reportFields) // ← أضف هذا
+                FieldAggregates = BuildFieldAggregates(customValues, reportFields)
             };
-        }
-
-        /// <summary>
-        /// Collapses RecordCustomValues into per-field value-frequency maps.
-        /// </summary>
-        private static Dictionary<string, List<(string Value, int Count)>> BuildFieldAggregates(
-            Dictionary<int, Dictionary<int, string?>> recordCustomValues,
-            List<CustomField> fields)
-        {
-            var result = new Dictionary<string, List<(string, int)>>();
-
-            foreach (var cf in fields)
-            {
-                var freq = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-
-                foreach (var perRecord in recordCustomValues.Values)
-                {
-                    if (!perRecord.TryGetValue(cf.CustomFieldId, out var val)) continue;
-                    if (string.IsNullOrWhiteSpace(val)) continue;
-
-                    val = val.Trim();
-                    freq[val] = freq.TryGetValue(val, out int c) ? c + 1 : 1;
-                }
-
-                if (freq.Count == 0) continue;
-
-                result[cf.ArabicLabel] = freq
-                    .OrderByDescending(kv => kv.Value)
-                    .Select(kv => (kv.Key, kv.Value))
-                    .ToList();
-            }
-
-            return result;
-        }
-
-        private static Dictionary<int, Dictionary<int, string?>> LoadCustomValuesForWeek(
-            Microsoft.Data.Sqlite.SqliteConnection conn,
-            string dateFrom, string dateTo,
-            List<CustomField> fields)
-        {
-            if (fields.Count == 0) return new();
-
-            var fieldIds = string.Join(",", fields.Select(f => f.CustomFieldId));
-            var rawVals = conn.Query<RecordCustomFieldValue>($@"
-        SELECT rcfv.RecordId, rcfv.CustomFieldId, rcfv.ValueText
-        FROM RecordCustomFieldValues rcfv
-        JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
-        WHERE r.CreatedAt >= @From AND r.CreatedAt < @To
-        AND rcfv.CustomFieldId IN ({fieldIds})",
-                new { From = dateFrom, To = dateTo }).AsList();
-
-            var result = new Dictionary<int, Dictionary<int, string?>>();
-            foreach (var v in rawVals)
-            {
-                if (!result.ContainsKey(v.RecordId))
-                    result[v.RecordId] = new();
-                result[v.RecordId][v.CustomFieldId] = v.ValueText;
-            }
-            return result;
         }
 
         public DossierFaceData? LoadDossierFaceData(int dossierId)
@@ -223,9 +155,8 @@ namespace ArchiveSystem.Core.Services
                 FROM Dossiers d
                 LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
                 WHERE d.DossierId = @Id",
-                            (d, l) => { d.CurrentLocation = l; return d; },
-                            new { Id = dossierId },
-                            splitOn: "LocationId").FirstOrDefault();
+                (d, l) => { d.CurrentLocation = l; return d; },
+                new { Id = dossierId }, splitOn: "LocationId").FirstOrDefault();
 
             if (dossier == null) return null;
 
@@ -247,31 +178,25 @@ namespace ArchiveSystem.Core.Services
                 };
 
             var recIds = records.Select(r => r.RecordId).ToList();
-
-            // ── nationality field (legacy hardcoded) ──
             var natFieldId = conn.ExecuteScalar<int?>(
                 "SELECT CustomFieldId FROM CustomFields WHERE FieldKey = 'nationality' AND IsActive = 1");
 
-            // ── all ShowInReports custom fields ──
             var reportFields = conn.Query<CustomField>(@"
                 SELECT * FROM CustomFields
                 WHERE IsActive = 1 AND ShowInReports = 1
                 ORDER BY SortOrder, ArabicLabel").AsList();
 
-            // Load all custom values for this page of records in one query
             Dictionary<int, Dictionary<int, string?>> allValues = new();
             if (reportFields.Count > 0 || natFieldId.HasValue)
             {
                 var rawValues = conn.Query<RecordCustomFieldValue>($@"
                     SELECT RecordId, CustomFieldId, ValueText
                     FROM RecordCustomFieldValues
-                    WHERE RecordId IN ({string.Join(",", recIds)})")
-                    .AsList();
+                    WHERE RecordId IN ({string.Join(",", recIds)})").AsList();
 
                 foreach (var v in rawValues)
                 {
-                    if (!allValues.ContainsKey(v.RecordId))
-                        allValues[v.RecordId] = new();
+                    if (!allValues.ContainsKey(v.RecordId)) allValues[v.RecordId] = new();
                     allValues[v.RecordId][v.CustomFieldId] = v.ValueText;
                 }
             }
@@ -281,14 +206,11 @@ namespace ArchiveSystem.Core.Services
                 allValues.TryGetValue(r.RecordId, out var vals);
                 vals ??= new();
 
-                string? nationality = natFieldId.HasValue && vals.TryGetValue(natFieldId.Value, out var n)
-                    ? n : null;
+                string? nationality = natFieldId.HasValue && vals.TryGetValue(natFieldId.Value, out var n) ? n : null;
 
-                // Extra fields: only those in reportFields that aren't nationality
                 var extras = new Dictionary<string, string?>();
                 foreach (var cf in reportFields)
                 {
-                    // Skip if this IS the nationality field (it already has its own column)
                     if (natFieldId.HasValue && cf.CustomFieldId == natFieldId.Value) continue;
                     vals.TryGetValue(cf.CustomFieldId, out var val);
                     extras[cf.ArabicLabel] = val;
@@ -320,33 +242,23 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
 
             var rows = conn.Query<PeriodReportRow>(@"
-    SELECT
-        d.DossierNumber,
-        d.HijriMonth,
-        d.HijriYear,
-        d.Status,
-        COALESCE(
-            l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber,
-            'غير محدد'
-        ) AS LocationDisplay,
-        COUNT(r.RecordId) AS RecordCount
-    FROM Dossiers d
-    LEFT JOIN Locations l
-        ON l.LocationId = d.CurrentLocationId
-    LEFT JOIN Records r
-        ON r.DossierId = d.DossierId
-       AND r.DeletedAt IS NULL
-    WHERE d.DeletedAt IS NULL
-      AND d.HijriYear = @Year
-      AND d.HijriMonth = @Month
-    GROUP BY d.DossierId
-    ORDER BY d.DossierNumber",
+                SELECT
+                    d.DossierNumber, d.HijriMonth, d.HijriYear, d.Status,
+                    COALESCE(l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber, 'غير محدد') AS LocationDisplay,
+                    COUNT(r.RecordId) AS RecordCount
+                FROM Dossiers d
+                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+                LEFT JOIN Records r   ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                WHERE d.DeletedAt IS NULL
+                  AND d.HijriYear = @Year AND d.HijriMonth = @Month
+                GROUP BY d.DossierId
+                ORDER BY d.DossierNumber",
                 new { Year = hijriYear, Month = hijriMonth }).AsList();
 
             var reportFields = LoadReportCustomFields(conn);
-            var customValues = LoadCustomValuesForDossiers(conn, hijriMonth, null, hijriYear, reportFields);
+            // FIX: was passing arguments in wrong order — now explicit named params
+            var customValues = LoadCustomValuesForDossiers(conn, hijriMonth, hijriYear, null, reportFields);
 
-            // في LoadMonthlyReport
             return new PeriodReportData
             {
                 Title = "تقرير شهري",
@@ -356,7 +268,7 @@ namespace ArchiveSystem.Core.Services
                 Rows = rows,
                 ReportCustomFields = reportFields,
                 RecordCustomValues = customValues,
-                FieldAggregates = BuildFieldAggregates(customValues, reportFields) // ← أضف هذا
+                FieldAggregates = BuildFieldAggregates(customValues, reportFields)
             };
         }
 
@@ -365,26 +277,17 @@ namespace ArchiveSystem.Core.Services
             using var conn = _db.CreateConnection();
 
             var rows = conn.Query<PeriodReportRow>(@"
-    SELECT
-        d.DossierNumber,
-        d.HijriMonth,
-        d.HijriYear,
-        d.Status,
-        COALESCE(
-            l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber,
-            'غير محدد'
-        ) AS LocationDisplay,
-        COUNT(r.RecordId) AS RecordCount
-    FROM Dossiers d
-    LEFT JOIN Locations l
-        ON l.LocationId = d.CurrentLocationId
-    LEFT JOIN Records r
-        ON r.DossierId = d.DossierId
-       AND r.DeletedAt IS NULL
-    WHERE d.DeletedAt IS NULL
-      AND d.HijriYear = @Year
-    GROUP BY d.DossierId
-    ORDER BY d.HijriMonth, d.DossierNumber",
+                SELECT
+                    d.DossierNumber, d.HijriMonth, d.HijriYear, d.Status,
+                    COALESCE(l.HallwayNumber || '-' || l.CabinetNumber || '-' || l.ShelfNumber, 'غير محدد') AS LocationDisplay,
+                    COUNT(r.RecordId) AS RecordCount
+                FROM Dossiers d
+                LEFT JOIN Locations l ON l.LocationId = d.CurrentLocationId
+                LEFT JOIN Records r   ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                WHERE d.DeletedAt IS NULL
+                  AND d.HijriYear = @Year
+                GROUP BY d.DossierId
+                ORDER BY d.HijriMonth, d.DossierNumber",
                 new { Year = hijriYear }).AsList();
 
             var reportFields = LoadReportCustomFields(conn);
@@ -399,75 +302,113 @@ namespace ArchiveSystem.Core.Services
                 Rows = rows,
                 ReportCustomFields = reportFields,
                 RecordCustomValues = customValues,
-                FieldAggregates = BuildFieldAggregates(customValues, reportFields) // ← أضف هذا
+                FieldAggregates = BuildFieldAggregates(customValues, reportFields)
             };
         }
 
-        // ── Helpers for custom field loading ──────────────────────────────────
+        // ── Custom field helpers ───────────────────────────────────────────────
 
         private static List<CustomField> LoadReportCustomFields(
-            Microsoft.Data.Sqlite.SqliteConnection conn)
-        {
-            return conn.Query<CustomField>(@"
+            Microsoft.Data.Sqlite.SqliteConnection conn) =>
+            conn.Query<CustomField>(@"
                 SELECT * FROM CustomFields
                 WHERE IsActive = 1 AND ShowInReports = 1
                 ORDER BY SortOrder, ArabicLabel").AsList();
-        }
 
         /// <summary>
-        /// Loads custom field values aggregated at the dossier level for period reports.
-        /// Returns RecordId → (CustomFieldId → ValueText).
+        /// FIX: Replaced the old buggy overload (swapped month/year args, duplicate WHERE clauses).
+        /// Parameters are now clearly named: hijriMonth=null means "all months".
         /// </summary>
         private static Dictionary<int, Dictionary<int, string?>> LoadCustomValuesForDossiers(
             Microsoft.Data.Sqlite.SqliteConnection conn,
-            int? hijriMonth, int? monthFilter, int? yearFilter,
+            int? hijriMonth, int? hijriYear, int? yearOnlyFilter,
             List<CustomField> fields)
         {
             if (fields.Count == 0) return new();
 
-            // Build WHERE for dossiers
-            var conditions = new List<string>();
+            var conditions = new List<string> { "d.DeletedAt IS NULL" };
             var p = new DynamicParameters();
 
-
-            if (hijriMonth.HasValue && monthFilter.HasValue)
-            {
-                conditions.Add("d.HijriYear = @Year2");
-                p.Add("Year2", monthFilter.Value);  // receives actual hijriMonth value
-                conditions.Add("d.HijriMonth = @Month");
-                p.Add("Month", hijriMonth.Value);   // receives actual hijriYear value
-            }
-
-            if (yearFilter.HasValue)
+            // Yearly-only filter (used by LoadYearlyReport)
+            if (yearOnlyFilter.HasValue)
             {
                 conditions.Add("d.HijriYear = @Year");
-                p.Add("Year", yearFilter.Value);
+                p.Add("Year", yearOnlyFilter.Value);
             }
-            if (hijriMonth.HasValue && monthFilter.HasValue)
+            // Month+year filter (used by LoadMonthlyReport)
+            else if (hijriYear.HasValue && hijriMonth.HasValue)
             {
-                conditions.Add("d.HijriYear = @Year2");
+                conditions.Add("d.HijriYear  = @Year");
                 conditions.Add("d.HijriMonth = @Month");
-                p.Add("Year2", monthFilter.Value);
+                p.Add("Year", hijriYear.Value);
                 p.Add("Month", hijriMonth.Value);
             }
 
-            string where = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+            string where = "WHERE " + string.Join(" AND ", conditions);
+            string fieldIds = string.Join(",", fields.Select(f => f.CustomFieldId));
 
-            var fieldIds = string.Join(",", fields.Select(f => f.CustomFieldId));
             var rawVals = conn.Query<RecordCustomFieldValue>($@"
                 SELECT rcfv.RecordId, rcfv.CustomFieldId, rcfv.ValueText
                 FROM RecordCustomFieldValues rcfv
-                JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
-                JOIN Dossiers d ON d.DossierId = r.DossierId
+                JOIN Records  r ON r.RecordId   = rcfv.RecordId  AND r.DeletedAt IS NULL
+                JOIN Dossiers d ON d.DossierId  = r.DossierId
                 {where}
                 AND rcfv.CustomFieldId IN ({fieldIds})", p).AsList();
 
             var result = new Dictionary<int, Dictionary<int, string?>>();
             foreach (var v in rawVals)
             {
-                if (!result.ContainsKey(v.RecordId))
-                    result[v.RecordId] = new();
+                if (!result.ContainsKey(v.RecordId)) result[v.RecordId] = new();
                 result[v.RecordId][v.CustomFieldId] = v.ValueText;
+            }
+            return result;
+        }
+
+        private static Dictionary<int, Dictionary<int, string?>> LoadCustomValuesForWeek(
+            Microsoft.Data.Sqlite.SqliteConnection conn,
+            string dateFrom, string dateTo,
+            List<CustomField> fields)
+        {
+            if (fields.Count == 0) return new();
+
+            string fieldIds = string.Join(",", fields.Select(f => f.CustomFieldId));
+            var rawVals = conn.Query<RecordCustomFieldValue>($@"
+                SELECT rcfv.RecordId, rcfv.CustomFieldId, rcfv.ValueText
+                FROM RecordCustomFieldValues rcfv
+                JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
+                WHERE r.CreatedAt >= @From AND r.CreatedAt < @To
+                  AND rcfv.CustomFieldId IN ({fieldIds})",
+                new { From = dateFrom, To = dateTo }).AsList();
+
+            var result = new Dictionary<int, Dictionary<int, string?>>();
+            foreach (var v in rawVals)
+            {
+                if (!result.ContainsKey(v.RecordId)) result[v.RecordId] = new();
+                result[v.RecordId][v.CustomFieldId] = v.ValueText;
+            }
+            return result;
+        }
+
+        private static Dictionary<string, List<(string Value, int Count)>> BuildFieldAggregates(
+            Dictionary<int, Dictionary<int, string?>> recordCustomValues,
+            List<CustomField> fields)
+        {
+            var result = new Dictionary<string, List<(string, int)>>();
+            foreach (var cf in fields)
+            {
+                var freq = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                foreach (var perRecord in recordCustomValues.Values)
+                {
+                    if (!perRecord.TryGetValue(cf.CustomFieldId, out var val)) continue;
+                    if (string.IsNullOrWhiteSpace(val)) continue;
+                    val = val.Trim();
+                    freq[val] = freq.TryGetValue(val, out int c) ? c + 1 : 1;
+                }
+                if (freq.Count == 0) continue;
+                result[cf.ArabicLabel] = freq
+                    .OrderByDescending(kv => kv.Value)
+                    .Select(kv => (kv.Key, kv.Value))
+                    .ToList();
             }
             return result;
         }
@@ -476,23 +417,15 @@ namespace ArchiveSystem.Core.Services
         // PDF GENERATION  (QuestPDF)
         // ─────────────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Generates the dossier face table PDF and saves it to <paramref name="outputPath"/>.
-        /// Returns error string or null on success.
-        /// </summary>
         public string? GenerateDossierFacePdf(DossierFaceData data, string outputPath)
         {
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
 
-                // Determine extra column labels from first record that has them
-                var extraLabels = data.Records
-                    .SelectMany(r => r.ExtraFields.Keys)
-                    .Distinct()
-                    .ToList();
-
+                var extraLabels = data.Records.SelectMany(r => r.ExtraFields.Keys).Distinct().ToList();
                 bool showNat = data.Records.Any(r => r.Nationality != null);
+                string printDate = DateTime.Now.ToString("yyyy/MM/dd  HH:mm");
 
                 Document.Create(container =>
                 {
@@ -500,17 +433,107 @@ namespace ArchiveSystem.Core.Services
                     {
                         page.Size(PageSizes.A4);
                         page.Margin(1.5f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(11).FontFamily("Noto Kufi Arabic"));
+                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily(FontName));
                         page.ContentFromRightToLeft();
 
-                        page.Header().Element(c => ComposeHeader(c, data));
-                        page.Content().Element(c => ComposeTable(c, data, showNat, extraLabels));
-                        page.Footer().AlignCenter().Text(x =>
+                        // ── Header ────────────────────────────────────────────
+                        page.Header().Column(col =>
                         {
-                            x.Span("صفحة ").FontSize(9).FontColor(Colors.Grey.Medium);
-                            x.CurrentPageNumber().FontSize(9);
-                            x.Span(" من ").FontSize(9).FontColor(Colors.Grey.Medium);
-                            x.TotalPages().FontSize(9);
+                            // Top accent bar
+                            col.Item().Height(6).Background(Colors.Teal.Medium);
+                            col.Item().PaddingVertical(8).Row(row =>
+                            {
+                                // Right: dossier info block
+                                row.RelativeItem().Column(inner =>
+                                {
+                                    inner.Item().Text($"دوسية رقم  ({data.DossierNumber})")
+                                        .FontSize(18).Bold().FontColor(Colors.Teal.Darken3);
+                                    inner.Item().PaddingTop(2)
+                                        .Text($"شهر {data.HijriMonth}  لعام {data.HijriYear}هـ")
+                                        .FontSize(12).FontColor(Colors.Grey.Darken2);
+                                });
+
+                                // Left: meta info
+                                row.ConstantItem(200).Column(inner =>
+                                {
+                                    inner.Item().AlignLeft()
+                                        .Text($"الموقع:  {data.LocationDisplay}")
+                                        .FontSize(10).FontColor(Colors.Grey.Darken2);
+                                    inner.Item().AlignLeft().PaddingTop(3)
+                                        .Text($"عدد الملفات المتوقع:  {data.ExpectedCount?.ToString() ?? "غير محدد"}")
+                                        .FontSize(10);
+                                    inner.Item().AlignLeft().PaddingTop(3)
+                                        .Text($"عدد السجلات الفعلي:  {data.Records.Count}")
+                                        .FontSize(10);
+                                    inner.Item().AlignLeft().PaddingTop(3)
+                                        .Text($"تاريخ الطباعة:  {printDate}")
+                                        .FontSize(9).FontColor(Colors.Grey.Medium);
+                                });
+                            });
+                            col.Item().PaddingBottom(4).LineHorizontal(1.5f).LineColor(Colors.Teal.Medium);
+                        });
+
+                        // ── Table ─────────────────────────────────────────────
+                        page.Content().PaddingTop(8).Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.ConstantColumn(38);    // تسلسل
+                                cols.RelativeColumn(3);     // اسم السجين
+                                cols.ConstantColumn(105);   // رقم السجين
+                                if (showNat) cols.RelativeColumn(1.5f);
+                                foreach (var _ in extraLabels) cols.RelativeColumn(1.5f);
+                            });
+
+                            table.Header(h =>
+                            {
+                                HeaderCell(h, "م");
+                                HeaderCell(h, "اسم السجين");
+                                HeaderCell(h, "رقم السجين");
+                                if (showNat) HeaderCell(h, "الجنسية");
+                                foreach (var lbl in extraLabels) HeaderCell(h, lbl);
+                            });
+
+                            // FIX: use index variable instead of Sequence for alternating rows
+                            int idx = 0;
+                            foreach (var rec in data.Records)
+                            {
+                                string bg = idx++ % 2 == 0 ? Colors.White : AltRowBg;
+                                DataCell(table, rec.Sequence.ToString(), bg, center: true);
+                                DataCell(table, rec.PersonName, bg);
+                                DataCell(table, rec.PrisonerNumber, bg, center: true);
+                                if (showNat) DataCell(table, rec.Nationality ?? "—", bg);
+                                foreach (var lbl in extraLabels)
+                                {
+                                    rec.ExtraFields.TryGetValue(lbl, out var val);
+                                    DataCell(table, val ?? "—", bg);
+                                }
+                            }
+
+                            // ── Totals row ────────────────────────────────────
+                            int totalCols = 3 + (showNat ? 1 : 0) + extraLabels.Count;
+                            // Span label across first two cols, put count in third, blank the rest
+                            TotalSpanCell(table, "إجمالي السجلات", TotalRowBg, colSpan: 2);
+                            TotalCell(table, data.Records.Count.ToString(), TotalRowBg);
+                            for (int i = 3; i < totalCols; i++)
+                                TotalCell(table, "", TotalRowBg);
+                        });
+
+                        // ── Footer ────────────────────────────────────────────
+                        page.Footer().PaddingTop(4).Row(row =>
+                        {
+                            row.RelativeItem().Text($"نظام أرشفة الملفات — {printDate}")
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
+                            row.ConstantItem(120).AlignCenter().Text(x =>
+                            {
+                                x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.CurrentPageNumber().FontSize(8);
+                                x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.TotalPages().FontSize(8);
+                            });
+                            row.RelativeItem().AlignLeft()
+                                .Text($"دوسية رقم ({data.DossierNumber})")
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
                         });
                     });
                 }).GeneratePdf(outputPath);
@@ -529,114 +552,70 @@ namespace ArchiveSystem.Core.Services
 
                 return null;
             }
-            catch (Exception ex)
-            {
-                return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}";
-            }
+            catch (Exception ex) { return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}"; }
         }
 
-        private static void ComposeHeader(IContainer c, DossierFaceData data)
-        {
-            c.Column(col =>
-            {
-                col.Item().AlignCenter().Text($"دوسية رقم ({data.DossierNumber})")
-                    .FontSize(16).Bold();
-                col.Item().AlignCenter().Text(
-                    $"شهر {data.HijriMonth} لعام {data.HijriYear}هـ  |  " +
-                    $"عدد {data.ExpectedCount?.ToString() ?? "؟"} ملف سجين")
-                    .FontSize(12).FontColor(Colors.Grey.Darken2);
-                col.Item().AlignCenter().Text($"الموقع: {data.LocationDisplay}")
-                    .FontSize(11).FontColor(Colors.Grey.Darken1);
-                col.Item().PaddingVertical(4).LineHorizontal(1)
-                    .LineColor(Colors.Teal.Medium);
-            });
-        }
-
-        private static void ComposeTable(IContainer c, DossierFaceData data,
-            bool showNat, List<string> extraLabels)
-        {
-            c.Table(table =>
-            {
-                table.ColumnsDefinition(cols =>
-                {
-                    cols.ConstantColumn(40);    // تسلسل
-                    cols.RelativeColumn(3);     // اسم السجين
-                    cols.ConstantColumn(110);   // رقم السجين
-                    if (showNat)
-                        cols.RelativeColumn(1.5f); // الجنسية
-                    foreach (var _ in extraLabels)
-                        cols.RelativeColumn(1.5f);  // extra custom fields
-                });
-
-                table.Header(h =>
-                {
-                    HeaderCell(h, "تسلسل");
-                    HeaderCell(h, "اسم السجين");
-                    HeaderCell(h, "رقم السجين");
-                    if (showNat) HeaderCell(h, "الجنسية");
-                    foreach (var lbl in extraLabels) HeaderCell(h, lbl);
-                });
-
-                foreach (var rec in data.Records)
-                {
-                    bool alt = rec.Sequence % 2 == 0;
-                    var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
-
-                    DataCell(table, rec.Sequence.ToString(), bg, center: true);
-                    DataCell(table, rec.PersonName, bg);
-                    DataCell(table, rec.PrisonerNumber, bg, center: true);
-                    if (showNat)
-                        DataCell(table, rec.Nationality ?? "—", bg);
-                    foreach (var lbl in extraLabels)
-                    {
-                        rec.ExtraFields.TryGetValue(lbl, out var val);
-                        DataCell(table, val ?? "—", bg);
-                    }
-                }
-            });
-        }
+        // ── Period report (monthly / weekly / yearly) ─────────────────────────
 
         /// <summary>
-        /// Generates a period (monthly/yearly) report PDF.
+        /// FIX: Removed the nested container.Page() call inside page.Content() which
+        /// caused a QuestPDF render exception.  The aggregates summary is now a
+        /// separate top-level page added to the same Document.Create() call.
         /// </summary>
         public string? GeneratePeriodReportPdf(PeriodReportData data, string outputPath)
         {
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
+                string printDate = DateTime.Now.ToString("yyyy/MM/dd  HH:mm");
 
                 Document.Create(container =>
                 {
+                    // ══ PAGE 1: dossier list ══════════════════════════════════
                     container.Page(page =>
                     {
                         page.Size(PageSizes.A4);
                         page.Margin(1.5f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily("Noto Kufi Arabic"));
+                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily(FontName));
                         page.ContentFromRightToLeft();
 
                         page.Header().Column(col =>
                         {
-                            col.Item().AlignCenter().Text(data.Title)
-                                .FontSize(16).Bold();
-                            col.Item().AlignCenter().Text(data.Period)
-                                .FontSize(13).FontColor(Colors.Grey.Darken2);
-                            col.Item().AlignCenter().Text(
-                                $"إجمالي الدوسيات: {data.TotalDossiers}  |  إجمالي الملفات: {data.TotalRecords}")
-                                .FontSize(11);
-                            col.Item().PaddingVertical(4).LineHorizontal(1)
-                                .LineColor(Colors.Teal.Medium);
+                            col.Item().Height(6).Background(Colors.Teal.Medium);
+                            col.Item().PaddingVertical(6).Row(row =>
+                            {
+                                row.RelativeItem().Column(inner =>
+                                {
+                                    inner.Item().Text(data.Title)
+                                        .FontSize(18).Bold().FontColor(Colors.Teal.Darken3);
+                                    inner.Item().PaddingTop(2).Text(data.Period)
+                                        .FontSize(12).FontColor(Colors.Grey.Darken2);
+                                });
+                                row.ConstantItem(200).Column(inner =>
+                                {
+                                    inner.Item().AlignLeft()
+                                        .Text($"إجمالي الدوسيات:  {data.TotalDossiers}")
+                                        .FontSize(10);
+                                    inner.Item().AlignLeft().PaddingTop(3)
+                                        .Text($"إجمالي الملفات:  {data.TotalRecords}")
+                                        .FontSize(10);
+                                    inner.Item().AlignLeft().PaddingTop(3)
+                                        .Text($"تاريخ الطباعة:  {printDate}")
+                                        .FontSize(9).FontColor(Colors.Grey.Medium);
+                                });
+                            });
+                            col.Item().PaddingBottom(4).LineHorizontal(1.5f).LineColor(Colors.Teal.Medium);
                         });
 
-                        page.Content().Table(table =>
+                        page.Content().PaddingTop(8).Table(table =>
                         {
                             table.ColumnsDefinition(cols =>
                             {
                                 cols.ConstantColumn(70);   // رقم الدوسية
-                                cols.ConstantColumn(90);   // التاريخ الهجري
-                                cols.ConstantColumn(60);   // عدد الملفات
+                                cols.ConstantColumn(95);   // الشهر/السنة
+                                cols.ConstantColumn(65);   // عدد الملفات
                                 cols.RelativeColumn(2);    // الموقع
-                                cols.ConstantColumn(70);   // الحالة
-                                // One column per custom report fiel
+                                cols.ConstantColumn(65);   // الحالة
                             });
 
                             table.Header(h =>
@@ -646,118 +625,142 @@ namespace ArchiveSystem.Core.Services
                                 HeaderCell(h, "عدد الملفات");
                                 HeaderCell(h, "الموقع");
                                 HeaderCell(h, "الحالة");
-
                             });
 
+                            // FIX: index-based alternating — no O(n²) IndexOf
+                            int idx = 0;
                             foreach (var row in data.Rows)
                             {
-                                bool alt = data.Rows.IndexOf(row) % 2 == 0;
-                                var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
-
+                                string bg = idx++ % 2 == 0 ? Colors.White : AltRowBg;
                                 DataCell(table, row.DossierNumber.ToString(), bg, center: true);
                                 DataCell(table, $"{row.HijriMonth}/{row.HijriYear}هـ", bg, center: true);
                                 DataCell(table, row.RecordCount.ToString(), bg, center: true);
                                 DataCell(table, row.LocationDisplay, bg);
                                 DataCell(table, TranslateStatus(row.Status), bg, center: true);
-
                             }
+
+                            // ── Totals row ────────────────────────────────────
+                            TotalSpanCell(table, "الإجمالي", TotalRowBg, colSpan: 2);
+                            TotalCell(table, data.TotalRecords.ToString(), TotalRowBg, center: true);
+                            TotalCell(table, "", TotalRowBg);
+                            TotalCell(table, "", TotalRowBg);
                         });
 
-                        // ── القسم الثاني: ملخص الحقول المخصصة ───────────────────────────────
-                        if (data.FieldAggregates.Count > 0)
+                        page.Footer().PaddingTop(4).Row(row =>
                         {
-                            // فراغ بين الجدولين
-                            // نضيف صفحة جديدة للملخص إذا كانت البيانات كبيرة
-                            container.Page(page2 =>
+                            row.RelativeItem().Text($"نظام أرشفة الملفات — {printDate}")
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
+                            row.ConstantItem(120).AlignCenter().Text(x =>
                             {
-                                page2.Size(PageSizes.A4);
-                                page2.Margin(1.5f, Unit.Centimetre);
-                                page2.DefaultTextStyle(t => t.FontSize(10).FontFamily("Noto Kufi Arabic"));
-                                page2.ContentFromRightToLeft();
-
-                                page2.Header().Column(col =>
-                                {
-                                    col.Item().AlignCenter()
-                                        .Text($"ملخص الحقول المخصصة — {data.Period}")
-                                        .FontSize(14).Bold();
-                                    col.Item().PaddingVertical(4)
-                                        .LineHorizontal(1).LineColor(Colors.Teal.Medium);
-                                });
-
-                                page2.Content().Column(col =>
-                                {
-                                    foreach (var (fieldLabel, values) in data.FieldAggregates)
-                                    {
-                                        int fieldTotal = values.Sum(v => v.Count);
-
-                                        col.Item().PaddingBottom(4)
-                                            .Text(fieldLabel)
-                                            .Bold().FontSize(12).FontColor(Colors.Teal.Darken3);
-
-                                        col.Item().Table(t =>
-                                        {
-                                            t.ColumnsDefinition(c =>
-                                            {
-                                                c.RelativeColumn(3);   // القيمة
-                                                c.ConstantColumn(70);  // العدد
-                                                c.ConstantColumn(80);  // النسبة
-                                            });
-
-                                            t.Header(h =>
-                                            {
-                                                HeaderCell(h, "القيمة");
-                                                HeaderCell(h, "العدد");
-                                                HeaderCell(h, "النسبة");
-                                            });
-
-                                            foreach (var (value, count) in values)
-                                            {
-                                                bool alt = values.IndexOf((value, count)) % 2 == 0;
-                                                var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
-                                                double pct = fieldTotal > 0 ? count * 100.0 / fieldTotal : 0;
-
-                                                DataCell(t, value, bg);
-                                                DataCell(t, count.ToString(), bg, center: true);
-                                                DataCell(t, $"{pct:F1}%", bg, center: true);
-                                            }
-
-                                            // صف الإجمالي
-                                            DataCell(t, "الإجمالي", Colors.Teal.Lighten4);
-                                            DataCell(t, fieldTotal.ToString(), Colors.Teal.Lighten4, center: true);
-                                            DataCell(t, "100%", Colors.Teal.Lighten4, center: true);
-                                        });
-
-                                        col.Item().PaddingVertical(12); // مسافة بين الحقول
-                                    }
-                                });
-
-                                page2.Footer().AlignCenter().Text(x =>
-                                {
-                                    x.Span("صفحة ").FontSize(9).FontColor(Colors.Grey.Medium);
-                                    x.CurrentPageNumber().FontSize(9);
-                                    x.Span(" من ").FontSize(9).FontColor(Colors.Grey.Medium);
-                                    x.TotalPages().FontSize(9);
-                                });
+                                x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.CurrentPageNumber().FontSize(8);
+                                x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.TotalPages().FontSize(8);
                             });
-                        }
-
-                        page.Footer().AlignCenter().Text(x =>
-                        {
-                            x.Span("صفحة ").FontSize(9).FontColor(Colors.Grey.Medium);
-                            x.CurrentPageNumber().FontSize(9);
-                            x.Span(" من ").FontSize(9).FontColor(Colors.Grey.Medium);
-                            x.TotalPages().FontSize(9);
+                            row.RelativeItem().AlignLeft().Text(data.Period)
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
                         });
                     });
+
+                    // ══ PAGE 2: custom-field aggregates (if any) ═════════════
+                    if (data.FieldAggregates.Count > 0)
+                    {
+                        container.Page(page2 =>
+                        {
+                            page2.Size(PageSizes.A4);
+                            page2.Margin(1.5f, Unit.Centimetre);
+                            page2.DefaultTextStyle(t => t.FontSize(10).FontFamily(FontName));
+                            page2.ContentFromRightToLeft();
+
+                            page2.Header().Column(col =>
+                            {
+                                col.Item().Height(6).Background(Colors.Teal.Medium);
+                                col.Item().PaddingVertical(6).Column(inner =>
+                                {
+                                    inner.Item().AlignCenter()
+                                        .Text($"ملخص الحقول المخصصة — {data.Period}")
+                                        .FontSize(16).Bold().FontColor(Colors.Teal.Darken3);
+                                    inner.Item().AlignCenter().PaddingTop(2)
+                                        .Text($"تاريخ الطباعة:  {printDate}")
+                                        .FontSize(9).FontColor(Colors.Grey.Medium);
+                                });
+                                col.Item().PaddingBottom(4)
+                                    .LineHorizontal(1.5f).LineColor(Colors.Teal.Medium);
+                            });
+
+                            page2.Content().PaddingTop(8).Column(col =>
+                            {
+                                foreach (var (fieldLabel, values) in data.FieldAggregates)
+                                {
+                                    int fieldTotal = values.Sum(v => v.Count);
+
+                                    col.Item().PaddingBottom(3).Row(row =>
+                                    {
+                                        row.RelativeItem()
+                                            .Background(Colors.Teal.Lighten5)
+                                            .Padding(6)
+                                            .Text(fieldLabel)
+                                            .Bold().FontSize(12).FontColor(Colors.Teal.Darken3);
+                                    });
+
+                                    col.Item().Table(t =>
+                                    {
+                                        t.ColumnsDefinition(c =>
+                                        {
+                                            c.RelativeColumn(3);
+                                            c.ConstantColumn(65);
+                                            c.ConstantColumn(75);
+                                        });
+                                        t.Header(h =>
+                                        {
+                                            HeaderCell(h, "القيمة");
+                                            HeaderCell(h, "العدد");
+                                            HeaderCell(h, "النسبة %");
+                                        });
+
+                                        int vi = 0;
+                                        foreach (var (value, count) in values)
+                                        {
+                                            string bg = vi++ % 2 == 0 ? Colors.White : AltRowBg;
+                                            double pct = fieldTotal > 0 ? count * 100.0 / fieldTotal : 0;
+                                            DataCell(t, value, bg);
+                                            DataCell(t, count.ToString(), bg, center: true);
+                                            DataCell(t, $"{pct:F1}%", bg, center: true);
+                                        }
+                                        // Total row
+                                        TotalCell(t, "الإجمالي", TotalRowBg);
+                                        TotalCell(t, fieldTotal.ToString(), TotalRowBg, center: true);
+                                        TotalCell(t, "100%", TotalRowBg, center: true);
+                                    });
+
+                                    col.Item().PaddingVertical(10);
+                                }
+                            });
+
+                            page2.Footer().PaddingTop(4).Row(row =>
+                            {
+                                row.RelativeItem().Text($"نظام أرشفة الملفات — {printDate}")
+                                    .FontSize(8).FontColor(Colors.Grey.Medium);
+                                row.ConstantItem(120).AlignCenter().Text(x =>
+                                {
+                                    x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                    x.CurrentPageNumber().FontSize(8);
+                                    x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                    x.TotalPages().FontSize(8);
+                                });
+                                row.RelativeItem().AlignLeft().Text(data.Period)
+                                    .FontSize(8).FontColor(Colors.Grey.Medium);
+                            });
+                        });
+                    }
                 }).GeneratePdf(outputPath);
 
                 return null;
             }
-            catch (Exception ex)
-            {
-                return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}";
-            }
+            catch (Exception ex) { return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}"; }
         }
+
+        // ── Data Quality report ───────────────────────────────────────────────
 
         public DataQualityReportData LoadDataQualityReport()
         {
@@ -768,77 +771,53 @@ namespace ArchiveSystem.Core.Services
             int totalRecords = conn.ExecuteScalar<int>(
                 "SELECT COUNT(*) FROM Records WHERE DeletedAt IS NULL");
 
-            // ── 1. Unresolved import warnings grouped by type ─────────────────
             var warningGroups = conn.Query<DataQualityWarningGroup>(@"
-                SELECT
-                    iw.WarningType,
-                    COUNT(*)           AS Count,
-                    COALESCE(ib.FileName, '') AS BatchFileName
+                SELECT iw.WarningType, COUNT(*) AS Count,
+                       COALESCE(ib.FileName,'') AS BatchFileName
                 FROM ImportWarnings iw
-                LEFT JOIN ImportBatches ib
-                    ON ib.ImportBatchId = iw.ImportBatchId
+                LEFT JOIN ImportBatches ib ON ib.ImportBatchId = iw.ImportBatchId
                 WHERE iw.IsResolved = 0
                 GROUP BY iw.WarningType
                 ORDER BY Count DESC").AsList();
 
             int unresolvedTotal = warningGroups.Sum(g => g.Count);
 
-            // ── 2. Dossiers where actual count ≠ expected (and expected is set) ─
             var mismatchDossiers = conn.Query<DataQualityMismatchRow>(@"
-                SELECT
-                    d.DossierNumber,
-                    d.HijriMonth,
-                    d.HijriYear,
-                    d.ExpectedFileCount AS ExpectedCount,
-                    COUNT(r.RecordId)   AS ActualCount
+                SELECT d.DossierNumber, d.HijriMonth, d.HijriYear,
+                       d.ExpectedFileCount AS ExpectedCount,
+                       COUNT(r.RecordId)   AS ActualCount
                 FROM Dossiers d
-                LEFT JOIN Records r
-                    ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
-                WHERE d.DeletedAt IS NULL
-                AND   d.ExpectedFileCount IS NOT NULL
+                LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+                WHERE d.DeletedAt IS NULL AND d.ExpectedFileCount IS NOT NULL
                 GROUP BY d.DossierId
                 HAVING COUNT(r.RecordId) != d.ExpectedFileCount
                 ORDER BY ABS(COUNT(r.RecordId) - d.ExpectedFileCount) DESC
                 LIMIT 100").AsList();
 
-            // ── 3. Active custom fields – fill rate per field ──────────────────
             var fields = conn.Query<(int Id, string Label, bool Required)>(@"
                 SELECT CustomFieldId, ArabicLabel, IsRequired
-                FROM CustomFields
-                WHERE IsActive = 1
+                FROM CustomFields WHERE IsActive = 1
                 ORDER BY SortOrder, ArabicLabel").AsList();
 
             var fieldRows = new List<DataQualityFieldRow>();
             foreach (var (id, label, required) in fields)
             {
-                // Match StatisticsService: only count records created ON OR AFTER
-                // the field was created — older records were never expected to have it.
                 string? fieldCreatedAt = conn.ExecuteScalar<string?>(
-                    "SELECT CreatedAt FROM CustomFields WHERE CustomFieldId = @Id",
-                    new { Id = id });
+                    "SELECT CreatedAt FROM CustomFields WHERE CustomFieldId = @Id", new { Id = id });
 
-                int relevantTotal;
-                if (string.IsNullOrEmpty(fieldCreatedAt))
-                {
-                    relevantTotal = totalRecords;
-                }
-                else
-                {
-                    relevantTotal = conn.ExecuteScalar<int>(@"
-                        SELECT COUNT(*)
-                        FROM Records
-                        WHERE DeletedAt IS NULL
-                        AND   CreatedAt >= @FieldCreatedAt",
-                                    new { FieldCreatedAt = fieldCreatedAt });
-                            }
+                int relevantTotal = string.IsNullOrEmpty(fieldCreatedAt)
+                    ? totalRecords
+                    : conn.ExecuteScalar<int>(@"
+                        SELECT COUNT(*) FROM Records
+                        WHERE DeletedAt IS NULL AND CreatedAt >= @FieldCreatedAt",
+                        new { FieldCreatedAt = fieldCreatedAt });
 
-                            int filled = conn.ExecuteScalar<int>(@"
+                int filled = conn.ExecuteScalar<int>(@"
                     SELECT COUNT(DISTINCT rcfv.RecordId)
                     FROM RecordCustomFieldValues rcfv
                     JOIN Records r ON r.RecordId = rcfv.RecordId AND r.DeletedAt IS NULL
                     WHERE rcfv.CustomFieldId = @Id
-                    AND   rcfv.ValueText IS NOT NULL
-                    AND   rcfv.ValueText != ''",
+                      AND rcfv.ValueText IS NOT NULL AND rcfv.ValueText != ''",
                     new { Id = id });
 
                 fieldRows.Add(new DataQualityFieldRow
@@ -852,7 +831,7 @@ namespace ArchiveSystem.Core.Services
 
             return new DataQualityReportData
             {
-                GeneratedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                GeneratedAt = DateTime.Now.ToString("yyyy/MM/dd  HH:mm:ss"),
                 TotalDossiers = totalDossiers,
                 TotalRecords = totalRecords,
                 DossiersWithMismatch = mismatchDossiers.Count,
@@ -863,12 +842,12 @@ namespace ArchiveSystem.Core.Services
             };
         }
 
-        /// <summary>Generates the data quality PDF and saves to outputPath.</summary>
         public string? GenerateDataQualityReportPdf(DataQualityReportData data, string outputPath)
         {
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
+                string printDate = DateTime.Now.ToString("yyyy/MM/dd  HH:mm");
 
                 Document.Create(container =>
                 {
@@ -876,62 +855,61 @@ namespace ArchiveSystem.Core.Services
                     {
                         page.Size(PageSizes.A4);
                         page.Margin(1.5f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily("Noto Kufi Arabic"));
+                        page.DefaultTextStyle(t => t.FontSize(10).FontFamily(FontName));
                         page.ContentFromRightToLeft();
 
+                        // ── Header ────────────────────────────────────────────
                         page.Header().Column(col =>
                         {
-                            col.Item().AlignCenter().Text("تقرير جودة البيانات والأخطاء")
-                                .FontSize(16).Bold();
-                            col.Item().AlignCenter()
-                                .Text($"تاريخ التقرير: {data.GeneratedAt}")
-                                .FontSize(11).FontColor(Colors.Grey.Darken2);
-                            col.Item().AlignCenter()
-                                .Text($"إجمالي الدوسيات: {data.TotalDossiers}  |  إجمالي السجلات: {data.TotalRecords}")
-                                .FontSize(11);
+                            col.Item().Height(6).Background(Colors.Teal.Medium);
+                            col.Item().PaddingVertical(6).Column(inner =>
+                            {
+                                inner.Item().AlignCenter()
+                                    .Text("تقرير جودة البيانات والأخطاء")
+                                    .FontSize(18).Bold().FontColor(Colors.Teal.Darken3);
+                                inner.Item().AlignCenter().PaddingTop(2)
+                                    .Text($"تاريخ التقرير:  {data.GeneratedAt}")
+                                    .FontSize(10).FontColor(Colors.Grey.Darken2);
+                                inner.Item().AlignCenter().PaddingTop(2)
+                                    .Text($"إجمالي الدوسيات: {data.TotalDossiers}    |    إجمالي السجلات: {data.TotalRecords:N0}")
+                                    .FontSize(10);
+                            });
 
-                            // Summary badges row
+                            // Summary badge row
                             col.Item().Padding(6).Row(row =>
                             {
-                                row.RelativeItem().Background(
-                                    data.UnresolvedWarningsTotal > 0
-                                        ? Colors.Red.Lighten4 : Colors.Green.Lighten4)
-                                    .Padding(8).AlignCenter()
-                                    .Text($"تحذيرات غير محلولة: {data.UnresolvedWarningsTotal}")
-                                    .Bold().FontSize(11);
+                                SummaryBadge(row,
+                                    $"تحذيرات غير محلولة:  {data.UnresolvedWarningsTotal}",
+                                    data.UnresolvedWarningsTotal > 0 ? Colors.Red.Lighten4 : Colors.Green.Lighten4,
+                                    data.UnresolvedWarningsTotal > 0 ? Colors.Red.Darken3 : Colors.Green.Darken3);
 
                                 row.ConstantItem(12);
 
-                                row.RelativeItem().Background(
-                                    data.DossiersWithMismatch > 0
-                                        ? Colors.Orange.Lighten4 : Colors.Green.Lighten4)
-                                    .Padding(8).AlignCenter()
-                                    .Text($"دوسيات بتعداد غير مطابق: {data.DossiersWithMismatch}")
-                                    .Bold().FontSize(11);
+                                SummaryBadge(row,
+                                    $"دوسيات بتعداد غير مطابق:  {data.DossiersWithMismatch}",
+                                    data.DossiersWithMismatch > 0 ? Colors.Orange.Lighten4 : Colors.Green.Lighten4,
+                                    data.DossiersWithMismatch > 0 ? Colors.Orange.Darken3 : Colors.Green.Darken3);
                             });
 
-                            col.Item().PaddingVertical(4)
-                                .LineHorizontal(1).LineColor(Colors.Teal.Medium);
+                            col.Item().PaddingBottom(4).LineHorizontal(1.5f).LineColor(Colors.Teal.Medium);
                         });
 
-                        page.Content().Column(col =>
+                        // ── Content ───────────────────────────────────────────
+                        page.Content().PaddingTop(8).Column(col =>
                         {
-                            // ── Section 1: Unresolved warnings ──────────────
+                            // Section 1 — Unresolved warnings
                             if (data.WarningGroups.Count > 0)
                             {
-                                col.Item().PaddingBottom(6)
-                                    .Text("أولاً: التحذيرات غير المحلولة من الاستيراد")
-                                    .Bold().FontSize(12).FontColor(Colors.Red.Darken3);
+                                SectionTitle(col, "أولاً: التحذيرات غير المحلولة من الاستيراد", AccentRed);
 
                                 col.Item().Table(t =>
                                 {
                                     t.ColumnsDefinition(c =>
                                     {
                                         c.RelativeColumn(3);
-                                        c.ConstantColumn(70);
+                                        c.ConstantColumn(65);
                                         c.RelativeColumn(2);
                                     });
-
                                     t.Header(h =>
                                     {
                                         HeaderCell(h, "نوع التحذير");
@@ -939,37 +917,41 @@ namespace ArchiveSystem.Core.Services
                                         HeaderCell(h, "الدفعة");
                                     });
 
+                                    int wi = 0;
                                     foreach (var g in data.WarningGroups)
                                     {
-                                        bool alt = data.WarningGroups.IndexOf(g) % 2 == 0;
-                                        var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
-                                        DataCell(t, g.WarningType, bg);
+                                        string bg = wi++ % 2 == 0 ? Colors.White : AltRowBg;
+                                        // FIX: translate warning type to Arabic
+                                        DataCell(t, TranslateWarningType(g.WarningType), bg);
                                         DataCell(t, g.Count.ToString(), bg, center: true);
                                         DataCell(t, g.BatchFileName, bg);
                                     }
+
+                                    // Totals
+                                    int total = data.WarningGroups.Sum(g => g.Count);
+                                    TotalCell(t, "الإجمالي", TotalRowBg);
+                                    TotalCell(t, total.ToString(), TotalRowBg, center: true);
+                                    TotalCell(t, "", TotalRowBg);
                                 });
 
                                 col.Item().PaddingVertical(10);
                             }
 
-                            // ── Section 2: Count mismatches ──────────────────
+                            // Section 2 — Count mismatches
                             if (data.MismatchDossiers.Count > 0)
                             {
-                                col.Item().PaddingBottom(6)
-                                    .Text("ثانياً: الدوسيات ذات التعداد غير المطابق")
-                                    .Bold().FontSize(12).FontColor(Colors.Orange.Darken3);
+                                SectionTitle(col, "ثانياً: الدوسيات ذات التعداد غير المطابق", AccentOrange);
 
                                 col.Item().Table(t =>
                                 {
                                     t.ColumnsDefinition(c =>
                                     {
-                                        c.ConstantColumn(90);
-                                        c.ConstantColumn(100);
-                                        c.ConstantColumn(80);
-                                        c.ConstantColumn(80);
-                                        c.ConstantColumn(70);
+                                        c.ConstantColumn(85);
+                                        c.ConstantColumn(95);
+                                        c.ConstantColumn(75);
+                                        c.ConstantColumn(75);
+                                        c.ConstantColumn(65);
                                     });
-
                                     t.Header(h =>
                                     {
                                         HeaderCell(h, "رقم الدوسية");
@@ -979,10 +961,12 @@ namespace ArchiveSystem.Core.Services
                                         HeaderCell(h, "الفارق");
                                     });
 
+                                    int mi = 0;
                                     foreach (var r in data.MismatchDossiers)
                                     {
-                                        bool alt = data.MismatchDossiers.IndexOf(r) % 2 == 0;
-                                        var bg = alt ? Colors.Grey.Lighten4 : Colors.White;
+                                        string bg = mi++ % 2 == 0 ? Colors.White : AltRowBg;
+                                        // Highlight rows where difference is large
+                                        if (Math.Abs(r.Difference) > 5) bg = Colors.Orange.Lighten5;
                                         DataCell(t, r.DossierNumber.ToString(), bg, center: true);
                                         DataCell(t, r.HijriDisplay, bg, center: true);
                                         DataCell(t, r.ExpectedCount.ToString(), bg, center: true);
@@ -994,24 +978,21 @@ namespace ArchiveSystem.Core.Services
                                 col.Item().PaddingVertical(10);
                             }
 
-                            // ── Section 3: Field fill rates ──────────────────
+                            // Section 3 — Field fill rates
                             if (data.MissingFieldRows.Count > 0)
                             {
-                                col.Item().PaddingBottom(6)
-                                    .Text("ثالثاً: نسبة تعبئة الحقول المخصصة")
-                                    .Bold().FontSize(12).FontColor(Colors.Teal.Darken3);
+                                SectionTitle(col, "ثالثاً: نسبة تعبئة الحقول المخصصة", AccentGreen);
 
                                 col.Item().Table(t =>
                                 {
                                     t.ColumnsDefinition(c =>
                                     {
                                         c.RelativeColumn(2);
-                                        c.ConstantColumn(60);
-                                        c.ConstantColumn(80);
-                                        c.ConstantColumn(80);
+                                        c.ConstantColumn(55);
+                                        c.ConstantColumn(75);
+                                        c.ConstantColumn(75);
                                         c.ConstantColumn(80);
                                     });
-
                                     t.Header(h =>
                                     {
                                         HeaderCell(h, "الحقل");
@@ -1021,13 +1002,13 @@ namespace ArchiveSystem.Core.Services
                                         HeaderCell(h, "نسبة التعبئة");
                                     });
 
+                                    int fi = 0;
                                     foreach (var f in data.MissingFieldRows)
                                     {
-                                        bool alt = data.MissingFieldRows.IndexOf(f) % 2 == 0;
-                                        var bg = f.IsRequired && f.MissingCount > 0
+                                        string bg = f.IsRequired && f.MissingCount > 0
                                             ? Colors.Red.Lighten5
-                                            : (alt ? Colors.Grey.Lighten4 : Colors.White);
-
+                                            : (fi % 2 == 0 ? Colors.White : AltRowBg);
+                                        fi++;
                                         DataCell(t, f.FieldLabel, bg);
                                         DataCell(t, f.IsRequired ? "✓" : "—", bg, center: true);
                                         DataCell(t, f.FilledCount.ToString(), bg, center: true);
@@ -1037,105 +1018,89 @@ namespace ArchiveSystem.Core.Services
                                 });
                             }
 
+                            // All-clear message
                             if (data.WarningGroups.Count == 0
                                 && data.MismatchDossiers.Count == 0
                                 && data.MissingFieldRows.All(f => f.MissingCount == 0))
                             {
-                                col.Item().PaddingTop(20).AlignCenter()
-                                    .Text("✅ لا توجد مشكلات في جودة البيانات.")
+                                col.Item().PaddingTop(24).AlignCenter()
+                                    .Text("✅ لا توجد مشكلات في جودة البيانات")
                                     .FontSize(14).FontColor(Colors.Green.Darken2).Bold();
                             }
                         });
 
-                        page.Footer().AlignCenter().Text(x =>
+                        // ── Footer ────────────────────────────────────────────
+                        page.Footer().PaddingTop(4).Row(row =>
                         {
-                            x.Span("صفحة ").FontSize(9).FontColor(Colors.Grey.Medium);
-                            x.CurrentPageNumber().FontSize(9);
-                            x.Span(" من ").FontSize(9).FontColor(Colors.Grey.Medium);
-                            x.TotalPages().FontSize(9);
+                            row.RelativeItem()
+                                .Text($"نظام أرشفة الملفات — {printDate}")
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
+                            row.ConstantItem(120).AlignCenter().Text(x =>
+                            {
+                                x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.CurrentPageNumber().FontSize(8);
+                                x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.TotalPages().FontSize(8);
+                            });
+                            row.RelativeItem().AlignLeft()
+                                .Text("تقرير جودة البيانات")
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
                         });
                     });
                 }).GeneratePdf(outputPath);
 
                 return null;
             }
-            catch (Exception ex)
-            {
-                return $"خطأ أثناء إنشاء تقرير الجودة: {ex.Message}";
-            }
+            catch (Exception ex) { return $"خطأ أثناء إنشاء تقرير الجودة: {ex.Message}"; }
         }
 
+        // ── Audit log PDF ─────────────────────────────────────────────────────
 
-
-        public string? PrintDataQualityReportDirect(DataQualityReportData data)
-        {
-            string tempPath = System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(),
-                $"data_quality_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-
-            var genErr = GenerateDataQualityReportPdf(data, tempPath);
-            if (genErr != null) return genErr;
-            return OpenPdfForDirectPrint(tempPath, "تقرير جودة البيانات");
-        }
-
-
-
-        /// <summary>
-        /// Generates an audit-log PDF from a pre-loaded list of rows.
-        /// Returns null on success, error string on failure.
-        /// </summary>
         public string? GenerateAuditLogPdf(
-            List<AuditLogRow> rows,
-            string outputPath,
-            string periodLabel = "")
+            List<AuditLogRow> rows, string outputPath, string periodLabel = "")
         {
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
+                string printDate = DateTime.Now.ToString("yyyy/MM/dd  HH:mm");
 
                 Document.Create(container =>
                 {
                     container.Page(page =>
                     {
-                        page.Size(PageSizes.A4.Landscape());   // landscape — more columns
+                        page.Size(PageSizes.A4.Landscape());
                         page.Margin(1.2f, Unit.Centimetre);
-                        page.DefaultTextStyle(t => t.FontSize(9).FontFamily("Noto Kufi Arabic"));
+                        page.DefaultTextStyle(t => t.FontSize(9).FontFamily(FontName));
                         page.ContentFromRightToLeft();
 
-                        // ── Header ───────────────────────────────────────────────────
                         page.Header().Column(col =>
                         {
-                            col.Item().AlignCenter()
-                                .Text("سجل الاحداث — أرشيف الملفات")
-                                .FontSize(16).Bold();
-
-                            if (!string.IsNullOrWhiteSpace(periodLabel))
-                                col.Item().AlignCenter()
-                                    .Text(periodLabel)
-                                    .FontSize(11).FontColor(Colors.Grey.Darken2);
-
-                            col.Item().AlignCenter()
-                                .Text($"تاريخ الطباعة: {DateTime.Now:yyyy-MM-dd HH:mm}  |  " +
-                                      $"إجمالي السجلات: {rows.Count:N0}")
-                                .FontSize(10).FontColor(Colors.Grey.Darken1);
-
-                            col.Item().PaddingVertical(4)
-                                .LineHorizontal(1).LineColor(Colors.Teal.Medium);
+                            col.Item().Height(6).Background(Colors.Teal.Medium);
+                            col.Item().PaddingVertical(6).Column(inner =>
+                            {
+                                inner.Item().AlignCenter()
+                                    .Text("سجل الأحداث — أرشيف الملفات")
+                                    .FontSize(16).Bold().FontColor(Colors.Teal.Darken3);
+                                if (!string.IsNullOrWhiteSpace(periodLabel))
+                                    inner.Item().AlignCenter().PaddingTop(2).Text(periodLabel)
+                                        .FontSize(11).FontColor(Colors.Grey.Darken2);
+                                inner.Item().AlignCenter().PaddingTop(2)
+                                    .Text($"تاريخ الطباعة: {printDate}    |    إجمالي السجلات: {rows.Count:N0}")
+                                    .FontSize(10).FontColor(Colors.Grey.Darken1);
+                            });
+                            col.Item().PaddingBottom(4).LineHorizontal(1.5f).LineColor(Colors.Teal.Medium);
                         });
 
-                        // ── Table ────────────────────────────────────────────────────
-                        page.Content().Table(table =>
+                        page.Content().PaddingTop(8).Table(table =>
                         {
                             table.ColumnsDefinition(cols =>
                             {
-                                cols.ConstantColumn(118);   // التاريخ والوقت
-                                cols.ConstantColumn(100);   // المستخدم
-                                cols.ConstantColumn(120);   // نوع الحدث
-                                cols.ConstantColumn(80);    // الكيان
-                                cols.RelativeColumn();      // الوصف
+                                cols.ConstantColumn(115);
+                                cols.ConstantColumn(95);
+                                cols.ConstantColumn(115);
+                                cols.ConstantColumn(75);
+                                cols.RelativeColumn();
                             });
-
-                            // Header row
                             table.Header(h =>
                             {
                                 HeaderCell(h, "التاريخ والوقت");
@@ -1145,20 +1110,17 @@ namespace ArchiveSystem.Core.Services
                                 HeaderCell(h, "الوصف");
                             });
 
-                            // Data rows
+                            int idx = 0;
                             foreach (var row in rows)
                             {
-                                // Colour-code certain action types
                                 string bg = row.ActionType switch
                                 {
                                     "LoginFailure" => Colors.Red.Lighten5,
                                     "RecordDeleted" or "DossierDeleted" => Colors.Orange.Lighten5,
                                     "RestoreCompleted" => Colors.Blue.Lighten5,
-                                    _ => rows.IndexOf(row) % 2 == 0
-                                             ? Colors.Grey.Lighten4
-                                             : Colors.White
+                                    _ => idx % 2 == 0 ? Colors.White : AltRowBg
                                 };
-
+                                idx++;
                                 DataCell(table, row.CreatedAt ?? "", bg);
                                 DataCell(table, row.UserFullName ?? "(نظام)", bg);
                                 DataCell(table, row.ActionTypeArabic, bg);
@@ -1167,148 +1129,177 @@ namespace ArchiveSystem.Core.Services
                             }
                         });
 
-                        // ── Footer ───────────────────────────────────────────────────
-                        page.Footer().AlignCenter().Text(x =>
+                        page.Footer().PaddingTop(4).Row(row =>
                         {
-                            x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
-                            x.CurrentPageNumber().FontSize(8);
-                            x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
-                            x.TotalPages().FontSize(8);
+                            row.RelativeItem().Text($"نظام أرشفة الملفات — {printDate}")
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
+                            row.ConstantItem(120).AlignCenter().Text(x =>
+                            {
+                                x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.CurrentPageNumber().FontSize(8);
+                                x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.TotalPages().FontSize(8);
+                            });
+                            row.RelativeItem().AlignLeft()
+                                .Text("سجل الأحداث")
+                                .FontSize(8).FontColor(Colors.Grey.Medium);
                         });
                     });
                 }).GeneratePdf(outputPath);
 
-                // Audit the print action itself
                 using var conn = _db.CreateConnection();
                 conn.Execute(@"
-            INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
-            VALUES (@UserId, 'ReportPrinted', @Desc, @Now)",
+                    INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
+                    VALUES (@UserId, 'ReportPrinted', @Desc, @Now)",
                     new
                     {
                         UserId = UserSession.CurrentUser?.UserId,
-                        Desc = $"تصدير سجل الاحداث إلى PDF — {rows.Count} سجل",
+                        Desc = $"تصدير سجل الأحداث إلى PDF — {rows.Count} سجل",
                         Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                     });
 
                 return null;
             }
-            catch (Exception ex)
-            {
-                return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}";
-            }
+            catch (Exception ex) { return $"خطأ أثناء إنشاء ملف PDF: {ex.Message}"; }
         }
 
-        /// <summary>
-        /// Generates the audit-log PDF to a temp file then opens it via the
-        /// system default PDF handler so the user can print directly.
-        /// </summary>
-        public string? PrintAuditLogDirect(List<AuditLogRow> rows, string periodLabel = "")
-        {
-            string tempPath = System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(),
-                $"audit_log_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-
-            var err = GenerateAuditLogPdf(rows, tempPath, periodLabel);
-            if (err != null) return err;
-            return OpenPdfForDirectPrint(tempPath, "سجل الاحداث");
-        }
         // ─────────────────────────────────────────────────────────────────────
-        // DIRECT WPF PRINT  (PrintDialog → XPS)
+        // DIRECT PRINT
         // ─────────────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Opens a WPF PrintDialog for direct printing without saving a file.
-        /// Generates the PDF to a temp file then prints it via PrintVisual.
-        /// Returns error string or null on success.
-        /// </summary>
         public string? PrintDossierFaceDirect(DossierFaceData data)
         {
-            // Generate to temp
-            string tempPath = System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(),
-                $"dossier_face_print_{data.DossierNumber}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-
-            var genErr = GenerateDossierFacePdf(data, tempPath);
-            if (genErr != null) return genErr;
-
-            return OpenPdfForDirectPrint(tempPath,
-                $"طباعة دوسية رقم {data.DossierNumber}");
+            string tmp = TempPath($"dossier_face_{data.DossierNumber}");
+            var err = GenerateDossierFacePdf(data, tmp);
+            return err ?? OpenPdfForDirectPrint(tmp, $"طباعة دوسية رقم {data.DossierNumber}");
         }
 
-        /// <summary>
-        /// Opens a WPF PrintDialog for a period report PDF.
-        /// </summary>
         public string? PrintPeriodReportDirect(PeriodReportData data)
         {
-            string tempPath = System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(),
-                $"period_report_print_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-
-            var genErr = GeneratePeriodReportPdf(data, tempPath);
-            if (genErr != null) return genErr;
-
-            return OpenPdfForDirectPrint(tempPath, data.Title);
+            string tmp = TempPath("period_report");
+            var err = GeneratePeriodReportPdf(data, tmp);
+            return err ?? OpenPdfForDirectPrint(tmp, data.Title);
         }
 
-        /// <summary>
-        /// Opens the system's default PDF handler with the Shell verb "print"
-        /// so the user gets a direct-print dialog without having to manually
-        /// press Print in the viewer.  Falls back to "open" if "print" is not
-        /// supported by the installed viewer.
-        /// </summary>
-        private static string? OpenPdfForDirectPrint(string pdfPath, string documentTitle)
+        public string? PrintDataQualityReportDirect(DataQualityReportData data)
+        {
+            string tmp = TempPath("data_quality");
+            var err = GenerateDataQualityReportPdf(data, tmp);
+            return err ?? OpenPdfForDirectPrint(tmp, "تقرير جودة البيانات");
+        }
+
+        public string? PrintAuditLogDirect(List<AuditLogRow> rows, string periodLabel = "")
+        {
+            string tmp = TempPath("audit_log");
+            var err = GenerateAuditLogPdf(rows, tmp, periodLabel);
+            return err ?? OpenPdfForDirectPrint(tmp, "سجل الأحداث");
+        }
+
+        private static string TempPath(string name) =>
+            System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+                $"{name}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+
+        private static string? OpenPdfForDirectPrint(string pdfPath, string _)
         {
             try
             {
-                // Try the "print" ShellExecute verb first — most PDF viewers honour it
                 var psi = new System.Diagnostics.ProcessStartInfo(pdfPath)
-                {
-                    Verb = "print",
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                };
-
-                try
-                {
-                    System.Diagnostics.Process.Start(psi);
-                    return null;
-                }
-                catch
-                {
-                    // "print" verb not available → fall back to open
-                }
-
-                // Fallback: open the PDF (user can print from viewer)
+                { Verb = "print", UseShellExecute = true, CreateNoWindow = true };
+                try { System.Diagnostics.Process.Start(psi); return null; } catch { }
                 System.Diagnostics.Process.Start(
-                    new System.Diagnostics.ProcessStartInfo(pdfPath)
-                    { UseShellExecute = true });
-
+                    new System.Diagnostics.ProcessStartInfo(pdfPath) { UseShellExecute = true });
                 return null;
             }
-            catch (Exception ex)
-            {
-                return $"خطأ أثناء إرسال الطباعة: {ex.Message}";
-            }
+            catch (Exception ex) { return $"خطأ أثناء إرسال الطباعة: {ex.Message}"; }
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // HELPERS
+        // SHARED CELL / LAYOUT HELPERS
         // ─────────────────────────────────────────────────────────────────────
 
+        /// <summary>Teal header cell with bold white text, centered.</summary>
         private static void HeaderCell(TableCellDescriptor h, string text)
         {
-            h.Cell().Background(Colors.Teal.Medium).Padding(5)
+            h.Cell()
+                .Background(HeaderBg)
+                .BorderBottom(1).BorderColor(Colors.Teal.Darken2)
+                .Padding(5)
                 .AlignCenter()
-                .Text(text).Bold().FontColor(Colors.White).FontSize(10);
+                .Text(text).Bold().FontColor(HeaderFg).FontSize(10);
         }
 
+        /// <summary>Standard data cell.</summary>
         private static void DataCell(TableDescriptor table, string text,
             string bg, bool center = false)
         {
-            var cell = table.Cell().Background(bg).Padding(4);
-            if (center) cell.AlignCenter().Text(text).FontSize(10);
-            else cell.Text(text).FontSize(10);
+            var cell = table.Cell()
+                .Background(bg)
+                .BorderBottom(1).BorderColor(Colors.Grey.Lighten3)
+                .Padding(4);
+
+            // FIX: wrap in AlignCenter at both container AND text level
+            if (center)
+                cell.AlignCenter().Text(text).FontSize(10).FontColor(Colors.Black);
+            else
+                cell.AlignRight().Text(text).FontSize(10).FontColor(Colors.Black); // explicit RTL default
         }
+
+        /// <summary>Bold totals cell (single column).</summary>
+        private static void TotalCell(TableDescriptor table, string text,
+            string bg, bool center = false)
+        {
+            var cell = table.Cell()
+                .Background(bg)
+                .BorderTop(1).BorderColor(Colors.Teal.Medium)
+                .Padding(4);
+
+            if (center)
+                cell.AlignCenter().Text(text).Bold().FontSize(10);
+            else
+                cell.AlignRight().Text(text).Bold().FontSize(10); // explicit
+        }
+
+        /// <summary>
+        /// Totals cell that spans multiple columns (QuestPDF ColumnSpan).
+        /// </summary>
+        private static void TotalSpanCell(TableDescriptor table, string text,
+            string bg, uint colSpan = 1)
+        {
+            table.Cell().ColumnSpan(colSpan)
+                .Background(bg)
+                .BorderTop(1).BorderColor(Colors.Teal.Medium)
+                .Padding(4)
+                .AlignRight()          // ← add this
+                .Text(text).Bold().FontSize(10);
+        }
+
+        /// <summary>Coloured section heading inside a Column.</summary>
+        private static void SectionTitle(ColumnDescriptor col, string title, string color)
+        {
+            col.Item()
+                .Background(Colors.Grey.Lighten3)
+                .PaddingHorizontal(6).PaddingVertical(5)
+                .Text(title)
+                .Bold().FontSize(12).FontColor(color);
+            col.Item().Height(2).Background(color);
+            col.Item().PaddingBottom(6);
+        }
+
+        /// <summary>Coloured summary badge (used in Data Quality header).</summary>
+        private static void SummaryBadge(RowDescriptor row,
+            string text, string bgColor, string textColor)
+        {
+            row.RelativeItem()
+                .Background(bgColor)
+                .CornerRadius(4)
+                .Padding(8)
+                .AlignCenter()
+                .Text(text).Bold().FontSize(11).FontColor(textColor);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // TRANSLATION HELPERS
+        // ─────────────────────────────────────────────────────────────────────
 
         private static string TranslateStatus(string s) => s switch
         {
@@ -1317,6 +1308,32 @@ namespace ArchiveSystem.Core.Services
             "NeedsReview" => "مراجعة",
             "Archived" => "مؤرشف",
             _ => s
+        };
+
+        /// <summary>
+        /// FIX: Data Quality report was showing raw English warning type strings.
+        /// Now fully translated to Arabic.
+        /// </summary>
+        private static string TranslateWarningType(string t) => t switch
+        {
+            ImportWarningTypes.MissingDossierMetadata => "بيانات الدوسية مفقودة",
+            ImportWarningTypes.MissingHeaderRow => "صف الترويسة مفقود",
+            ImportWarningTypes.CountMismatch => "عدد الملفات غير متطابق",
+            ImportWarningTypes.MissingSequence => "رقم التسلسل مفقود",
+            ImportWarningTypes.DuplicateSequence => "تسلسل مكرر",
+            ImportWarningTypes.SequenceGap => "فجوة في التسلسل",
+            ImportWarningTypes.InvalidSequence => "تسلسل غير صحيح",
+            ImportWarningTypes.MissingName => "الاسم مفقود",
+            ImportWarningTypes.SuspiciousName => "اسم مشكوك فيه",
+            ImportWarningTypes.MissingPrisonerNumber => "رقم السجين مفقود",
+            ImportWarningTypes.InvalidPrisonerNumber => "رقم السجين غير صحيح",
+            ImportWarningTypes.DuplicateInSheet => "رقم سجين مكرر في الشيت",
+            ImportWarningTypes.DuplicateInImport => "رقم سجين مكرر في الاستيراد",
+            ImportWarningTypes.DuplicateInDatabase => "رقم سجين موجود في قاعدة البيانات",
+            ImportWarningTypes.MixedLocationInDossier => "مواقع متعددة في الدوسية",
+            ImportWarningTypes.InvalidLocation => "موقع غير موجود في النظام",
+            ImportWarningTypes.SheetNameTitleMismatch => "اسم الشيت لا يتطابق مع رقم الدوسية",
+            _ => t
         };
     }
 }
