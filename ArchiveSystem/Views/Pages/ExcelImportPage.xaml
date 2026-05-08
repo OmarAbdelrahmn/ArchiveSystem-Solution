@@ -355,7 +355,7 @@
                                         <DataGridTextColumn Header="صف"
                                             Binding="{Binding RowDisplay}"      Width="45"/>
                                         <DataGridTextColumn Header="النوع"
-                                            Binding="{Binding WarningType}"     Width="190"/>
+                                            Binding="{Binding WarningTypeDisplay}"     Width="190"/>
                                         <DataGridTextColumn Header="الرسالة"
                                             Binding="{Binding WarningMessage}"  Width="*"/>
                                         <DataGridTextColumn Header="الإجراء المقترح"

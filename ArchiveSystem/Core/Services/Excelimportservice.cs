@@ -60,8 +60,30 @@ namespace ArchiveSystem.Core.Services
         public string SuggestedAction { get; set; } = string.Empty;
         public bool IsResolved { get; set; }
         public string RowDisplay => RowNumber.HasValue ? RowNumber.ToString()! : "-";
-    }
 
+        // ✅ ADD THIS:
+        public string WarningTypeDisplay => WarningType switch
+        {
+            "MissingDossierMetadata" => "بيانات الدوسية مفقودة",
+            "MissingHeaderRow" => "صف الترويسة مفقود",
+            "CountMismatch" => "عدد السجلات لا يتطابق",
+            "MissingSequence" => "رقم التسلسل مفقود",
+            "DuplicateSequence" => "تسلسل مكرر",
+            "SequenceGap" => "فجوة في التسلسل",
+            "InvalidSequence" => "تسلسل غير صحيح",
+            "MissingName" => "الاسم مفقود",
+            "SuspiciousName" => "اسم مشبوه",
+            "MissingPrisonerNumber" => "رقم السجين مفقود",
+            "InvalidPrisonerNumber" => "رقم السجين غير صحيح",
+            "DuplicatePrisonerNumberInSheet" => "رقم مكرر في نفس الشيت",
+            "DuplicatePrisonerNumberInImport" => "رقم مكرر في ملف الاستيراد",
+            "DuplicatePrisonerNumberInDatabase" => "رقم موجود مسبقاً في قاعدة البيانات",
+            "MixedLocationInDossier" => "مواقع مختلطة في الدوسية",
+            "InvalidLocation" => "الموقع غير موجود في النظام",
+            "SheetNameTitleMismatch" => "اسم الشيت لا يطابق رقم الدوسية",
+            _ => WarningType
+        };
+    }
     public class StagingResult
     {
         public int BatchId { get; set; }
@@ -279,7 +301,7 @@ namespace ArchiveSystem.Core.Services
                 var cellTexts = new Dictionary<string, int>();
                 foreach (var cell in row.CellsUsed())
                 {
-                    string txt = cell.GetString().Trim();
+                    string txt = NormalizeArabic(cell.GetString());
                     if (!string.IsNullOrEmpty(txt))
                         cellTexts[txt] = cell.Address.ColumnNumber;
                 }
@@ -818,13 +840,13 @@ namespace ArchiveSystem.Core.Services
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
 
                 var stagedDossiers = conn.Query(@"
-                    SELECT * FROM ImportStagingDossiers
-                    WHERE ImportBatchId = @BatchId AND Status != 'Rejected'",
+            SELECT * FROM ImportStagingDossiers
+            WHERE ImportBatchId = @BatchId AND Status != 'Rejected'",
                     new { BatchId = batchId }, tx).ToList();
 
                 var stagedRecords = conn.Query(@"
-                    SELECT * FROM ImportStagingRecords
-                    WHERE ImportBatchId = @BatchId AND Status != 'Rejected'",
+            SELECT * FROM ImportStagingRecords
+            WHERE ImportBatchId = @BatchId AND Status != 'Rejected'",
                     new { BatchId = batchId }, tx).ToList();
 
                 var recordsByStagingDossier = stagedRecords
@@ -839,6 +861,22 @@ namespace ArchiveSystem.Core.Services
                     if (sd.HallwayNumber != null && sd.CabinetNumber != null && sd.ShelfNumber != null)
                         locationId = GetOrCreateLocation(conn, tx,
                             (int)sd.HallwayNumber, (int)sd.CabinetNumber, (int)sd.ShelfNumber, now);
+
+                    // ✅ FIX: Hard-delete any soft-deleted dossier with the same number
+                    if (sd.DossierNumber != null)
+                    {
+                        var softDeleted = conn.ExecuteScalar<int?>(
+                            "SELECT DossierId FROM Dossiers WHERE DossierNumber = @N AND DeletedAt IS NOT NULL",
+                            new { N = (int)sd.DossierNumber }, tx);
+
+                        if (softDeleted.HasValue)
+                        {
+                            conn.Execute("DELETE FROM Records WHERE DossierId = @Id",
+                                new { Id = softDeleted.Value }, tx);
+                            conn.Execute("DELETE FROM Dossiers WHERE DossierId = @Id",
+                                new { Id = softDeleted.Value }, tx);
+                        }
+                    }
 
                     int existingDossierId = 0;
                     if (sd.DossierNumber != null)
@@ -857,15 +895,15 @@ namespace ArchiveSystem.Core.Services
                             continue;
 
                         dossierId = conn.ExecuteScalar<int>(@"
-                            INSERT INTO Dossiers
-                                (DossierNumber, HijriMonth, HijriYear,
-                                 ExpectedFileCount, CurrentLocationId,
-                                 Status, CreatedByUserId, CreatedAt, ImportBatchId)
-                            VALUES
-                                (@DNum, @Month, @Year,
-                                 @Expected, @LocId,
-                                 'Open', @UserId, @Now, @BatchId);
-                            SELECT last_insert_rowid();",
+                    INSERT INTO Dossiers
+                        (DossierNumber, HijriMonth, HijriYear,
+                         ExpectedFileCount, CurrentLocationId,
+                         Status, CreatedByUserId, CreatedAt, ImportBatchId)
+                    VALUES
+                        (@DNum, @Month, @Year,
+                         @Expected, @LocId,
+                         'Open', @UserId, @Now, @BatchId);
+                    SELECT last_insert_rowid();",
                             new
                             {
                                 DNum = (int)sd.DossierNumber,
@@ -890,22 +928,39 @@ namespace ArchiveSystem.Core.Services
                         string pNum = ((string?)rec.PrisonerNumber ?? "").Trim();
                         if (pNum.Length != 10 || !pNum.All(char.IsDigit)) continue;
 
+                        // Check duplicate prisoner number
                         int dupCheck = conn.ExecuteScalar<int>(
                             "SELECT COUNT(*) FROM Records WHERE PrisonerNumber = @P AND DeletedAt IS NULL",
                             new { P = pNum }, tx);
                         if (dupCheck > 0) continue;
 
+                        // ✅ FIX: Check duplicate SequenceNumber within same dossier
+                        int seqVal = rec.SequenceNumber == null ? 0 : (int)rec.SequenceNumber;
+                        if (seqVal > 0)
+                        {
+                            int seqDup = conn.ExecuteScalar<int>(
+                                "SELECT COUNT(*) FROM Records WHERE DossierId = @D AND SequenceNumber = @S AND DeletedAt IS NULL",
+                                new { D = dossierId, S = seqVal }, tx);
+
+                            if (seqDup > 0)
+                            {
+                                seqVal = conn.ExecuteScalar<int>(
+                                    "SELECT COALESCE(MAX(SequenceNumber), 0) + 1 FROM Records WHERE DossierId = @D AND DeletedAt IS NULL",
+                                    new { D = dossierId }, tx);
+                            }
+                        }
+
                         conn.Execute(@"
-                            INSERT INTO Records
-                                (DossierId, SequenceNumber, PersonName,
-                                 PrisonerNumber, Status, CreatedByUserId, CreatedAt, ImportBatchId)
-                            VALUES
-                                (@DossId, @Seq, @Name,
-                                 @PNum, 'Active', @UserId, @Now, @BatchId)",
+                    INSERT INTO Records
+                        (DossierId, SequenceNumber, PersonName,
+                         PrisonerNumber, Status, CreatedByUserId, CreatedAt, ImportBatchId)
+                    VALUES
+                        (@DossId, @Seq, @Name,
+                         @PNum, 'Active', @UserId, @Now, @BatchId)",
                             new
                             {
                                 DossId = dossierId,
-                                Seq = rec.SequenceNumber == null ? 0 : (int)rec.SequenceNumber,
+                                Seq = seqVal,
                                 Name = ((string)rec.PersonName).Trim(),
                                 PNum = pNum,
                                 UserId = userId,
@@ -920,22 +975,23 @@ namespace ArchiveSystem.Core.Services
                     new { Id = batchId }, tx);
 
                 conn.Execute(@"
-                    INSERT INTO AuditLog
-                        (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
-                    VALUES (@UserId, @Action, 'ImportBatch', @EntityId, @Desc, @Now)",
+            INSERT INTO AuditLog
+                (UserId, ActionType, EntityType, EntityId, Description, CreatedAt)
+            VALUES (@UserId, @Action, 'ImportBatch', @EntityId, @Desc, @Now)",
                     new
                     {
                         UserId = userId,
                         Action = AuditActions.ExcelImportCompleted,
                         EntityId = batchId,
-                        Desc = $"اعتماد استيراد الملف: {batch.FileName} — {batch.TotalRecords} سجل" + " | الحقول المخصصة (مثل الجنسية) لم تُستورد من Excel وستبقى فارغة",
+                        Desc = $"اعتماد استيراد الملف: {batch.FileName} — {batch.TotalRecords} سجل" +
+                               " | الحقول المخصصة (مثل الجنسية) لم تُستورد من Excel وستبقى فارغة",
                         Now = now
                     }, tx);
 
                 conn.Execute(@"
-                    UPDATE ImportBatches
-                    SET Status = 'Imported', ApprovedByUserId = @UserId, ApprovedAt = @Now
-                    WHERE ImportBatchId = @Id",
+            UPDATE ImportBatches
+            SET Status = 'Imported', ApprovedByUserId = @UserId, ApprovedAt = @Now
+            WHERE ImportBatchId = @Id",
                     new { UserId = userId, Now = now, Id = batchId }, tx);
 
                 tx.Commit();
@@ -949,6 +1005,8 @@ namespace ArchiveSystem.Core.Services
                 return $"خطأ أثناء الاعتماد: {ex.Message}";
             }
         }
+
+        private static string NormalizeArabic(string s) =>s.Replace('أ', 'ا').Replace('إ', 'ا').Replace('آ', 'ا').Trim();
 
         // ── ROLLBACK BATCH (FIX: backup called by UI, rollback warning shown by UI) ──
         /// <summary>
@@ -1133,6 +1191,7 @@ namespace ArchiveSystem.Core.Services
                 SELECT last_insert_rowid();",
                 new { H = hallway, C = cabinet, S = shelf, Now = now }, tx);
         }
+
 
         private static string TranslateWarningType(string t) => t switch
         {
