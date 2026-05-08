@@ -478,11 +478,11 @@ namespace ArchiveSystem.Core.Services
                         {
                             table.ColumnsDefinition(cols =>
                             {
-                                cols.ConstantColumn(38);    // تسلسل
-                                cols.RelativeColumn(3);     // اسم السجين
-                                cols.ConstantColumn(105);   // رقم السجين
-                                if (showNat) cols.RelativeColumn(1.5f);
-                                foreach (var _ in extraLabels) cols.RelativeColumn(1.5f);
+                                cols.RelativeColumn(10);     // م        = 5%
+                                cols.RelativeColumn(20);    // اسم السجين = 40%
+                                cols.RelativeColumn(30);    // رقم السجين = 25%
+                                if (showNat) cols.RelativeColumn(20);          // الجنسية = 15%
+                                foreach (var _ in extraLabels) cols.RelativeColumn(20); // each extra
                             });
 
                             table.Header(h =>
@@ -611,11 +611,12 @@ namespace ArchiveSystem.Core.Services
                         {
                             table.ColumnsDefinition(cols =>
                             {
-                                cols.ConstantColumn(70);   // رقم الدوسية
-                                cols.ConstantColumn(95);   // الشهر/السنة
-                                cols.ConstantColumn(65);   // عدد الملفات
-                                cols.RelativeColumn(2);    // الموقع
-                                cols.ConstantColumn(65);   // الحالة
+                                cols.RelativeColumn(23);    // رقم الدوسية  = 15%
+                                cols.RelativeColumn(27);    // الشهر/السنة  = 20%
+                                cols.RelativeColumn(17);    // عدد الملفات  = 13%
+                                cols.RelativeColumn(10);    // الموقع       = 37%
+                                cols.RelativeColumn(22);    // الحالة       = 15%
+                                                            // total = 100
                             });
 
                             table.Header(h =>
@@ -1237,11 +1238,10 @@ namespace ArchiveSystem.Core.Services
                 .BorderBottom(1).BorderColor(Colors.Grey.Lighten3)
                 .Padding(4);
 
-            // FIX: wrap in AlignCenter at both container AND text level
             if (center)
                 cell.AlignCenter().Text(text).FontSize(10).FontColor(Colors.Black);
             else
-                cell.AlignRight().Text(text).FontSize(10).FontColor(Colors.Black); // explicit RTL default
+                cell.AlignRight().Text(text).FontSize(10).FontColor(Colors.Black);
         }
 
         /// <summary>Bold totals cell (single column).</summary>
