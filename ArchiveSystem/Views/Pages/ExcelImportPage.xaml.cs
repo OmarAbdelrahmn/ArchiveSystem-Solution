@@ -54,6 +54,22 @@ namespace ArchiveSystem.Views.Pages
             _currentBatchId = 0;
         }
 
+        // ── RESOLVE ALL WARNINGS ──────────────────────────────────────────────
+        private void ResolveAllWarnings_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentBatchId <= 0) return;
+
+            var confirm = MessageBox.Show(
+                "سيتم تعليم جميع التحذيرات المتبقية كمحلولة.\n\nهل تريد المتابعة؟",
+                "حل جميع التحذيرات",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            _importService.ResolveAllWarnings(_currentBatchId);
+            RefreshReviewData();
+        }
+
         private void RejectDossier_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn || btn.Tag is not int stagingDossierId) return;

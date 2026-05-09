@@ -1133,6 +1133,25 @@ namespace ArchiveSystem.Core.Services
                 });
         }
 
+        // ── RESOLVE ALL WARNINGS ──────────────────────────────────────────────
+        public void ResolveAllWarnings(int batchId)
+        {
+            using var conn = _db.CreateConnection();
+            conn.Execute(@"
+        UPDATE ImportWarnings
+        SET IsResolved       = 1,
+            ResolvedByUserId = @UserId,
+            ResolvedAt       = @Now
+        WHERE ImportBatchId = @BatchId
+          AND IsResolved    = 0",
+                new
+                {
+                    UserId = UserSession.CurrentUser?.UserId,
+                    Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    BatchId = batchId
+                });
+        }
+
         // ── HELPERS ───────────────────────────────────────────────────────────
 
         private static string GetRowText(IXLWorksheet ws, int row)

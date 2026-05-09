@@ -336,9 +336,25 @@
                         <TabItem x:Name="WarningsTab" Header="التحذيرات">
                             <StackPanel Margin="0,12,0,0">
 
-                                <TextBlock x:Name="WarningsSummaryText"
-                                           FontSize="12" Foreground="#888"
-                                           Margin="0,0,0,8"/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock x:Name="WarningsSummaryText"
+                                        Grid.Column="0"
+                                        FontSize="12" Foreground="#888"
+                                        VerticalAlignment="Center"/>
+
+                                                        <Button Grid.Column="1"
+                                    x:Name="ResolveAllBtn"
+                                    Content="✔ حل جميع التحذيرات"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="#1a7a60"
+                                    Height="32"
+                                    Click="ResolveAllWarnings_Click"/>
+                                                    </Grid>
 
                                 <DataGrid x:Name="WarningsGrid"
                                           AutoGenerateColumns="False"
