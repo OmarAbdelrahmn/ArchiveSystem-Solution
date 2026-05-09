@@ -101,13 +101,16 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddRootManagement_Click(object sender, RoutedEventArgs e)
         {
-            string name = Microsoft.VisualBasic.Interaction.InputBox(
+            string? name = InputDialog.Show(
                 "أدخل اسم الإدارة الجديدة:",
-                "إضافة إدارة", "");
+                "إضافة إدارة",
+                owner: Window.GetWindow(this));
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            string? desc = Microsoft.VisualBasic.Interaction.InputBox(
-                "(وصف الإدارة (اختياري", "وصف الإدارة", "");
+            string? desc = InputDialog.Show(
+                "وصف الإدارة (اختياري)",
+                "وصف الإدارة",
+                owner: Window.GetWindow(this));
 
             var err = _service.CreateManagement(name, null, desc);
             if (err != null) { ShowError(err); return; }
@@ -119,9 +122,10 @@ namespace ArchiveSystem.Views.Pages
         {
             if (_selectedManagement == null) return;
 
-            string name = Microsoft.VisualBasic.Interaction.InputBox(
-                $"أدخل اسم الشعبة او القسم تحت '{_selectedManagement.Name}':",
-                "إضافة الشعبة او القسم", "");
+            string? name = InputDialog.Show(
+                $"أدخل اسم الشعبة أو القسم تحت '{_selectedManagement.Name}':",
+                "إضافة شعبة أو قسم",
+                owner: Window.GetWindow(this));
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var err = _service.CreateManagement(name, _selectedManagement.ManagementId, null);
@@ -134,14 +138,18 @@ namespace ArchiveSystem.Views.Pages
         {
             if (_selectedManagement == null) return;
 
-            string name = Microsoft.VisualBasic.Interaction.InputBox(
+            string? name = InputDialog.Show(
                 "تعديل اسم الإدارة:",
-                "تعديل الإدارة", _selectedManagement.Name);
+                "تعديل الإدارة",
+                defaultValue: _selectedManagement.Name,
+                owner: Window.GetWindow(this));
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            string? desc = Microsoft.VisualBasic.Interaction.InputBox(
-                "(وصف الإدارة (اختياري",
-                "وصف الإدارة", _selectedManagement.Description ?? "");
+            string? desc = InputDialog.Show(
+                "وصف الإدارة (اختياري)",
+                "وصف الإدارة",
+                defaultValue: _selectedManagement.Description ?? "",
+                owner: Window.GetWindow(this));
 
             var err = _service.UpdateManagement(_selectedManagement.ManagementId, name, desc);
             if (err != null) { ShowError(err); return; }
@@ -154,7 +162,7 @@ namespace ArchiveSystem.Views.Pages
             if (_selectedManagement == null) return;
 
             var confirm = MessageBox.Show(
-                $"هل تريد حذف الإدارة '{_selectedManagement.Name}'؟\n\nلا يمكن حذفها إذا كانت تحتوي على شعبة او قسم أو دوسيات.",
+                $"هل تريد حذف الإدارة '{_selectedManagement.Name}'؟\n\nلا يمكن حذفها إذا كانت تحتوي على شعبة أو قسم أو دوسيات.",
                 "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirm != MessageBoxResult.Yes) return;
 
@@ -163,6 +171,28 @@ namespace ArchiveSystem.Views.Pages
 
             _selectedManagement = null;
             LoadManagements();
+        }
+
+        private void DeleteDossier_Click(object sender, RoutedEventArgs e)
+        {
+            if (DossiersGrid.SelectedItem is not ManagementDossier dossier) return;
+
+            string? reason = InputDialog.Show(
+                $"أدخل سبب حذف الدوسية رقم {dossier.DossierNumber}:",
+                "حذف الدوسية",
+                owner: Window.GetWindow(this));
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                MessageBox.Show("سبب الحذف مطلوب.", "تنبيه",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var err = _service.DeleteDossier(dossier.ManagementDossierId, reason);
+            if (err != null) { ShowError(err); return; }
+
+            LoadDossiers();
         }
 
         // ── DOSSIER TYPES DIALOG ──────────────────────────────────────────────
@@ -615,26 +645,7 @@ namespace ArchiveSystem.Views.Pages
             win.ShowDialog();
         }
 
-        private void DeleteDossier_Click(object sender, RoutedEventArgs e)
-        {
-            if (DossiersGrid.SelectedItem is not ManagementDossier dossier) return;
 
-            string reason = Microsoft.VisualBasic.Interaction.InputBox(
-                $"أدخل سبب حذف الدوسية رقم {dossier.DossierNumber}:",
-                "حذف الدوسية", "");
-
-            if (string.IsNullOrWhiteSpace(reason))
-            {
-                MessageBox.Show("سبب الحذف مطلوب.", "تنبيه",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var err = _service.DeleteDossier(dossier.ManagementDossierId, reason);
-            if (err != null) { ShowError(err); return; }
-
-            LoadDossiers();
-        }
 
         // ── HELPERS ───────────────────────────────────────────────────────────
 

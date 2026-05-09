@@ -226,7 +226,7 @@ namespace ArchiveSystem.Views.Pages
             {
                 Title = "تغيير كلمة المرور",
                 Width = 360,
-                Height = 200,
+                Height = 280,
                 ResizeMode = ResizeMode.NoResize,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = Window.GetWindow(this),
@@ -247,7 +247,7 @@ namespace ArchiveSystem.Views.Pages
                 FontWeight = FontWeights.SemiBold
             });
 
-            var pwBox = new PasswordBox { Margin = new Thickness(0, 0, 0, 8), Height = 44 };
+            var pwBox = new PasswordBox { Margin = new Thickness(0, 0, 0, 8), Height = 50 };
             MaterialDesignThemes.Wpf.HintAssist.SetHint(pwBox, "أدخل كلمة المرور الجديدة (6 أحرف+)");
             pwBox.Style = (Style)FindResource("MaterialDesignOutlinedPasswordBox");
 
@@ -341,8 +341,10 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddRole_Click(object sender, RoutedEventArgs e)
         {
-            var input = Microsoft.VisualBasic.Interaction.InputBox(
-                "أدخل اسم الدور الجديد:", "إضافة دور", "");
+            string? input = InputDialog.Show(
+                "أدخل اسم الدور الجديد:",
+                "إضافة دور",
+                owner: Window.GetWindow(this));
 
             if (string.IsNullOrWhiteSpace(input)) return;
 
@@ -350,6 +352,32 @@ namespace ArchiveSystem.Views.Pages
             if (err != null) ShowMsg(err);
             else LoadRoles();
         }
+
+        private void EditLocation_Click(object sender, RoutedEventArgs e)
+        {
+            if (LocationsGrid.SelectedItem is not LocationService.LocationOccupancy loc)
+            { ShowMsg("يرجى اختيار موقع أولاً."); return; }
+
+            string? newLabel = InputDialog.Show(
+                "أدخل التسمية الجديدة (اتركها فارغة لحذفها):",
+                "تعديل التسمية",
+                defaultValue: loc.Label ?? "",
+                owner: Window.GetWindow(this));
+
+            // null means cancelled — empty string means intentionally clearing the label
+            if (newLabel == null) return;
+
+            var err = _locationService.UpdateLocation(
+                loc.LocationId,
+                string.IsNullOrWhiteSpace(newLabel) ? null : newLabel.Trim(),
+                loc.Capacity,
+                loc.IsActive);
+
+            if (err != null) ShowMsg(err);
+            else LoadLocations();
+        }
+
+
 
         private void EditRole_Click(object sender, RoutedEventArgs e)
         {
@@ -500,24 +528,6 @@ namespace ArchiveSystem.Views.Pages
             LoadLocations();
         }
 
-        private void EditLocation_Click(object sender, RoutedEventArgs e)
-        {
-            if (LocationsGrid.SelectedItem is not LocationService.LocationOccupancy loc)
-            { ShowMsg("يرجى اختيار موقع أولاً."); return; }
-
-            string? newLabel = Microsoft.VisualBasic.Interaction.InputBox(
-                "أدخل التسمية الجديدة (اتركها فارغة لحذفها):",
-                "تعديل التسمية", loc.Label ?? "");
-
-            var err = _locationService.UpdateLocation(
-                loc.LocationId,
-                string.IsNullOrWhiteSpace(newLabel) ? null : newLabel.Trim(),
-                loc.Capacity,
-                loc.IsActive);
-
-            if (err != null) ShowMsg(err);
-            else LoadLocations();
-        }
 
         private void ToggleLocation_Click(object sender, RoutedEventArgs e)
         {

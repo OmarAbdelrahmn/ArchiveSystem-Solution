@@ -100,17 +100,17 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(AddRecordBtn, Permissions.AddRecord, hideInstead: true);
         }
 
-
         private void DeleteDossier_Click(object sender, RoutedEventArgs e)
         {
             if (_dossier == null) return;
 
             var activeRecords = _recordService.GetRecordsByDossier(_dossierId);
 
-            string reason = Microsoft.VisualBasic.Interaction.InputBox(
+            string? reason = InputDialog.Show(
                 $"أدخل سبب حذف الدوسية رقم {_dossier.DossierNumber}:\n\n" +
                 $"⚠️ سيتم حذف {activeRecords.Count} سجل داخلها أيضاً.",
-                "حذف الدوسية", "");
+                "حذف الدوسية",
+                owner: Window.GetWindow(this));
 
             if (string.IsNullOrWhiteSpace(reason))
             {
@@ -142,6 +142,38 @@ namespace ArchiveSystem.Views.Pages
             NavigationService?.GoBack();
         }
 
+        private void DeleteRecord_Click(object sender, RoutedEventArgs e)
+        {
+            if (RecordsGrid.SelectedItem is not RecordRow row) { PromptSelectRecord(); return; }
+
+            string? reason = InputDialog.Show(
+                $"أدخل سبب حذف سجل '{row.PersonName}' ({row.PrisonerNumber}):",
+                "حذف السجل",
+                owner: Window.GetWindow(this));
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                MessageBox.Show("سبب الحذف مطلوب.", "تنبيه",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"هل تريد حذف سجل '{row.PersonName}'؟\nالسبب: {reason}",
+                "تأكيد الحذف",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            var err = _recordService.DeleteRecord(row.RecordId, reason);
+            if (err != null)
+            {
+                MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            LoadRecords();
+        }
         private void AddCustomFieldColumns()
         {
             // Remove any previously added custom columns (keep first 4 built-in)
@@ -447,39 +479,7 @@ namespace ArchiveSystem.Views.Pages
             LoadRecords();
         }
 
-        // ── DELETE RECORD ─────────────────────────────────────────────────────
 
-        private void DeleteRecord_Click(object sender, RoutedEventArgs e)
-        {
-            if (RecordsGrid.SelectedItem is not RecordRow row) { PromptSelectRecord(); return; }
-
-            string reason = Microsoft.VisualBasic.Interaction.InputBox(
-                $"أدخل سبب حذف سجل '{row.PersonName}' ({row.PrisonerNumber}):",
-                "حذف السجل", "");
-
-            if (string.IsNullOrWhiteSpace(reason))
-            {
-                MessageBox.Show("سبب الحذف مطلوب.", "تنبيه",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var confirm = MessageBox.Show(
-                $"هل تريد حذف سجل '{row.PersonName}'؟\nالسبب: {reason}",
-                "تأكيد الحذف",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (confirm != MessageBoxResult.Yes) return;
-
-            var err = _recordService.DeleteRecord(row.RecordId, reason);
-            if (err != null)
-            {
-                MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            LoadRecords();
-        }
 
         // ── HELPERS ───────────────────────────────────────────────────────────
 
