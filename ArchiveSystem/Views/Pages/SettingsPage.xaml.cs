@@ -221,16 +221,99 @@ namespace ArchiveSystem.Views.Pages
             if (UsersGrid.SelectedItem is not User user)
             { ShowMsg("يرجى اختيار مستخدم أولاً."); return; }
 
-            var input = Microsoft.VisualBasic.Interaction.InputBox(
-                "أدخل كلمة المرور الجديدة (6 أحرف على الأقل):",
-                "تغيير كلمة المرور", "");
+            // Build a simple WPF password dialog — InputBox from VB crashes WPF on .NET 6+
+            var win = new Window
+            {
+                Title = "تغيير كلمة المرور",
+                Width = 360,
+                Height = 200,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = System.Windows.Media.Brushes.WhiteSmoke
+            };
 
-            if (string.IsNullOrWhiteSpace(input)) return;
+            var panel = new StackPanel { Margin = new Thickness(20) };
 
-            var error = _userService.ChangePassword(user.UserId, input);
-            ShowMsg(error ?? "✅ تم تغيير كلمة المرور بنجاح.");
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"كلمة المرور الجديدة لـ: {user.FullName}",
+                FontSize = 13,
+                Margin = new Thickness(0, 0, 0, 12),
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter
+                        .ConvertFromString("#1a7a60")),
+                FontWeight = FontWeights.SemiBold
+            });
+
+            var pwBox = new PasswordBox { Margin = new Thickness(0, 0, 0, 8), Height = 44 };
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(pwBox, "أدخل كلمة المرور الجديدة (6 أحرف+)");
+            pwBox.Style = (Style)FindResource("MaterialDesignOutlinedPasswordBox");
+
+            var errText = new TextBlock
+            {
+                Foreground = System.Windows.Media.Brushes.Red,
+                FontSize = 11,
+                Visibility = Visibility.Collapsed,
+                Margin = new Thickness(0, 0, 0, 6)
+            };
+
+            var btnPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 8, 0, 0)
+            };
+
+            var saveBtn = new Button { Content = "حفظ", Width = 90, Height = 34 };
+            saveBtn.Style = (Style)FindResource("MaterialDesignRaisedButton");
+            saveBtn.Background = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter
+                    .ConvertFromString("#1a7a60"));
+            saveBtn.Foreground = System.Windows.Media.Brushes.White;
+
+            var cancelBtn = new Button
+            {
+                Content = "إلغاء",
+                Width = 80,
+                Height = 34,
+                Margin = new Thickness(8, 0, 0, 0)
+            };
+            cancelBtn.Style = (Style)FindResource("MaterialDesignOutlinedButton");
+            cancelBtn.Click += (_, _) => win.Close();
+
+            saveBtn.Click += (_, _) =>
+            {
+                if (pwBox.Password.Length < 6)
+                {
+                    errText.Text = "كلمة المرور يجب أن تكون 6 أحرف على الأقل.";
+                    errText.Visibility = Visibility.Visible;
+                    return;
+                }
+                var error = _userService.ChangePassword(user.UserId, pwBox.Password);
+                if (error != null)
+                {
+                    errText.Text = error;
+                    errText.Visibility = Visibility.Visible;
+                    return;
+                }
+                win.DialogResult = true;
+                win.Close();
+            };
+
+            pwBox.KeyDown += (_, ke) => { if (ke.Key == Key.Enter) saveBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); };
+
+            btnPanel.Children.Add(saveBtn);
+            btnPanel.Children.Add(cancelBtn);
+            panel.Children.Add(pwBox);
+            panel.Children.Add(errText);
+            panel.Children.Add(btnPanel);
+            win.Content = panel;
+
+            if (win.ShowDialog() == true)
+                ShowMsg("✅ تم تغيير كلمة المرور بنجاح.");
         }
-
         private void ToggleActive_Click(object sender, RoutedEventArgs e)
         {
             if (UsersGrid.SelectedItem is not User user)
