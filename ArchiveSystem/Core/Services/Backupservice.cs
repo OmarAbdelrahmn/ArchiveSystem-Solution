@@ -26,16 +26,23 @@ namespace ArchiveSystem.Core.Services
 
         /// <summary>Creates a backup copy of the SQLite database file.</summary>
         public (string? Error, string? BackupPath) CreateBackup(
-            string? backupFolder = null, string backupType = "Manual")
+          string? backupFolder = null, string backupType = "Manual")
         {
             try
             {
-                backupFolder ??= GetDefaultBackupFolder();
-                System.IO.Directory.CreateDirectory(backupFolder);
+                string defaultFolder = GetDefaultAppDataBackupFolder();
+                System.IO.Directory.CreateDirectory(defaultFolder);
+
+                // Also get the user-configured folder (if any and different from passed folder)
+                string? userConfiguredFolder = GetUserConfiguredBackupFolder();
 
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string destPath = System.IO.Path.Combine(
-                    backupFolder, $"dms_backup_{timestamp}.db");
+                string fileName = $"dms_backup_{timestamp}.db";
+
+                // Primary destination: always the folder passed in (or default app folder)
+                string primaryFolder = backupFolder ?? defaultFolder;
+                System.IO.Directory.CreateDirectory(primaryFolder);
+                string destPath = System.IO.Path.Combine(primaryFolder, fileName);
 
                 // WAL checkpoint before copy
                 using (var conn = _db.CreateConnection())
@@ -44,27 +51,52 @@ namespace ArchiveSystem.Core.Services
                 System.IO.File.Copy(_dbPath, destPath, overwrite: false);
                 long fileSize = new System.IO.FileInfo(destPath).Length;
 
+                // Secondary copy: user-configured folder (if set and different from primary)
+                string? secondaryError = null;
+                if (!string.IsNullOrWhiteSpace(userConfiguredFolder)
+                    && !string.Equals(
+                        System.IO.Path.GetFullPath(userConfiguredFolder),
+                        System.IO.Path.GetFullPath(primaryFolder),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        System.IO.Directory.CreateDirectory(userConfiguredFolder);
+                        string secondaryPath = System.IO.Path.Combine(userConfiguredFolder, fileName);
+                        System.IO.File.Copy(_dbPath, secondaryPath, overwrite: false);
+                    }
+                    catch (Exception ex)
+                    {
+                        secondaryError = ex.Message;
+                    }
+                }
+
                 using var conn2 = _db.CreateConnection();
                 conn2.Execute(@"
-                    INSERT INTO Backups
-                        (BackupPath, BackupType, Status, FileSizeBytes, CreatedByUserId, CreatedAt)
-                    VALUES (@Path, @Type, 'Success', @Size, @UserId, @Now)",
+            INSERT INTO Backups
+                (BackupPath, BackupType, Status, FileSizeBytes, CreatedByUserId, CreatedAt, Notes)
+            VALUES (@Path, @Type, 'Success', @Size, @UserId, @Now, @Notes)",
                     new
                     {
                         Path = destPath,
                         Type = backupType,
                         Size = fileSize,
                         UserId = UserSession.CurrentUser?.UserId,
-                        Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
+                        Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        Notes = secondaryError != null
+                            ? $"تحذير: فشل النسخ إلى المجلد الثانوي: {secondaryError}"
+                            : (object)DBNull.Value
                     });
 
                 conn2.Execute(@"
-                    INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
-                    VALUES (@UserId, 'BackupCreated', @Desc, @Now)",
+            INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
+            VALUES (@UserId, 'BackupCreated', @Desc, @Now)",
                     new
                     {
                         UserId = UserSession.CurrentUser?.UserId,
-                        Desc = $"نسخة احتياطية ({backupType}): {System.IO.Path.GetFileName(destPath)}",
+                        Desc = secondaryError != null
+                            ? $"نسخة احتياطية ({backupType}): {System.IO.Path.GetFileName(destPath)} — تحذير: فشل النسخ الثانوي"
+                            : $"نسخة احتياطية ({backupType}): {System.IO.Path.GetFileName(destPath)}",
                         Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                     });
 
@@ -72,14 +104,13 @@ namespace ArchiveSystem.Core.Services
             }
             catch (Exception ex)
             {
-                // Record failure in Backups table
                 try
                 {
                     using var conn = _db.CreateConnection();
                     conn.Execute(@"
-                        INSERT INTO Backups
-                            (BackupPath, BackupType, Status, CreatedByUserId, CreatedAt, Notes)
-                        VALUES ('', @Type, 'Failed', @UserId, @Now, @Notes)",
+                INSERT INTO Backups
+                    (BackupPath, BackupType, Status, CreatedByUserId, CreatedAt, Notes)
+                VALUES ('', @Type, 'Failed', @UserId, @Now, @Notes)",
                         new
                         {
                             Type = backupType,
@@ -88,10 +119,35 @@ namespace ArchiveSystem.Core.Services
                             Notes = ex.Message
                         });
                 }
-                catch { /* ignore secondary failure */ }
+                catch { }
 
                 return ($"خطأ أثناء إنشاء النسخة الاحتياطية: {ex.Message}", null);
             }
+        }
+
+        /// <summary>
+        /// Always-available fallback inside AppData — never null, always writable.
+        /// </summary>
+        private static string GetDefaultAppDataBackupFolder() =>
+            System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "DMS_ArchiveSystem", "Backups");
+
+        /// <summary>
+        /// Returns the user-configured folder from AppSettings, or null if not set.
+        /// This is distinct from GetDefaultBackupFolder() which returns the configured
+        /// folder OR falls back to Documents — here we only return it if explicitly set.
+        /// </summary>
+        private string? GetUserConfiguredBackupFolder()
+        {
+            try
+            {
+                using var conn = _db.CreateConnection();
+                var setting = conn.ExecuteScalar<string?>(
+                    "SELECT SettingValue FROM AppSettings WHERE SettingKey = 'BackupPath'");
+                return string.IsNullOrWhiteSpace(setting) ? null : setting.Trim();
+            }
+            catch { return null; }
         }
 
         // ── AUTO DAILY BACKUP ─────────────────────────────────────────────────
@@ -192,11 +248,9 @@ namespace ArchiveSystem.Core.Services
                     "SELECT SettingValue FROM AppSettings WHERE SettingKey = 'BackupPath'");
                 if (!string.IsNullOrWhiteSpace(setting)) return setting;
             }
-            catch { /* ignore */ }
+            catch { }
 
-            return System.IO.Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "DMS_Backups");
+            return GetDefaultAppDataBackupFolder();
         }
 
         private int GetRetentionDays()
