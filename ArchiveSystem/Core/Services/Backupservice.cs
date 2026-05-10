@@ -205,6 +205,163 @@ namespace ArchiveSystem.Core.Services
                 new { Limit = limit }).AsList();
         }
 
+
+        /// <summary>
+        /// Creates a lightweight backup containing only Users, UserRoles,
+        /// Roles, and RolePermissions tables.  The output is a valid SQLite
+        /// database that can be used to restore the permission structure on
+        /// a fresh installation.
+        /// </summary>
+        public (string? Error, string? BackupPath) CreateUsersBackup(string targetFolder)
+        {
+            try
+            {
+                System.IO.Directory.CreateDirectory(targetFolder);
+
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string fileName = $"dms_users_backup_{timestamp}.db";
+                string destPath = System.IO.Path.Combine(targetFolder, fileName);
+
+                // ── 1. WAL checkpoint so all writes are flushed ────────────────
+                using (var srcConn = _db.CreateConnection())
+                    srcConn.Execute("PRAGMA wal_checkpoint(TRUNCATE);");
+
+                // ── 2. Open a fresh destination database ───────────────────────
+                var connStr = $"Data Source={destPath}";
+                using var dst = new Microsoft.Data.Sqlite.SqliteConnection(connStr);
+                dst.Open();
+                dst.Execute("PRAGMA journal_mode = WAL;");
+                dst.Execute("PRAGMA foreign_keys = OFF;");
+
+                // ── 3. Recreate schema for the four tables ─────────────────────
+                dst.Execute(@"
+            CREATE TABLE Users (
+                UserId         INTEGER PRIMARY KEY AUTOINCREMENT,
+                FullName       TEXT    NOT NULL,
+                Username       TEXT    NOT NULL UNIQUE,
+                EmployeeNumber TEXT,
+                PasswordHash   TEXT    NOT NULL,
+                PasswordSalt   TEXT,
+                IsActive       INTEGER NOT NULL DEFAULT 1,
+                CreatedAt      TEXT    NOT NULL,
+                UpdatedAt      TEXT,
+                LastLoginAt    TEXT
+            );
+            CREATE TABLE Roles (
+                RoleId       INTEGER PRIMARY KEY AUTOINCREMENT,
+                RoleName     TEXT    NOT NULL UNIQUE,
+                Description  TEXT,
+                IsSystemRole INTEGER NOT NULL DEFAULT 0,
+                CreatedAt    TEXT    NOT NULL,
+                UpdatedAt    TEXT
+            );
+            CREATE TABLE UserRoles (
+                UserId    INTEGER NOT NULL,
+                RoleId    INTEGER NOT NULL,
+                CreatedAt TEXT    NOT NULL,
+                PRIMARY KEY (UserId, RoleId)
+            );
+            CREATE TABLE RolePermissions (
+                RolePermissionId INTEGER PRIMARY KEY AUTOINCREMENT,
+                RoleId           INTEGER NOT NULL,
+                PermissionKey    TEXT    NOT NULL,
+                IsAllowed        INTEGER NOT NULL DEFAULT 0,
+                UpdatedAt        TEXT,
+                UpdatedByUserId  INTEGER,
+                UNIQUE (RoleId, PermissionKey)
+            );
+        ");
+
+                // ── 4. Copy data from the live database ────────────────────────
+                using var src = _db.CreateConnection();
+
+                var users = src.Query("SELECT * FROM Users").AsList();
+                foreach (var u in users)
+                    dst.Execute(@"
+                INSERT INTO Users
+                    (UserId,FullName,Username,EmployeeNumber,PasswordHash,
+                     PasswordSalt,IsActive,CreatedAt,UpdatedAt,LastLoginAt)
+                VALUES
+                    (@UserId,@FullName,@Username,@EmployeeNumber,@PasswordHash,
+                     @PasswordSalt,@IsActive,@CreatedAt,@UpdatedAt,@LastLoginAt)",
+                        new
+                        {
+                            u.UserId,
+                            u.FullName,
+                            u.Username,
+                            u.EmployeeNumber,
+                            u.PasswordHash,
+                            u.PasswordSalt,
+                            u.IsActive,
+                            u.CreatedAt,
+                            u.UpdatedAt,
+                            u.LastLoginAt
+                        });
+
+                var roles = src.Query("SELECT * FROM Roles").AsList();
+                foreach (var r in roles)
+                    dst.Execute(@"
+                INSERT INTO Roles
+                    (RoleId,RoleName,Description,IsSystemRole,CreatedAt,UpdatedAt)
+                VALUES
+                    (@RoleId,@RoleName,@Description,@IsSystemRole,@CreatedAt,@UpdatedAt)",
+                        new
+                        {
+                            r.RoleId,
+                            r.RoleName,
+                            r.Description,
+                            r.IsSystemRole,
+                            r.CreatedAt,
+                            r.UpdatedAt
+                        });
+
+                var userRoles = src.Query("SELECT * FROM UserRoles").AsList();
+                foreach (var ur in userRoles)
+                    dst.Execute(@"
+                INSERT INTO UserRoles (UserId,RoleId,CreatedAt)
+                VALUES (@UserId,@RoleId,@CreatedAt)",
+                        new { ur.UserId, ur.RoleId, ur.CreatedAt });
+
+                var perms = src.Query("SELECT * FROM RolePermissions").AsList();
+                foreach (var rp in perms)
+                    dst.Execute(@"
+                INSERT INTO RolePermissions
+                    (RolePermissionId,RoleId,PermissionKey,IsAllowed,
+                     UpdatedAt,UpdatedByUserId)
+                VALUES
+                    (@RolePermissionId,@RoleId,@PermissionKey,@IsAllowed,
+                     @UpdatedAt,@UpdatedByUserId)",
+                        new
+                        {
+                            rp.RolePermissionId,
+                            rp.RoleId,
+                            rp.PermissionKey,
+                            rp.IsAllowed,
+                            rp.UpdatedAt,
+                            rp.UpdatedByUserId
+                        });
+
+                dst.Execute("PRAGMA wal_checkpoint(TRUNCATE);");
+
+                // ── 5. Audit log entry ─────────────────────────────────────────
+                src.Execute(@"
+            INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
+            VALUES (@UserId, 'BackupCreated', @Desc, @Now)",
+                    new
+                    {
+                        UserId = UserSession.CurrentUser?.UserId,
+                        Desc = $"نسخة احتياطية للمستخدمين والصلاحيات: {fileName}",
+                        Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
+                    });
+
+                return (null, destPath);
+            }
+            catch (Exception ex)
+            {
+                return ($"خطأ أثناء إنشاء النسخة الاحتياطية للمستخدمين: {ex.Message}", null);
+            }
+        }
+
         // ── RESTORE ───────────────────────────────────────────────────────────
 
         public string? RestoreBackup(string backupPath)

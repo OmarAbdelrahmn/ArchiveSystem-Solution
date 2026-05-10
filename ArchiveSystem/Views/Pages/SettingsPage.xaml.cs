@@ -175,7 +175,60 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(AddFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
             PermissionHelper.Apply(EditFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
             PermissionHelper.Apply(ToggleFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
+            PermissionHelper.Apply(CleanBackupsBtn, Permissions.CreateBackup, hideInstead: true);
         }
+
+
+        private void BrowseUsersBackupPath_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = "اختر مجلد حفظ نسخة المستخدمين",
+                Filter = "Folder|*.none",
+                FileName = "اختر هذا المجلد",
+                CheckFileExists = false,
+                CheckPathExists = true,
+                ValidateNames = false
+            };
+
+            if (!string.IsNullOrWhiteSpace(UsersBackupPathBox.Text)
+                && System.IO.Directory.Exists(UsersBackupPathBox.Text.Trim()))
+                dlg.InitialDirectory = UsersBackupPathBox.Text.Trim();
+
+            if (dlg.ShowDialog() == true)
+            {
+                string folder = System.IO.Path.GetDirectoryName(dlg.FileName)
+                             ?? System.IO.Path.GetFullPath(dlg.FileName);
+                UsersBackupPathBox.Text = folder;
+            }
+        }
+
+        private void CreateUsersBackup_Click(object sender, RoutedEventArgs e)
+        {
+            string folder = UsersBackupPathBox.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                // Fall back to the default backup folder if none selected
+                folder = _backupService.GetDefaultBackupFolder();
+                UsersBackupPathBox.Text = folder;
+            }
+
+            var (err, path) = _backupService.CreateUsersBackup(folder);
+
+            if (err != null)
+            {
+                ShowBackupMsg(err, success: false);
+                return;
+            }
+
+            ShowBackupMsg(
+                $"✅ تم إنشاء نسخة المستخدمين بنجاح:\n{System.IO.Path.GetFileName(path)}",
+                success: true);
+
+            LoadBackupHistory();
+        }
+
 
         private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
         {
