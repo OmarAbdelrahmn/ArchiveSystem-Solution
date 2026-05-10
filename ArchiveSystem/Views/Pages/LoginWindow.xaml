@@ -16,22 +16,18 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <!-- Column 0 — visually RIGHT in RTL: Hero / Branding Panel -->
             <ColumnDefinition Width="*"/>
-            <!-- Column 1 — visually LEFT in RTL: Login Form Panel -->
             <ColumnDefinition Width="420" MinWidth="380" MaxWidth="520"/>
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════
-             LEFT PANEL — Login Card (floats in gray bg)
-             ══════════════════════════════════════════ -->
+        <!-- ══ LOGIN CARD ══ -->
         <Grid Grid.Column="1" Background="#E8EAED">
             <Border VerticalAlignment="Center"
                     HorizontalAlignment="Center"
                     Width="340"
                     Background="White"
                     CornerRadius="16"
-                    Padding="36,40,36,36">
+                    Padding="36,40,36,28">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="40" ShadowDepth="0"
                                       Color="#000000" Opacity="0.10"/>
@@ -40,45 +36,34 @@
                 <StackPanel>
 
                     <TextBlock Text="تسجيل الدخول"
-                       FontSize="22"
-                       FontWeight="Bold"
-                       Foreground="#1A1A2E"
-                       FlowDirection="RightToLeft"
-                       />
+                               FontSize="22" FontWeight="Bold"
+                               Foreground="#1A1A2E"/>
+
                     <TextBlock x:Name="SubtitleText"
-                               Text="هذه نسخة تأسيسية ببيانات تجريبية لمراجعة الشكل والتدفق."
-                               FontSize="12"
-                               Foreground="#888"
+                               Text="أدخل بيانات حسابك للدخول إلى النظام."
+                               FontSize="12" Foreground="#888"
                                TextWrapping="Wrap"
-                               RenderTransformOrigin="0.506,0.567" Height="53"/>
+                               Margin="0,6,0,20"/>
 
                     <!-- Error Banner -->
                     <Border x:Name="ErrorBorder"
-                            Background="#FFF0F0"
-                            BorderBrush="#FFBCBC"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="12,8"
-                            Margin="0,0,0,16"
+                            Background="#FFF0F0" BorderBrush="#FFBCBC"
+                            BorderThickness="1" CornerRadius="8"
+                            Padding="12,8" Margin="0,0,0,16"
                             Visibility="Collapsed">
                         <TextBlock x:Name="ErrorText"
-                                   Foreground="#C62828"
-                                   FontSize="12"
+                                   Foreground="#C62828" FontSize="12"
                                    TextWrapping="Wrap"/>
                     </Border>
 
                     <!-- First-run Setup Banner -->
                     <Border x:Name="SetupBorder"
-                            Background="#E8F5E9"
-                            BorderBrush="#A5D6A7"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="12,8"
-                            Margin="0,0,0,16"
+                            Background="#E8F5E9" BorderBrush="#A5D6A7"
+                            BorderThickness="1" CornerRadius="8"
+                            Padding="12,8" Margin="0,0,0,16"
                             Visibility="Collapsed">
                         <TextBlock Text="مرحباً! أول تشغيل للنظام. يرجى إنشاء حساب مدير الأرشيف."
-                                   Foreground="#2E7D32"
-                                   FontSize="12"
+                                   Foreground="#2E7D32" FontSize="12"
                                    TextWrapping="Wrap"/>
                     </Border>
 
@@ -86,119 +71,92 @@
                     <TextBox x:Name="FullNameBox"
                              materialDesign:HintAssist.Hint="الاسم الكامل"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             FontSize="14"
-                             Margin="0,0,0,14"
+                             FontSize="14" Margin="0,0,0,14"
                              Visibility="Collapsed"/>
 
-                    <!-- Username Label + Field -->
+                    <!-- Username -->
                     <TextBlock Text="اسم المستخدم"
-                               FontSize="12"
-                               Foreground="#555"
+                               FontSize="12" Foreground="#555"
                                Margin="0,0,0,4"/>
                     <TextBox x:Name="UsernameBox"
                              materialDesign:HintAssist.Hint=""
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             FontSize="14"
-                             Margin="0,0,0,16"
+                             FontSize="14" Margin="0,0,0,16"
                              KeyDown="Input_KeyDown"/>
 
-                    <!-- Password Label + Field -->
+                    <!-- Password -->
                     <TextBlock Text="كلمة المرور"
-                               FontSize="12"
-                               Foreground="#555"
+                               FontSize="12" Foreground="#555"
                                Margin="0,0,0,4"/>
                     <Grid Margin="0,0,0,28">
                         <PasswordBox x:Name="PasswordBox"
                                      materialDesign:HintAssist.Hint=""
                                      Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
-                                     FontSize="14"
-                                     Padding="12,0,44,0"
+                                     FontSize="14" Padding="12,0,44,0"
                                      KeyDown="Input_KeyDown"/>
-
                         <TextBox x:Name="PasswordVisibleBox"
                                  materialDesign:HintAssist.Hint=""
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 FontSize="14"
-                                 Padding="12,0,44,0"
+                                 FontSize="14" Padding="12,0,44,0"
                                  VerticalContentAlignment="Center"
                                  Visibility="Collapsed"
                                  KeyDown="Input_KeyDown"/>
-
                         <Button x:Name="TogglePasswordButton"
-                                Width="36"
-                                Height="55"
-                                Padding="0"
-                                FontSize="15"
-                                Content="👁"
-                                Background="Transparent"
-                                BorderThickness="0"
+                                Width="36" Height="55" Padding="0"
+                                FontSize="15" Content="👁"
+                                Background="Transparent" BorderThickness="0"
                                 Cursor="Hand"
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Left"
-                                Click="TogglePasswordButton_Click" Margin="232,0,0,0"/>
+                                Margin="232,0,0,0"
+                                Click="TogglePasswordButton_Click"/>
                     </Grid>
 
                     <!-- Login Button -->
                     <Button x:Name="LoginButton"
                             Content="دخول إلى النظام"
-                            Background="#1a7a60"
-                            Foreground="White"
-                            FontSize="15"
-                            FontWeight="SemiBold"
-                            Height="48"
-                            BorderThickness="0"
-                            Cursor="Hand"
+                            Background="#1a7a60" Foreground="White"
+                            FontSize="15" FontWeight="SemiBold"
+                            Height="48" BorderThickness="0" Cursor="Hand"
                             Click="LoginButton_Click">
                         <Button.Style>
-                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Style TargetType="{x:Type Button}"
+                                   BasedOn="{StaticResource MaterialDesignRaisedButton}">
                                 <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
                             </Style>
                         </Button.Style>
                     </Button>
 
-                    <!-- Roles row -->
-                    <Grid Margin="0,18,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <!-- Right side: مدير الأرشيف (in RTL this appears on right visually) -->
-                        <Border Grid.Column="0"
-                                Background="#F5F5F5"
-                                CornerRadius="8"
-                                Padding="8,6"
-                                Margin="0,0,6,0">
-                            <TextBlock Text="مدير الأرشيف"
-                                       FontSize="12"
-                                       Foreground="#555"
-                                       HorizontalAlignment="Center"/>
-                        </Border>
-                        <!-- Left side: صلاحيتك -->
-                        <Border Grid.Column="1"
-                                Background="#E8F5F0"
-                                CornerRadius="8"
-                                Padding="8,6"
-                                Margin="6,0,0,0">
-                            <TextBlock Text="صلاحيتك"
-                                       FontSize="12"
-                                       Foreground="#1a7a60"
-                                       HorizontalAlignment="Center"/>
-                        </Border>
-                    </Grid>
+                    <!-- ── RESTORE SEPARATOR ── -->
+                    <Border BorderThickness="0,1,0,0"
+                            BorderBrush="#F0F0F0"
+                            Margin="0,20,0,0"
+                            Padding="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="نقل البيانات من جهاز آخر؟"
+                                       FontSize="11" Foreground="#999"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,8"/>
+
+                            <Button x:Name="RestoreDbBtn"
+                                    Content="📂  استعادة قاعدة البيانات"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="36"
+                                    FontSize="12"
+                                    HorizontalAlignment="Stretch"
+                                    Foreground="#555"
+                                    BorderBrush="#CCCCCC"
+                                    Click="RestoreDb_Click"/>
+                        </StackPanel>
+                    </Border>
 
                 </StackPanel>
             </Border>
         </Grid>
 
-        <!-- ══════════════════════════════════════════
-             RIGHT PANEL — Dark Green Hero Card (inset/rounded)
-             ══════════════════════════════════════════ -->
+        <!-- ══ HERO PANEL ══ -->
         <Grid Grid.Column="0" Background="#E8EAED">
-
-            <!-- The main rounded card -->
-            <Border CornerRadius="20"
-                    Margin="32,32,32,32"
-                    ClipToBounds="True">
+            <Border CornerRadius="20" Margin="32,32,32,32" ClipToBounds="True">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                         <GradientStop Color="#0A3D2E" Offset="0"/>
@@ -209,154 +167,93 @@
                 </Border.Background>
 
                 <Grid>
-                    <!-- Decorative subtle circle top-right -->
                     <Ellipse Width="480" Height="480"
                              HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-180,-180,0"
-                             Opacity="0.06">
+                             Margin="0,-180,-180,0" Opacity="0.06">
                         <Ellipse.Fill>
                             <SolidColorBrush Color="White"/>
                         </Ellipse.Fill>
                     </Ellipse>
-
-                    <!-- Decorative subtle circle bottom-left -->
                     <Ellipse Width="360" Height="360"
                              HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-140,0,0,-140"
-                             Opacity="0.05">
+                             Margin="-140,0,0,-140" Opacity="0.05">
                         <Ellipse.Fill>
                             <SolidColorBrush Color="White"/>
                         </Ellipse.Fill>
                     </Ellipse>
 
-                    <!-- App Icon Badge — top right (RTL: visual left = Column start) -->
-                    <Border Width="52" Height="52"
-                            CornerRadius="13"
+                    <Border Width="52" Height="52" CornerRadius="13"
                             Background="White"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right" VerticalAlignment="Top"
                             Margin="0,36,36,0">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="18" ShadowDepth="0"
                                               Color="#000" Opacity="0.20"/>
                         </Border.Effect>
-                        <TextBlock Text="i"
-                                   FontSize="24"
-                                   FontWeight="Bold"
-                                   FontStyle="Italic"
-                                   Foreground="#1a7a60"
+                        <TextBlock Text="i" FontSize="24" FontWeight="Bold"
+                                   FontStyle="Italic" Foreground="#1a7a60"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
                     </Border>
 
-                    <!-- Center content -->
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Left"
                                 Margin="60,0,60,0">
-
-                        <!-- Small label -->
-                        <!-- Small label -->
-                        <!-- Small label -->
                         <TextBlock Text="نظام داخلي غير متصل بالإنترنت"
-                                   FontSize="13"
-                                   Foreground="#7ECFB5"
-                                   />
-                        <!-- Big title -->
+                                   FontSize="13" Foreground="#7ECFB5"/>
                         <TextBlock Text="أرشيف الملفات"
-                                   FontSize="52"
-                                   FontWeight="Bold"
-                                   Foreground="White"
-                                   >
+                                   FontSize="52" FontWeight="Bold" Foreground="White">
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="30" ShadowDepth="0"
                                                   Color="#000" Opacity="0.20"/>
                             </TextBlock.Effect>
                         </TextBlock>
-                        <!-- Tagline -->
                         <TextBlock Text="بحث سريع، إدخال ذكي، تقارير، وتتبع كامل لمكان كل دوسية."
-                                   FontSize="15"
-                                   Foreground="#B2E8D8"
-                                   TextWrapping="Wrap"
-                                   MaxWidth="520"
-                                   LineHeight="26"
-                                   TextAlignment="Right"/>
-                        <!-- Big title -->
-
-                        <!-- Tagline -->
+                                   FontSize="15" Foreground="#B2E8D8"
+                                   TextWrapping="Wrap" MaxWidth="520"
+                                   LineHeight="26" TextAlignment="Right"/>
                     </StackPanel>
 
-                    <!-- Bottom Stats Bar — inside the card -->
-                    <Grid VerticalAlignment="Bottom"
-                          Margin="36,0,36,36">
+                    <!-- Bottom Stats Bar -->
+                    <Grid VerticalAlignment="Bottom" Margin="36,0,36,36">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Stat 1 — Last Backup -->
-                        <Border Grid.Column="0"
-                                Background="#00000018"
-                                CornerRadius="12"
-                                Padding="20,16"
-                                Margin="0,0,8,0">
+                        <Border Grid.Column="0" Background="#00000018"
+                                CornerRadius="12" Padding="20,16" Margin="0,0,8,0">
                             <StackPanel HorizontalAlignment="Right">
-                                <TextBlock x:Name="LastBackupTimeText"
-                                           Text="--:--"
-                                           FontSize="26"
-                                           FontWeight="Bold"
-                                           Foreground="White"
-                                           />
+                                <TextBlock x:Name="LastBackupTimeText" Text="--:--"
+                                           FontSize="26" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="آخر نسخة احتياطية"
-                                           FontSize="12"
-                                           Foreground="#7ECFB5"
-                                           HorizontalAlignment="Right"
-                                           Margin="0,2,0,0"/>
+                                           FontSize="12" Foreground="#7ECFB5"
+                                           HorizontalAlignment="Right" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Stat 2 — Total Files -->
-                        <Border Grid.Column="1"
-                                Background="#00000018"
-                                CornerRadius="12"
-                                Padding="20,16"
-                                Margin="8,0,8,0">
+                        <Border Grid.Column="1" Background="#00000018"
+                                CornerRadius="12" Padding="20,16" Margin="8,0,8,0">
                             <StackPanel HorizontalAlignment="Right">
-                                <TextBlock x:Name="TotalFilesText"
-                                           Text="0"
-                                           FontSize="26"
-                                           FontWeight="Bold"
-                                           Foreground="White"
-                                           />
+                                <TextBlock x:Name="TotalFilesText" Text="0"
+                                           FontSize="26" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="ملف داخل النظام"
-                                           FontSize="12"
-                                           Foreground="#7ECFB5"
-                                           HorizontalAlignment="Right"
-                                           Margin="0,2,0,0"/>
+                                           FontSize="12" Foreground="#7ECFB5"
+                                           HorizontalAlignment="Right" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Stat 3 — Imported Folders -->
-                        <Border Grid.Column="2"
-                                Background="#00000018"
-                                CornerRadius="12"
-                                Padding="20,16"
-                                Margin="8,0,0,0">
+                        <Border Grid.Column="2" Background="#00000018"
+                                CornerRadius="12" Padding="20,16" Margin="8,0,0,0">
                             <StackPanel HorizontalAlignment="Right">
-                                <TextBlock x:Name="TotalFoldersText"
-                                           Text="0"
-                                           FontSize="26"
-                                           FontWeight="Bold"
-                                           Foreground="White"
-                                           RenderTransformOrigin="-3.279,0.565"/>
+                                <TextBlock x:Name="TotalFoldersText" Text="0"
+                                           FontSize="26" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="دوسية مستوردة"
-                                           FontSize="12"
-                                           Foreground="#7ECFB5"
-                                           HorizontalAlignment="Right"
-                                           Margin="0,2,0,0"/>
+                                           FontSize="12" Foreground="#7ECFB5"
+                                           HorizontalAlignment="Right" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
-
                     </Grid>
                 </Grid>
             </Border>
