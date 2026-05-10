@@ -230,7 +230,7 @@ namespace ArchiveSystem.Core.Services
                 var connStr = $"Data Source={destPath}";
                 using var dst = new Microsoft.Data.Sqlite.SqliteConnection(connStr);
                 dst.Open();
-                dst.Execute("PRAGMA journal_mode = WAL;");
+                dst.Execute("PRAGMA journal_mode = DELETE;");
                 dst.Execute("PRAGMA foreign_keys = OFF;");
 
                 // ── 3. Recreate schema for the four tables ─────────────────────
