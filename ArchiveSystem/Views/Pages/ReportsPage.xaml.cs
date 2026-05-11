@@ -17,6 +17,9 @@ namespace ArchiveSystem.Views.Pages
         private readonly ReportService _reportService;
         private readonly DossierService _dossierService;
 
+        // Debounce timer for batch range preview
+        private System.Windows.Threading.DispatcherTimer? _batchDebounce;
+
         public ReportsPage()
         {
             InitializeComponent();
@@ -32,6 +35,11 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(DossierFaceSaveBtn, Permissions.PrintDossierFace, hideInstead: true);
             PermissionHelper.Apply(DossierFacePrintBtn, Permissions.PrintDossierFace, hideInstead: true);
 
+            // Batch dossier face section — needs PrintDossierFace
+            PermissionHelper.Apply(BatchPreviewBtn, Permissions.PrintDossierFace, hideInstead: true);
+            PermissionHelper.Apply(BatchSaveBtn, Permissions.PrintDossierFace, hideInstead: true);
+            PermissionHelper.Apply(BatchPrintBtn, Permissions.PrintDossierFace, hideInstead: true);
+
             // Monthly/Yearly reports — needs PrintReports
             PermissionHelper.Apply(MonthlyPreviewBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(MonthlySaveBtn, Permissions.PrintReports, hideInstead: true);
@@ -44,16 +52,269 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(WeeklySaveBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(WeeklyPrintBtn, Permissions.PrintReports, hideInstead: true);
             PermissionHelper.Apply(DataQualityPreviewBtn, Permissions.PrintReports, hideInstead: true);
-            PermissionHelper.Apply(DataQualitySaveBtn,   Permissions.PrintReports, hideInstead: true);
-            PermissionHelper.Apply(DataQualityPrintBtn,  Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(DataQualitySaveBtn, Permissions.PrintReports, hideInstead: true);
+            PermissionHelper.Apply(DataQualityPrintBtn, Permissions.PrintReports, hideInstead: true);
         }
 
         // ─────────────────────────────────────────────────────────────────────
         // DOSSIER FACE
         // ─────────────────────────────────────────────────────────────────────
 
+        private void PreviewDossierFace_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadDossierFaceOrError();
+            if (data == null) return;
+
+            string path = TempPdfPath($"dossier_face_{data.DossierNumber}");
+            var err = _reportService.GenerateDossierFacePdf(data, path);
+            if (err != null) { ShowError(err); return; }
+
+            OpenFile(path);
+        }
+
+        private void SaveDossierFacePdf_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadDossierFaceOrError();
+            if (data == null) return;
+
+            string? path = PickSavePath($"dossier_{data.DossierNumber}_{data.HijriMonth}_{data.HijriYear}");
+            if (path == null) return;
+
+            var err = _reportService.GenerateDossierFacePdf(data, path);
+            if (err != null) { ShowError(err); return; }
+
+            ShowSuccess($"تم حفظ الملف: {path}");
+            OpenFile(path);
+        }
+
+        private void PrintDossierFaceDirect_Click(object sender, RoutedEventArgs e)
+        {
+            var data = LoadDossierFaceOrError();
+            if (data == null) return;
+
+            var err = _reportService.PrintDossierFaceDirect(data);
+            if (err != null) ShowError(err);
+            else ShowSuccess("تم إرسال الملف إلى الطابعة.");
+        }
+
+        private DossierFaceData? LoadDossierFaceOrError()
+        {
+            HideMsg();
+            if (!int.TryParse(DossierFaceNumberBox.Text, out int num))
+            {
+                ShowError("يرجى إدخال رقم دوسية صحيح.");
+                return null;
+            }
+
+            var dossier = _dossierService.GetDossierByNumber(num);
+            if (dossier == null)
+            {
+                ShowError($"الدوسية رقم {num} غير موجودة.");
+                return null;
+            }
+
+            var data = _reportService.LoadDossierFaceData(dossier.DossierId);
+            if (data == null)
+            {
+                ShowError("تعذر تحميل بيانات الدوسية.");
+                return null;
+            }
+
+            if (data.Records.Count == 0)
+            {
+                ShowError($"الدوسية رقم {num} لا تحتوي على أي سجلات.");
+                return null;
+            }
+
+            return data;
+        }
+
         // ─────────────────────────────────────────────────────────────────────
-        // WEEKLY REPORT
+        // BATCH DOSSIER FACE PRINT  (from number → to number)
+        // ─────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Fires whenever the user changes FromBox or ToBox.
+        /// Debounces 400 ms then updates the info badge showing how many
+        /// dossiers / records fall in the range.
+        /// </summary>
+        private void BatchRange_Changed(object sender, TextChangedEventArgs e)
+        {
+            BatchInfoBadge.Visibility = Visibility.Collapsed;
+            BatchWarningBorder.Visibility = Visibility.Collapsed;
+
+            _batchDebounce?.Stop();
+            _batchDebounce = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(400)
+            };
+            _batchDebounce.Tick += (_, _) =>
+            {
+                _batchDebounce.Stop();
+                RefreshBatchInfoBadge();
+            };
+            _batchDebounce.Start();
+        }
+
+        private void RefreshBatchInfoBadge()
+        {
+            if (!int.TryParse(BatchFromBox.Text, out int from) ||
+                !int.TryParse(BatchToBox.Text, out int to) || from <= 0 || to <= 0)
+                return;
+
+            if (from > to)
+            {
+                BatchWarningText.Text = "رقم البداية يجب أن يكون أصغر من أو يساوي رقم النهاية.";
+                BatchWarningBorder.Visibility = Visibility.Visible;
+                return;
+            }
+
+            // Count how many dossiers exist in range
+            var infos = _reportService.GetBatchDossierRangeInfo(from, to);
+
+            if (infos.DossierCount == 0)
+            {
+                BatchWarningText.Text = $"لا توجد دوسيات في النطاق من {from} إلى {to}.";
+                BatchWarningBorder.Visibility = Visibility.Visible;
+                return;
+            }
+
+            BatchCountText.Text = $"{infos.DossierCount} دوسية";
+            BatchRecordsText.Text = $"{infos.RecordCount} سجل إجمالاً";
+            BatchInfoBadge.Visibility = Visibility.Visible;
+
+            // Warn if range is very large (>50 dossiers) — PDF may be big
+            if (infos.DossierCount > 50)
+            {
+                BatchWarningText.Text = $"النطاق يحتوي على {infos.DossierCount} دوسية — قد يستغرق إنشاء PDF بعض الوقت.";
+                BatchWarningBorder.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                BatchWarningBorder.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void PreviewBatchDossierFace_Click(object sender, RoutedEventArgs e)
+        {
+            string? path = GenerateBatchPdfOrError(out string defaultName);
+            if (path == null) return;
+            OpenFile(path);
+        }
+
+        private void SaveBatchDossierFacePdf_Click(object sender, RoutedEventArgs e)
+        {
+            HideMsg();
+            if (!ParseBatchRange(out int from, out int to)) return;
+
+            string? savePath = PickSavePath($"batch_dossiers_{from}_to_{to}");
+            if (savePath == null) return;
+
+            SetBatchBusy(true, $"جاري إنشاء PDF للدوسيات من {from} إلى {to}...");
+            try
+            {
+                var err = _reportService.GenerateBatchDossierFacePdf(from, to, savePath);
+                if (err != null) { ShowError(err); return; }
+                ShowSuccess($"✅ تم حفظ الملف: {savePath}");
+                OpenFile(savePath);
+            }
+            finally
+            {
+                SetBatchBusy(false);
+            }
+        }
+
+        private void PrintBatchDossierFaceDirect_Click(object sender, RoutedEventArgs e)
+        {
+            string? path = GenerateBatchPdfOrError(out _);
+            if (path == null) return;
+
+            var err = OpenPdfForPrint(path);
+            if (err != null) ShowError(err);
+            else ShowSuccess("تم إرسال ملف PDF المجمَّع إلى الطابعة.");
+        }
+
+        /// <summary>
+        /// Shared helper: validates inputs, builds a temp PDF, returns its path.
+        /// Returns null and shows an error message if anything fails.
+        /// </summary>
+        private string? GenerateBatchPdfOrError(out string defaultName)
+        {
+            defaultName = string.Empty;
+            HideMsg();
+
+            if (!ParseBatchRange(out int from, out int to)) return null;
+
+            defaultName = $"batch_dossiers_{from}_to_{to}";
+            string tempPath = TempPdfPath(defaultName);
+
+            SetBatchBusy(true, $"جاري إنشاء PDF للدوسيات من {from} إلى {to}...");
+            try
+            {
+                var err = _reportService.GenerateBatchDossierFacePdf(from, to, tempPath);
+                if (err != null) { ShowError(err); return null; }
+                return tempPath;
+            }
+            finally
+            {
+                SetBatchBusy(false);
+            }
+        }
+
+        /// <summary>Parses BatchFromBox / BatchToBox and shows errors if invalid.</summary>
+        private bool ParseBatchRange(out int from, out int to)
+        {
+            from = to = 0;
+
+            if (!int.TryParse(BatchFromBox.Text, out from) || from <= 0)
+            {
+                ShowError("يرجى إدخال رقم دوسية البداية بشكل صحيح.");
+                return false;
+            }
+            if (!int.TryParse(BatchToBox.Text, out to) || to <= 0)
+            {
+                ShowError("يرجى إدخال رقم دوسية النهاية بشكل صحيح.");
+                return false;
+            }
+            if (from > to)
+            {
+                ShowError("رقم البداية يجب أن يكون أصغر من أو يساوي رقم النهاية.");
+                return false;
+            }
+            if (to - from > 499)
+            {
+                ShowError("لا يمكن طباعة أكثر من 500 دوسية في مرة واحدة. يرجى تضييق النطاق.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private void SetBatchBusy(bool busy, string? message = null)
+        {
+            BatchBusyPanel.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+            if (message != null) BatchProgressText.Text = message;
+            BatchPreviewBtn.IsEnabled = !busy;
+            BatchSaveBtn.IsEnabled = !busy;
+            BatchPrintBtn.IsEnabled = !busy;
+        }
+
+        private static string? OpenPdfForPrint(string pdfPath)
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo(pdfPath)
+                { Verb = "print", UseShellExecute = true, CreateNoWindow = true };
+                try { System.Diagnostics.Process.Start(psi); return null; } catch { }
+                System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo(pdfPath) { UseShellExecute = true });
+                return null;
+            }
+            catch (Exception ex) { return $"خطأ أثناء إرسال الطباعة: {ex.Message}"; }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // DATA QUALITY SUMMARY
         // ─────────────────────────────────────────────────────────────────────
 
         private void LoadDataQualitySummary()
@@ -66,7 +327,6 @@ namespace ArchiveSystem.Views.Pages
                 DQMismatchText.Text = $"دوسيات غير مطابقة: {data.DossiersWithMismatch}";
                 DQRecordsText.Text = $"إجمالي السجلات: {data.TotalRecords:N0}";
 
-                // Colour the warnings badge green when there are no issues
                 DQWarningsBadge.Background = new SolidColorBrush(
                     data.UnresolvedWarningsTotal > 0
                         ? (Color)ColorConverter.ConvertFromString("#FFEBEE")
@@ -141,6 +401,10 @@ namespace ArchiveSystem.Views.Pages
             }
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        // WEEKLY REPORT
+        // ─────────────────────────────────────────────────────────────────────
+
         private void PreviewWeekly_Click(object sender, RoutedEventArgs e)
         {
             var data = LoadWeeklyOrError();
@@ -197,7 +461,6 @@ namespace ArchiveSystem.Views.Pages
             if ((toDate - fromDate).TotalDays > 31)
             { ShowError("النطاق الزمني لا يجب أن يتجاوز 31 يوماً للتقرير الأسبوعي."); return null; }
 
-            // dateTo is exclusive end: add 1 day so records ON toDate are included
             string fromIso = fromDate.ToString("yyyy-MM-dd");
             string toIso = toDate.AddDays(1).ToString("yyyy-MM-dd");
 
@@ -205,76 +468,6 @@ namespace ArchiveSystem.Views.Pages
 
             if (data.TotalDossiers == 0)
             { ShowError($"لا توجد سجلات مُضافة بين {fromStr} و{toStr}."); return null; }
-
-            return data;
-        }
-
-        private void PreviewDossierFace_Click(object sender, RoutedEventArgs e)
-        {
-            var data = LoadDossierFaceOrError();
-            if (data == null) return;
-
-            string path = TempPdfPath($"dossier_face_{data.DossierNumber}");
-            var err = _reportService.GenerateDossierFacePdf(data, path);
-            if (err != null) { ShowError(err); return; }
-
-            OpenFile(path);
-        }
-
-        private void SaveDossierFacePdf_Click(object sender, RoutedEventArgs e)
-        {
-            var data = LoadDossierFaceOrError();
-            if (data == null) return;
-
-            string? path = PickSavePath($"dossier_{data.DossierNumber}_{data.HijriMonth}_{data.HijriYear}");
-            if (path == null) return;
-
-            var err = _reportService.GenerateDossierFacePdf(data, path);
-            if (err != null) { ShowError(err); return; }
-
-            ShowSuccess($"تم حفظ الملف: {path}");
-            OpenFile(path);
-        }
-
-        /// <summary>Sends directly to the printer via the Shell "print" verb.</summary>
-        private void PrintDossierFaceDirect_Click(object sender, RoutedEventArgs e)
-        {
-            var data = LoadDossierFaceOrError();
-            if (data == null) return;
-
-            var err = _reportService.PrintDossierFaceDirect(data);
-            if (err != null) ShowError(err);
-            else ShowSuccess("تم إرسال الملف إلى الطابعة.");
-        }
-
-        private DossierFaceData? LoadDossierFaceOrError()
-        {
-            HideMsg();
-            if (!int.TryParse(DossierFaceNumberBox.Text, out int num))
-            {
-                ShowError("يرجى إدخال رقم دوسية صحيح.");
-                return null;
-            }
-
-            var dossier = _dossierService.GetDossierByNumber(num);
-            if (dossier == null)
-            {
-                ShowError($"الدوسية رقم {num} غير موجودة.");
-                return null;
-            }
-
-            var data = _reportService.LoadDossierFaceData(dossier.DossierId);
-            if (data == null)
-            {
-                ShowError("تعذر تحميل بيانات الدوسية.");
-                return null;
-            }
-
-            if (data.Records.Count == 0)
-            {
-                ShowError($"الدوسية رقم {num} لا تحتوي على أي سجلات.");
-                return null;
-            }
 
             return data;
         }
