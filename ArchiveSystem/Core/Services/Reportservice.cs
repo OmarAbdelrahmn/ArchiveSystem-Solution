@@ -147,6 +147,230 @@ namespace ArchiveSystem.Core.Services
             };
         }
 
+        // ─────────────────────────────────────────────────────────────────────────────
+        // ADD THESE TWO METHODS to ReportService, inside the ReportService class body.
+        //
+        // Placement: paste them right before the TempPath() helper method, i.e. between
+        // PrintAuditLogDirect() and the "SHARED CELL / LAYOUT HELPERS" region.
+        // ─────────────────────────────────────────────────────────────────────────────
+
+        // ─── DTO returned by GetBatchDossierRangeInfo ────────────────────────────────
+        // Add this alongside the other DTOs at the top of the file (before ReportService class).
+        public class BatchDossierRangeInfo
+        {
+            public int DossierCount { get; set; }
+            public int RecordCount { get; set; }
+        }
+
+        // ─── Inside ReportService class ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Returns a quick count of dossiers and total records that fall within the
+        /// given DossierNumber range (inclusive).  Used by the UI to populate the
+        /// info badge before the user commits to generating the PDF.
+        /// </summary>
+        public BatchDossierRangeInfo GetBatchDossierRangeInfo(int fromNumber, int toNumber)
+        {
+            using var conn = _db.CreateConnection();
+
+            var info = conn.QueryFirstOrDefault<BatchDossierRangeInfo>(@"
+        SELECT
+            COUNT(DISTINCT d.DossierId)  AS DossierCount,
+            COUNT(r.RecordId)            AS RecordCount
+        FROM Dossiers d
+        LEFT JOIN Records r ON r.DossierId = d.DossierId AND r.DeletedAt IS NULL
+        WHERE d.DeletedAt IS NULL
+          AND d.DossierNumber >= @From
+          AND d.DossierNumber <= @To",
+                new { From = fromNumber, To = toNumber });
+
+            return info ?? new BatchDossierRangeInfo();
+        }
+
+        /// <summary>
+        /// Generates a single PDF file containing one dossier-face page per dossier
+        /// whose DossierNumber falls in [fromNumber, toNumber].
+        ///
+        /// Dossiers with zero active records are silently skipped (matching the
+        /// behaviour of the single-dossier face report).
+        ///
+        /// Returns null on success, or an Arabic error string on failure.
+        /// </summary>
+        public string? GenerateBatchDossierFacePdf(int fromNumber, int toNumber, string outputPath)
+        {
+            try
+            {
+                QuestPDF.Settings.License = LicenseType.Community;
+
+                // ── 1. Fetch all dossier IDs in range ─────────────────────────────
+                using var conn = _db.CreateConnection();
+
+                var dossierIds = conn.Query<int>(@"
+            SELECT DossierId
+            FROM   Dossiers
+            WHERE  DeletedAt IS NULL
+              AND  DossierNumber >= @From
+              AND  DossierNumber <= @To
+            ORDER BY DossierNumber",
+                    new { From = fromNumber, To = toNumber }).AsList();
+
+                if (dossierIds.Count == 0)
+                    return $"لا توجد دوسيات في النطاق من {fromNumber} إلى {toNumber}.";
+
+                // ── 2. Load face data for every dossier ───────────────────────────
+                var faceDataList = new List<DossierFaceData>();
+                foreach (var id in dossierIds)
+                {
+                    var face = LoadDossierFaceData(id);
+                    if (face == null || face.Records.Count == 0)
+                        continue;   // skip dossiers with no records (same as single-dossier behaviour)
+                    faceDataList.Add(face);
+                }
+
+                if (faceDataList.Count == 0)
+                    return $"جميع الدوسيات في النطاق من {fromNumber} إلى {toNumber} لا تحتوي على سجلات.";
+
+                // ── 3. Build a single multi-page document ─────────────────────────
+                string printDate = DateTime.Now.ToString("yyyy/MM/dd  HH:mm");
+
+                Document.Create(container =>
+                {
+                    foreach (var data in faceDataList)
+                    {
+                        var extraLabels = data.Records
+                            .SelectMany(r => r.ExtraFields.Keys)
+                            .Distinct()
+                            .ToList();
+
+                        bool showNat = data.Records.Any(r => r.Nationality != null);
+
+                        container.Page(page =>
+                        {
+                            page.Size(PageSizes.A4);
+                            page.Margin(1.5f, Unit.Centimetre);
+                            page.DefaultTextStyle(t => t.FontSize(10).FontFamily(FontName));
+                            page.ContentFromRightToLeft();
+
+                            // ── Header ────────────────────────────────────────────
+                            page.Header().Column(col =>
+                            {
+                                col.Item().Height(6).Background(Colors.Teal.Medium);
+                                col.Item().PaddingVertical(8).Row(row =>
+                                {
+                                    row.RelativeItem().Column(inner =>
+                                    {
+                                        inner.Item()
+                                            .Text($"دوسية رقم  ({data.DossierNumber})")
+                                            .FontSize(18).Bold().FontColor(Colors.Teal.Darken3);
+                                        inner.Item().PaddingTop(2)
+                                            .Text($"شهر {data.HijriMonth}  لعام {data.HijriYear}هـ")
+                                            .FontSize(12).FontColor(Colors.Grey.Darken2);
+                                    });
+
+                                    row.ConstantItem(200).Column(inner =>
+                                    {
+                                        inner.Item().AlignLeft()
+                                            .Text($"الموقع:  {data.LocationDisplay}")
+                                            .FontSize(10).FontColor(Colors.Grey.Darken2);
+                                        inner.Item().AlignLeft().PaddingTop(3)
+                                            .Text($"عدد الملفات المتوقع:  {data.ExpectedCount?.ToString() ?? "غير محدد"}")
+                                            .FontSize(10);
+                                        inner.Item().AlignLeft().PaddingTop(3)
+                                            .Text($"عدد السجلات الفعلي:  {data.Records.Count}")
+                                            .FontSize(10);
+                                        inner.Item().AlignLeft().PaddingTop(3)
+                                            .Text($"تاريخ الطباعة:  {printDate}")
+                                            .FontSize(9).FontColor(Colors.Grey.Medium);
+                                    });
+                                });
+                                col.Item().PaddingBottom(4).LineHorizontal(1.5f).LineColor(Colors.Teal.Medium);
+                            });
+
+                            // ── Table ─────────────────────────────────────────────
+                            page.Content().PaddingTop(8).Table(table =>
+                            {
+                                table.ColumnsDefinition(cols =>
+                                {
+                                    cols.RelativeColumn(10);    // م
+                                    cols.RelativeColumn(20);    // اسم السجين
+                                    cols.RelativeColumn(30);    // رقم السجين
+                                    if (showNat) cols.RelativeColumn(20);              // الجنسية
+                                    foreach (var _ in extraLabels) cols.RelativeColumn(20); // extras
+                                });
+
+                                table.Header(h =>
+                                {
+                                    HeaderCell(h, "م");
+                                    HeaderCell(h, "اسم السجين");
+                                    HeaderCell(h, "رقم السجين");
+                                    if (showNat) HeaderCell(h, "الجنسية");
+                                    foreach (var lbl in extraLabels) HeaderCell(h, lbl);
+                                });
+
+                                int idx = 0;
+                                foreach (var rec in data.Records)
+                                {
+                                    string bg = idx++ % 2 == 0 ? Colors.White : AltRowBg;
+                                    DataCell(table, rec.Sequence.ToString(), bg, center: true);
+                                    DataCell(table, rec.PersonName, bg);
+                                    DataCell(table, rec.PrisonerNumber, bg, center: true);
+                                    if (showNat) DataCell(table, rec.Nationality ?? "—", bg);
+                                    foreach (var lbl in extraLabels)
+                                    {
+                                        rec.ExtraFields.TryGetValue(lbl, out var val);
+                                        DataCell(table, val ?? "—", bg);
+                                    }
+                                }
+
+                                // Totals row
+                                int totalCols = 3 + (showNat ? 1 : 0) + extraLabels.Count;
+                                TotalSpanCell(table, "إجمالي السجلات", TotalRowBg, colSpan: 2);
+                                TotalCell(table, data.Records.Count.ToString(), TotalRowBg);
+                                for (int i = 3; i < totalCols; i++)
+                                    TotalCell(table, "", TotalRowBg);
+                            });
+
+                            // ── Footer ────────────────────────────────────────────
+                            page.Footer().PaddingTop(4).Row(row =>
+                            {
+                                row.RelativeItem()
+                                    .Text($"نظام أرشفة الملفات — {printDate}")
+                                    .FontSize(8).FontColor(Colors.Grey.Medium);
+                                row.ConstantItem(120).AlignCenter().Text(x =>
+                                {
+                                    x.Span("صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                    x.CurrentPageNumber().FontSize(8);
+                                    x.Span(" من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                    x.TotalPages().FontSize(8);
+                                });
+                                row.RelativeItem().AlignLeft()
+                                    .Text($"دوسية رقم ({data.DossierNumber})")
+                                    .FontSize(8).FontColor(Colors.Grey.Medium);
+                            });
+                        });
+                    }
+                }).GeneratePdf(outputPath);
+
+                // ── 4. Audit log entry ─────────────────────────────────────────────
+                conn.Execute(@"
+            INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
+            VALUES (@UserId, 'ReportPrinted', @Desc, @Now)",
+                    new
+                    {
+                        UserId = UserSession.CurrentUser?.UserId,
+                        Desc = $"طباعة مجموعة دوسيات من {fromNumber} إلى {toNumber} " +
+                                 $"({faceDataList.Count} دوسية)",
+                        Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
+                    });
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return $"خطأ أثناء إنشاء ملف PDF المجمَّع: {ex.Message}";
+            }
+        }
+
         public DossierFaceData? LoadDossierFaceData(int dossierId)
         {
             using var conn = _db.CreateConnection();
