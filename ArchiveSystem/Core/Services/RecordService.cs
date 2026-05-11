@@ -150,6 +150,81 @@ namespace ArchiveSystem.Core.Services
             }
         }
 
+        /// <summary>
+        /// Moves a record (and all its custom field values) to a different dossier.
+        /// The sequence number is auto-assigned as the next available in the target dossier.
+        /// Returns null on success, or an Arabic error string on failure.
+        /// </summary>
+        public string? MoveRecord(int recordId, int targetDossierNumber)
+        {
+            using var conn = _db.CreateConnection();
+
+            // 1 — Verify target dossier exists and is not deleted
+            var targetDossier = conn.QuerySingleOrDefault<Core.Models.Dossier>(
+                "SELECT * FROM Dossiers WHERE DossierNumber = @Num AND DeletedAt IS NULL",
+                new { Num = targetDossierNumber });
+
+            if (targetDossier == null)
+                return $"الدوسية رقم {targetDossierNumber} غير موجودة أو محذوفة.";
+
+            // 2 — Load the record to move
+            var record = conn.QuerySingleOrDefault<Core.Models.Record>(
+                "SELECT * FROM Records WHERE RecordId = @Id AND DeletedAt IS NULL",
+                new { Id = recordId });
+
+            if (record == null)
+                return "السجل غير موجود أو محذوف.";
+
+            if (record.DossierId == targetDossier.DossierId)
+                return "السجل موجود مسبقاً في هذه الدوسية.";
+
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+                int userId = UserSession.CurrentUser?.UserId ?? 0;
+
+                // 3 — Get next available sequence number in target dossier
+                int newSeq = conn.ExecuteScalar<int>(
+                    "SELECT COALESCE(MAX(SequenceNumber), 0) + 1 FROM Records WHERE DossierId = @D AND DeletedAt IS NULL",
+                    new { D = targetDossier.DossierId }, tx);
+
+                int oldDossierId = record.DossierId;
+                int oldSeq = record.SequenceNumber;
+
+                // 4 — Move the record
+                conn.Execute(@"
+            UPDATE Records
+            SET DossierId      = @TargetId,
+                SequenceNumber = @NewSeq,
+                UpdatedAt      = @Now
+            WHERE RecordId = @RecordId",
+                    new { TargetId = targetDossier.DossierId, NewSeq = newSeq, Now = now, RecordId = recordId },
+                    tx);
+
+                // 5 — Update both dossiers' UpdatedAt timestamps
+                conn.Execute(
+                    "UPDATE Dossiers SET UpdatedAt = @Now WHERE DossierId IN (@OldId, @NewId)",
+                    new { Now = now, OldId = oldDossierId, NewId = targetDossier.DossierId },
+                    tx);
+
+                // 6 — Audit log
+                // Note: RecordCustomFieldValues reference RecordId only — no change needed there
+                WriteAudit(conn, AuditActions.RecordEdited,
+                    $"نقل سجل '{record.PersonName}' ({record.PrisonerNumber}) " +
+                    $"من دوسية {oldDossierId} (تسلسل {oldSeq}) " +
+                    $"إلى دوسية {targetDossierNumber} (تسلسل جديد {newSeq})",
+                    "Record", recordId, tx);
+
+                tx.Commit();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                tx.Rollback();
+                return $"خطأ أثناء نقل السجل: {ex.Message}";
+            }
+        }
         /// <summary>Updates an existing record's editable fields.</summary>
         public string? UpdateRecord(int recordId, string personName,
             string prisonerNumber, string? notes)

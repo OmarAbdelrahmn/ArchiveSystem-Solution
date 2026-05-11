@@ -195,6 +195,13 @@
                                             Foreground="#C62828"
                                             Height="32"
                                             Click="DeleteRecord_Click"/>
+                                        <Button x:Name="MoveRecordBtn"
+                                            Content="📦 نقل لدوسية أخرى"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Foreground="#1565C0"
+                                            Height="32"
+                                            Margin="0,0,8,0"
+                                            Click="MoveRecord_Click"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>

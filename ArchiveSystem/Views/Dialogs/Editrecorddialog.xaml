@@ -70,7 +70,7 @@
                          Margin="20,0,20,14"/>
 
                 <!-- Custom fields injected in code-behind -->
-                <StackPanel x:Name="CustomFieldsPanel"/>
+                <StackPanel x:Name="CustomFieldsPanel" Margin="20,0,20,14"/>
 
             </StackPanel>
         </ScrollViewer>

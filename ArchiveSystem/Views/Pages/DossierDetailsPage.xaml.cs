@@ -136,6 +136,54 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(RegisterMoveBtn, Permissions.MoveDossier, hideInstead: true);
             PermissionHelper.Apply(DeleteDossierBtn, Permissions.DeleteDossier, hideInstead: true);
             PermissionHelper.Apply(AddRecordBtn, Permissions.AddRecord, hideInstead: true);
+            PermissionHelper.Apply(MoveRecordBtn, Permissions.EditRecord, hideInstead: true);
+        }
+
+        private void MoveRecord_Click(object sender, RoutedEventArgs e)
+        {
+            if (RecordsGrid.SelectedItem is not RecordRow row)
+            {
+                PromptSelectRecord();
+                return;
+            }
+
+            string? targetNumberStr = InputDialog.Show(
+                $"أدخل رقم الدوسية التي تريد نقل سجل '{row.PersonName}' إليها:\n\n" +
+                $"ملاحظة: سيتم الاحتفاظ بجميع بيانات الحقول المخصصة.",
+                "نقل السجل إلى دوسية أخرى",
+                owner: Window.GetWindow(this));
+
+            if (string.IsNullOrWhiteSpace(targetNumberStr)) return;
+
+            if (!int.TryParse(targetNumberStr, out int targetNumber) || targetNumber <= 0)
+            {
+                MessageBox.Show("رقم الدوسية غير صحيح.", "خطأ",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"هل تريد نقل سجل '{row.PersonName}' ({row.PrisonerNumber})\n" +
+                $"من الدوسية الحالية إلى الدوسية رقم {targetNumber}؟\n\n" +
+                $"جميع البيانات والحقول المخصصة ستُنقل معه.",
+                "تأكيد النقل",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            var err = _recordService.MoveRecord(row.RecordId, targetNumber);
+
+            if (err != null)
+            {
+                MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            MessageBox.Show(
+                $"✅ تم نقل سجل '{row.PersonName}' إلى الدوسية رقم {targetNumber} بنجاح.",
+                "تم النقل", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            LoadRecords();
         }
 
         private void DeleteDossier_Click(object sender, RoutedEventArgs e)
