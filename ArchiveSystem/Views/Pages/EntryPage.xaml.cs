@@ -1,6 +1,7 @@
 ﻿using ArchiveSystem.Core.Helpers;
 using ArchiveSystem.Core.Models;
 using ArchiveSystem.Core.Services;
+using Dapper;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,7 +16,8 @@ namespace ArchiveSystem.Views.Pages
         private readonly DossierService _dossierService;
         private readonly RecordService _recordService;
         private readonly CustomFieldService _customFieldService;
-
+        private Key _saveKey = Key.F5;
+        private Key _clearKey = Key.F6;
         private int _currentDossierId = 0;
         private bool _isExistingDossier = false;
 
@@ -41,6 +43,7 @@ namespace ArchiveSystem.Views.Pages
             Loaded += (s, e) =>
             {
                 if (PermissionHelper.DenyPage(this, Permissions.AddRecord)) return;
+                LoadShortcuts();          // ← add this first
                 LoadCustomFields();
                 SuggestDossierNumber();
 
@@ -50,6 +53,57 @@ namespace ArchiveSystem.Views.Pages
             };
         }
 
+        private void LoadShortcuts()
+        {
+            try
+            {
+                using var conn = App.Database.CreateConnection();
+                string saveStr = conn.ExecuteScalar<string?>(
+                    "SELECT SettingValue FROM AppSettings WHERE SettingKey = 'EntrySaveKey'")
+                    ?? "F5";
+                string clearStr = conn.ExecuteScalar<string?>(
+                    "SELECT SettingValue FROM AppSettings WHERE SettingKey = 'EntryClearKey'")
+                    ?? "F6";
+
+                if (Enum.TryParse<Key>(saveStr, out var sk)) _saveKey = sk;
+                if (Enum.TryParse<Key>(clearStr, out var ck)) _clearKey = ck;
+            }
+            catch { /* keep defaults */ }
+
+            // Update button tooltips so users can see the active shortcut
+            UpdateButtonHints();
+
+            // Register page-level shortcut handler (remove old one first)
+            PreviewKeyDown -= EntryPage_PreviewKeyDown;
+            PreviewKeyDown += EntryPage_PreviewKeyDown;
+        }
+
+        private void UpdateButtonHints()
+        {
+            // Find the Save and Clear buttons via their click handlers (they're
+            // in the XAML — we just update their ToolTip text here)
+            // The simplest way: walk the visual tree or use x:Name fields.
+            // Since the buttons don't have x:Name, we can add them in XAML (see step 4).
+            // For now, update tooltips via named references added in step 4:
+            if (SaveRecordBtn != null)
+                SaveRecordBtn.ToolTip = $"💾 حفظ ({_saveKey})";
+            if (ClearRecordBtn != null)
+                ClearRecordBtn.ToolTip = $"مسح ({_clearKey})";
+        }
+
+        private void EntryPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == _saveKey)
+            {
+                SaveRecord_Click(this, new RoutedEventArgs());
+                e.Handled = true;
+            }
+            else if (e.Key == _clearKey)
+            {
+                ClearRecord_Click(this, new RoutedEventArgs());
+                e.Handled = true;
+            }
+        }
         // ══════════════════════════════════════════════════════════════════════
         // LIVE-SEARCH POPUP — PersonNameBox
         // ══════════════════════════════════════════════════════════════════════
@@ -149,6 +203,8 @@ namespace ArchiveSystem.Views.Pages
             WireListBoxSelection(listBox, popup, PrisonerNumberBox);
             AttachPopupToPage(popup);
         }
+
+
 
         // ══════════════════════════════════════════════════════════════════════
         // SHARED POPUP FACTORY

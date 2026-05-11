@@ -29,5 +29,7 @@
         public const string AuditImportsEnabled = "AuditImportsEnabled";
         public const string AppVersion = "AppVersion";
         public const string Density = "Density";
+        public const string EntrySaveKey = "EntrySaveKey";
+        public const string EntryClearKey = "EntryClearKey";
     }
 }

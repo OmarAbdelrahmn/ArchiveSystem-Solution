@@ -90,8 +90,20 @@ namespace ArchiveSystem.Data
                 Migration_007_SeedManagementPermission(conn);
                 RecordMigration(conn, "007", "Seed ManageManagements permission for Archive Manager");
             }
+            if (!MigrationApplied(conn, "008"))
+            {
+                Migration_008_EntryShortcuts(conn);
+                RecordMigration(conn, "008", "Seed Entry page keyboard shortcuts");
+            }
         }
-
+        private void Migration_008_EntryShortcuts(SqliteConnection conn)
+        {
+            conn.Execute(@"
+        INSERT OR IGNORE INTO AppSettings (SettingKey, SettingValue, UpdatedAt)
+        VALUES ('EntrySaveKey', 'F5', @Now),
+               ('EntryClearKey', 'F6', @Now)",
+                new { Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss") });
+        }
         private void Migration_007_SeedManagementPermission(SqliteConnection conn)
         {
             string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
