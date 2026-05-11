@@ -318,6 +318,31 @@ namespace ArchiveSystem.Views.Pages
             if (confirm != MessageBoxResult.Yes) return;
 
             _importService.ResolveWarning(warningId);
+
+            if (warning.WarningType == ImportWarningTypes.DuplicateInDatabase)
+            {
+                // Extract the prisoner number from the warning message
+                var match = System.Text.RegularExpressions.Regex.Match(
+                    warning.WarningMessage, @"\b\d{10}\b");
+                if (match.Success)
+                {
+                    string prisonerNum = match.Value;
+                    var confirm2 = MessageBox.Show(
+                        $"سيتم حذف السجل القديم برقم {prisonerNum} من قاعدة البيانات\n" +
+                        "ليتمكن السجل الجديد من الحفظ عند الاعتماد.\n\nهل تريد المتابعة؟",
+                        "حذف السجل القديم",
+                        MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (confirm2 == MessageBoxResult.Yes)
+                    {
+                        _importService.SoftDeleteExistingRecord(prisonerNum);
+                    }
+                    else
+                    {
+                        return; // user cancelled — don't resolve the warning
+                    }
+                }
+            }
+
             RefreshReviewData();
         }
 

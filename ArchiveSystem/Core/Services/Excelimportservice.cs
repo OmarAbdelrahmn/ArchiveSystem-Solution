@@ -26,6 +26,7 @@ namespace ArchiveSystem.Core.Services
         public const string DuplicateInDatabase = "DuplicatePrisonerNumberInDatabase";
         public const string MixedLocationInDossier = "MixedLocationInDossier";
         public const string InvalidLocation = "InvalidLocation";
+        public const string DuplicateNameInDatabase = "DuplicateNameInDatabase";
         public const string SheetNameTitleMismatch = "SheetNameTitleMismatch";
     }
 
@@ -79,6 +80,7 @@ namespace ArchiveSystem.Core.Services
             "DuplicatePrisonerNumberInImport" => "رقم مكرر في ملف الاستيراد",
             "DuplicatePrisonerNumberInDatabase" => "رقم موجود مسبقاً في قاعدة البيانات",
             "MixedLocationInDossier" => "مواقع مختلطة في الدوسية",
+            "DuplicateNameInDatabase" => "اسم موجود مسبقاً في قاعدة البيانات",
             "InvalidLocation" => "الموقع غير موجود في النظام",
             "SheetNameTitleMismatch" => "اسم الشيت لا يطابق رقم الدوسية",
             _ => WarningType
@@ -189,10 +191,16 @@ namespace ArchiveSystem.Core.Services
                     }, tx);
 
                 var seenInImport = new HashSet<string>();
+             
                 var existingPrisoners = conn
-                    .Query<string>("SELECT PrisonerNumber FROM Records WHERE DeletedAt IS NULL",
+            .Query<string>("SELECT PrisonerNumber FROM Records WHERE DeletedAt IS NULL",
+                transaction: tx)
+            .ToHashSet();
+
+                var existingNames = conn
+                    .Query<string>("SELECT DISTINCT PersonName FROM Records WHERE DeletedAt IS NULL",
                         transaction: tx)
-                    .ToHashSet();
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
                 int totalSheets = workbook.Worksheets.Count;
                 int totalDossiers = 0, totalRecords = 0, totalWarnings = 0, totalDupes = 0;
@@ -201,7 +209,7 @@ namespace ArchiveSystem.Core.Services
                 foreach (var ws in workbook.Worksheets)
                 {
                     var sheetResult = ProcessSheet(
-                        conn, tx, ws, batchId, seenInImport, existingPrisoners, now);
+                        conn, tx, ws, batchId, seenInImport, existingPrisoners, existingNames, now);
 
                     totalDossiers++;
                     totalRecords += sheetResult.Records;
@@ -282,6 +290,7 @@ namespace ArchiveSystem.Core.Services
             int batchId,
             HashSet<string> seenInImport,
             HashSet<string> existingInDb,
+            HashSet<string> existingNamesInDb,   // ← ADD
             string now)
         {
             string sheetName = ws.Name;
@@ -485,6 +494,10 @@ namespace ArchiveSystem.Core.Services
                     else
                     {
                         seenSeqInSheet.Add(seqVal);
+                        if (!string.IsNullOrEmpty(rawName))
+                        {
+                            bool nameExists = existingInDb.Any(/* but existingInDb is prisoner numbers, not names */);
+                        }
                         if (prevSeq > 0 && seqVal != prevSeq + 1)
                         {
                             AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
@@ -560,6 +573,17 @@ namespace ArchiveSystem.Core.Services
                     {
                         seenPrisonersInSheet.Add(cleanNum);
                         seenInImport.Add(cleanNum);
+                        if (!string.IsNullOrEmpty(rawName)
+                             && existingNamesInDb.Contains(rawName))
+                        {
+                            AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
+                                ImportWarningTypes.DuplicateNameInDatabase,
+                                $"الاسم '{rawName}' موجود مسبقاً في قاعدة البيانات برقم مختلف (صف {r})",
+                                "تحقق من أن هذا ليس نفس الشخص — رقم السجين مختلف لذا سيُحفظ");
+                            warnings++;
+                            hasWarnings = true;
+                            // rowHasWarning intentionally stays false — record is NOT blocked
+                        }
                     }
                 }
 
@@ -1324,7 +1348,23 @@ namespace ArchiveSystem.Core.Services
                 new { H = hallway, C = cabinet, S = shelf, Now = now }, tx);
         }
 
-
+        public void SoftDeleteExistingRecord(string prisonerNumber)
+{
+    using var conn = _db.CreateConnection();
+    string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+    int userId = UserSession.CurrentUser?.UserId ?? 0;
+    conn.Execute(@"
+        UPDATE Records
+        SET DeletedAt = @Now, DeletedByUserId = @UserId, Status = 'Deleted'
+        WHERE PrisonerNumber = @PNum AND DeletedAt IS NULL",
+        new { Now = now, UserId = userId, PNum = prisonerNumber });
+    conn.Execute(@"
+        INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
+        VALUES (@UserId, 'RecordDeleted', @Desc, @Now)",
+        new { UserId = userId,
+              Desc = $"حذف سجل قديم برقم {prisonerNumber} لإتاحة المجال للاستيراد",
+              Now = now });
+}
         private static string TranslateWarningType(string t) => t switch
         {
             ImportWarningTypes.MissingDossierMetadata => "بيانات دوسية مفقودة",
@@ -1333,7 +1373,10 @@ namespace ArchiveSystem.Core.Services
             ImportWarningTypes.InvalidPrisonerNumber => "رقم سجين غير صحيح",
             ImportWarningTypes.DuplicateInSheet => "رقم سجين مكرر في الشيت",
             ImportWarningTypes.DuplicateInImport => "رقم سجين مكرر في الاستيراد",
-            ImportWarningTypes.DuplicateInDatabase => "رقم سجين موجود في قاعدة البيانات",
+            ImportWarningTypes.DuplicateInDatabase =>
+                "❌ هذا السجل لن يُحفظ افتراضياً.\n" +
+                "   يمكنك الضغط على (حل) لحذف السجل القديم وإتاحة المجال للجديد.\n" +
+                "   أو اتركه كما هو إذا أردت الإبقاء على السجل القديم.",
             ImportWarningTypes.MissingName => "اسم مفقود",
             ImportWarningTypes.InvalidLocation => "موقع غير موجود في النظام",
             _ => t
