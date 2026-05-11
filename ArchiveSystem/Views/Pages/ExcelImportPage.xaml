@@ -376,17 +376,51 @@
                                             Binding="{Binding WarningMessage}"  Width="*"/>
                                         <DataGridTextColumn Header="الإجراء المقترح"
                                             Binding="{Binding SuggestedAction}" Width="170"/>
+                                        <DataGridTextColumn Header="ماذا سيفعل النظام"
+                                            Binding="{Binding SystemAction}"
+                                            Width="200"/>
 
                                         <!-- Resolve button -->
-                                        <DataGridTemplateColumn Header="إجراء" Width="90">
+                                        <DataGridTemplateColumn Width="90">
+                                            <DataGridTemplateColumn.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="إجراء" VerticalAlignment="Center"/>
+                                                    <Border Background="#E3F2FD"
+                                                        CornerRadius="8"
+                                                        Padding="5,1"
+                                                        Margin="6,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        ToolTip="تعليم التحذير كـ'محلول' يعني أنك راجعته وقررت المتابعة رغمه. لن يُحذف التحذير، فقط يُخفى من عداد الموانع.">
+                                                        <TextBlock Text="ℹ️" FontSize="11" Foreground="#1565C0"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Button Tag="{Binding WarningId}"
-                                                            Click="ResolveWarning_Click"
-                                                            Height="28" Padding="6,0">
+                                                        Click="ResolveWarning_Click"
+                                                        Height="28" Padding="6,0">              
+                                                        <Button.ToolTip>
+                                                            <ToolTip MaxWidth="280">
+                                                                <StackPanel>
+                                                                     <TextBlock Text="تعليم هذا التحذير كـ&quot;محلول&quot;"
+                                                                   FontWeight="SemiBold"
+                                                                   FontSize="12"
+                                                                   Margin="0,0,0,4"/>
+                                                                    <TextBlock TextWrapping="Wrap"
+                                                                       FontSize="11"
+                                                                       Text="يعني أنك راجعت هذا التحذير وقررت تجاهله والمتابعة. التحذير لن يُحذف، لكنه لن يمنع الاعتماد بعد الآن."/> 
+                                                                    <TextBlock TextWrapping="Wrap"
+                                                                       FontSize="11"
+                                                                       Foreground="#E65100"
+                                                                       Margin="0,4,0,0"
+                                                                       Text="⚠️ تأكد من مراجعة التحذير قبل تعليمه محلولاً."/> 
+                                                                </StackPanel>
+                                                            </ToolTip>
+                                                        </Button.ToolTip>
                                                         <Button.Style>
                                                             <Style TargetType="Button"
-                                                                   BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                                                    BasedOn="{StaticResource MaterialDesignFlatButton}">
                                                                 <Setter Property="Content"    Value="✔ حل"/>
                                                                 <Setter Property="Foreground" Value="#1a7a60"/>
                                                                 <Style.Triggers>
@@ -405,12 +439,19 @@
 
                                     </DataGrid.Columns>
 
-                                    <!-- Dim resolved rows -->
                                     <DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsResolved}" Value="True">
                                                     <Setter Property="Opacity" Value="0.45"/>
+                                                </DataTrigger>
+                                                  <DataTrigger Binding="{Binding SystemAction}"
+                                                            Value="❌ السجل لن يُحفظ">
+                                                    <Setter Property="Background" Value="#FFF0F0"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding SystemAction}"
+                                                       Value="❌ كل سجلات الشيت لن تُحفظ">
+                                                    <Setter Property="Background" Value="#FFF0F0"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>

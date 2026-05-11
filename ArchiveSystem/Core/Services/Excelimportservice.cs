@@ -83,6 +83,45 @@ namespace ArchiveSystem.Core.Services
             "SheetNameTitleMismatch" => "اسم الشيت لا يطابق رقم الدوسية",
             _ => WarningType
         };
+
+        public string SystemAction => WarningType switch
+        {
+            ImportWarningTypes.InvalidPrisonerNumber =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.MissingPrisonerNumber =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.MissingName =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.DuplicateInSheet =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.DuplicateInImport =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.DuplicateInDatabase =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.MissingDossierMetadata =>
+                "❌ كل سجلات الشيت لن تُحفظ",
+            ImportWarningTypes.MissingHeaderRow =>
+                "❌ كل سجلات الشيت لن تُحفظ",
+            ImportWarningTypes.DuplicateSequence =>
+                "⚠️ يُحفظ بتسلسل تلقائي جديد",
+            ImportWarningTypes.MissingSequence =>
+                "⚠️ يُحفظ بتسلسل تلقائي",
+            ImportWarningTypes.InvalidSequence =>
+                "⚠️ يُحفظ بتسلسل تلقائي",
+            ImportWarningTypes.SuspiciousName =>
+                "✅ يُحفظ كما هو",
+            ImportWarningTypes.CountMismatch =>
+                "✅ يُحفظ كما هو",
+            ImportWarningTypes.SequenceGap =>
+                "✅ يُحفظ كما هو",
+            ImportWarningTypes.MixedLocationInDossier =>
+                "✅ يُحفظ — موقع الأغلبية",
+            ImportWarningTypes.InvalidLocation =>
+                "✅ يُحفظ — موقع جديد يُنشأ",
+            ImportWarningTypes.SheetNameTitleMismatch =>
+                "✅ يُحفظ — رقم العنوان يُستخدم",
+            _ => "—"
+        };
     }
     public class StagingResult
     {
