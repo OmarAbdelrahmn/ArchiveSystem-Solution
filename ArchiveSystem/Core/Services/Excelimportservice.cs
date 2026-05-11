@@ -248,6 +248,30 @@ namespace ArchiveSystem.Core.Services
             return result;
         }
 
+        /// <summary>
+        /// Returns all import warnings recorded for a specific dossier number,
+        /// across any import batch.
+        /// </summary>
+        public List<ImportWarningView> GetWarningsForDossier(int dossierNumber)
+        {
+            using var conn = _db.CreateConnection();
+            return conn.Query<ImportWarningView>(@"
+        SELECT
+            iw.WarningId,
+            sd.SheetName,
+            sr.RowNumber,
+            sd.DossierNumber,
+            iw.WarningType,
+            iw.WarningMessage,
+            COALESCE(iw.SuggestedAction, '') AS SuggestedAction,
+            iw.IsResolved
+        FROM ImportWarnings iw
+        LEFT JOIN ImportStagingDossiers sd ON sd.StagingDossierId = iw.StagingDossierId
+        LEFT JOIN ImportStagingRecords  sr ON sr.StagingRecordId  = iw.StagingRecordId
+        WHERE sd.DossierNumber = @DossierNumber
+        ORDER BY iw.WarningId",
+                new { DossierNumber = dossierNumber }).AsList();
+        }
         // ── PROCESS ONE SHEET ─────────────────────────────────────────────────
         private record SheetProcessResult(int Records, int Warnings, int Duplicates, string Status);
 
@@ -900,20 +924,25 @@ namespace ArchiveSystem.Core.Services
                     if (sd.HallwayNumber != null && sd.CabinetNumber != null && sd.ShelfNumber != null)
                         locationId = GetOrCreateLocation(conn, tx,
                             (int)sd.HallwayNumber, (int)sd.CabinetNumber, (int)sd.ShelfNumber, now);
-
-                    // ✅ FIX: Hard-delete any soft-deleted dossier with the same number
+                
+                    // Hard-delete ALL soft-deleted dossiers with the same number (and their records)
                     if (sd.DossierNumber != null)
                     {
-                        var softDeleted = conn.ExecuteScalar<int?>(
+                        var softDeletedIds = conn.Query<int>(
                             "SELECT DossierId FROM Dossiers WHERE DossierNumber = @N AND DeletedAt IS NOT NULL",
-                            new { N = (int)sd.DossierNumber }, tx);
+                            new { N = (int)sd.DossierNumber }, tx).AsList();
 
-                        if (softDeleted.HasValue)
+                        foreach (var softDeletedId in softDeletedIds)
                         {
+                            // Must delete records first due to foreign key / unique constraints
+                            conn.Execute("DELETE FROM RecordCustomFieldValues WHERE RecordId IN (SELECT RecordId FROM Records WHERE DossierId = @Id)",
+                                new { Id = softDeletedId }, tx);
                             conn.Execute("DELETE FROM Records WHERE DossierId = @Id",
-                                new { Id = softDeleted.Value }, tx);
+                                new { Id = softDeletedId }, tx);
+                            conn.Execute("DELETE FROM DossierMovements WHERE DossierId = @Id",
+                                new { Id = softDeletedId }, tx);
                             conn.Execute("DELETE FROM Dossiers WHERE DossierId = @Id",
-                                new { Id = softDeleted.Value }, tx);
+                                new { Id = softDeletedId }, tx);
                         }
                     }
 
@@ -1052,6 +1081,51 @@ namespace ArchiveSystem.Core.Services
         /// Caller MUST call BackupService.CreateBackup() BEFORE calling this method.
         /// </summary>
 
+        /// <summary>
+        /// Resolves all unresolved warnings for every import batch that
+        /// targeted this dossier number.
+        /// </summary>
+        public void ResolveAllWarningsForDossier(int dossierNumber)
+        {
+            using var conn = _db.CreateConnection();
+            conn.Execute(@"
+        UPDATE ImportWarnings
+        SET IsResolved       = 1,
+            ResolvedByUserId = @UserId,
+            ResolvedAt       = @Now
+        WHERE StagingDossierId IN (
+            SELECT StagingDossierId
+            FROM   ImportStagingDossiers
+            WHERE  DossierNumber = @DossierNumber
+        )
+        AND IsResolved = 0",
+                new
+                {
+                    UserId = UserSession.CurrentUser?.UserId,
+                    Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    DossierNumber = dossierNumber
+                });
+        }
+
+        /// <summary>
+        /// Resolves a single warning by its ID.
+        /// </summary>
+        public void ResolveWarningById(int warningId)
+        {
+            using var conn = _db.CreateConnection();
+            conn.Execute(@"
+        UPDATE ImportWarnings
+        SET IsResolved       = 1,
+            ResolvedByUserId = @UserId,
+            ResolvedAt       = @Now
+        WHERE WarningId = @Id",
+                new
+                {
+                    UserId = UserSession.CurrentUser?.UserId,
+                    Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    Id = warningId
+                });
+        }
         public string? RollbackBatch(int batchId)
         {
             using var conn = _db.CreateConnection();

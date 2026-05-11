@@ -132,8 +132,30 @@ namespace ArchiveSystem.Core.Services
 
             using var conn = _db.CreateConnection();
 
+            // Hard-delete any soft-deleted dossier with this number first
+            using (var cleanTx = conn.BeginTransaction())
+            {
+                var softDeletedIds = conn.Query<int>(
+                    "SELECT DossierId FROM Dossiers WHERE DossierNumber = @N AND DeletedAt IS NOT NULL",
+                    new { N = dossierNumber }, cleanTx).AsList();
+
+                foreach (var softDeletedId in softDeletedIds)
+                {
+                    conn.Execute("DELETE FROM RecordCustomFieldValues WHERE RecordId IN (SELECT RecordId FROM Records WHERE DossierId = @Id)",
+                        new { Id = softDeletedId }, cleanTx);
+                    conn.Execute("DELETE FROM Records WHERE DossierId = @Id",
+                        new { Id = softDeletedId }, cleanTx);
+                    conn.Execute("DELETE FROM DossierMovements WHERE DossierId = @Id",
+                        new { Id = softDeletedId }, cleanTx);
+                    conn.Execute("DELETE FROM Dossiers WHERE DossierId = @Id",
+                        new { Id = softDeletedId }, cleanTx);
+                }
+                cleanTx.Commit();
+            }
+
+            // Now check only for active (non-deleted) duplicates
             int exists = conn.ExecuteScalar<int>(
-                "SELECT COUNT(*) FROM Dossiers WHERE DossierNumber = @N",
+                "SELECT COUNT(*) FROM Dossiers WHERE DossierNumber = @N AND DeletedAt IS NULL",
                 new { N = dossierNumber });
             if (exists > 0)
                 return ($"رقم الدوسية {dossierNumber} موجود مسبقاً.", 0);
