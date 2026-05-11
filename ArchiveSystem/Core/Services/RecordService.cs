@@ -8,6 +8,43 @@ namespace ArchiveSystem.Core.Services
     {
         private readonly DatabaseContext _db = db;
 
+
+        /// <summary>
+        /// Returns distinct person names that START WITH <paramref name="query"/>
+        /// (case-insensitive prefix match), ordered alphabetically.
+        /// Used by the live-search popup on the Entry page.
+        /// </summary>
+        public List<string> GetNameSuggestions(string query, int limit = 10)
+        {
+            if (string.IsNullOrWhiteSpace(query)) return new();
+            using var conn = _db.CreateConnection();
+            return conn.Query<string>(@"
+        SELECT DISTINCT PersonName
+        FROM   Records
+        WHERE  DeletedAt IS NULL
+        AND    PersonName LIKE @Q
+        ORDER  BY PersonName
+        LIMIT  @Limit",
+                new { Q = $"{query.Trim()}%", Limit = limit }).AsList();
+        }
+
+        /// <summary>
+        /// Returns distinct prisoner numbers that START WITH <paramref name="query"/>,
+        /// ordered numerically.  Used by the live-search popup on the Entry page.
+        /// </summary>
+        public List<string> GetPrisonerNumberSuggestions(string query, int limit = 10)
+        {
+            if (string.IsNullOrWhiteSpace(query)) return new();
+            using var conn = _db.CreateConnection();
+            return conn.Query<string>(@"
+        SELECT DISTINCT PrisonerNumber
+        FROM   Records
+        WHERE  DeletedAt IS NULL
+        AND    PrisonerNumber LIKE @Q
+        ORDER  BY PrisonerNumber
+        LIMIT  @Limit",
+                new { Q = $"{query.Trim()}%", Limit = limit }).AsList();
+        }
         public List<Record> GetRecordsByDossier(int dossierId)
         {
             using var conn = _db.CreateConnection();
