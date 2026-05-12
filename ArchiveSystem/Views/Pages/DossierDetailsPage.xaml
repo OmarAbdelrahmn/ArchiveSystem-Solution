@@ -195,6 +195,13 @@
                                             Foreground="#C62828"
                                             Height="32"
                                             Click="DeleteRecord_Click"/>
+                                        <Button x:Name="MoveRecordBtn"
+                                            Content="📦 نقل لدوسية أخرى"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Foreground="#1565C0"
+                                            Height="32"
+                                            Margin="0,0,8,0"
+                                            Click="MoveRecord_Click"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -339,6 +346,119 @@
                                     <DataGridTextColumn Header="بواسطة"
                                     Binding="{Binding MovedByUserName}"
                                     Width="130"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- ══ WARNINGS TAB ══ -->
+                    <TabItem x:Name="WarningsTab"
+         Height="28"
+         Margin="4,4,4,4"
+         Padding="16,4">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="WarningsTabHeader" Text="التحذيرات"/>
+                            </StackPanel>
+                        </TabItem.Header>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0"
+        Background="#FFF8E1"
+        BorderThickness="0,0,0,1" BorderBrush="#FFE082"
+        Padding="14,10"
+        x:Name="WarningsSummaryBar"
+        Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0"
+                   x:Name="WarningsSummaryText"
+                   FontSize="12" Foreground="#E65100"
+                   VerticalAlignment="Center"/>
+
+                                    <Button Grid.Column="1"
+                x:Name="ResolveAllWarningsBtn"
+                Content="✔ حل جميع التحذيرات"
+                Style="{StaticResource MaterialDesignOutlinedButton}"
+                Foreground="#1a7a60"
+                Height="32"
+                Margin="12,0,0,0"
+                Click="ResolveAllWarnings_Click"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Empty state -->
+                            <TextBlock Grid.Row="1"
+                   x:Name="NoWarningsText"
+                   Text="✅ لا توجد تحذيرات مسجلة لهذه الدوسية."
+                   FontSize="14" Foreground="#AAA"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Visibility="Collapsed"/>
+
+                            <!-- Warnings grid -->
+                            <DataGrid Grid.Row="1"
+                  x:Name="WarningsGrid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  Style="{StaticResource MaterialDesignDataGrid}"
+                  materialDesign:DataGridAssist.CellPadding="10 7 10 7"
+                  RowBackground="White"
+                  AlternatingRowBackground="#FFFDE7"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  Margin="0,5,0,0">
+
+                                <DataGrid.RowStyle>
+                                    <Style TargetType="DataGridRow">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsResolved}" Value="True">
+                                                <Setter Property="Opacity" Value="0.45"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding SystemAction}"
+                                     Value="❌ السجل لن يُحفظ">
+                                                <Setter Property="Background" Value="#FFF0F0"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding SystemAction}"
+                                     Value="❌ كل سجلات الشيت لن تُحفظ">
+                                                <Setter Property="Background" Value="#FFF0F0"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGrid.RowStyle>
+
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="الشيت"
+                                    Binding="{Binding SheetName}"
+                                    Width="90"/>
+                                    <DataGridTextColumn Header="صف"
+                                    Binding="{Binding RowDisplay}"
+                                    Width="45"/>
+                                    <DataGridTextColumn Header="نوع التحذير"
+                                    Binding="{Binding WarningTypeDisplay}"
+                                    Width="190"/>
+                                    <DataGridTextColumn Header="الرسالة"
+                                    Binding="{Binding WarningMessage}"
+                                    Width="*"/>
+                                    <DataGridTextColumn Header="الإجراء المقترح"
+                                    Binding="{Binding SuggestedAction}"
+                                    Width="170"/>
+                                    <DataGridTextColumn Header="ماذا سيفعل النظام"
+                                    Binding="{Binding SystemAction}"
+                                    Width="180"/>
+                                    <DataGridCheckBoxColumn Header="محلول"
+                                        Binding="{Binding IsResolved}"
+                                        Width="65"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>

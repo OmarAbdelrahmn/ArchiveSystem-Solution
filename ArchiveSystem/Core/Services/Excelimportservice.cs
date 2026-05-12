@@ -26,6 +26,7 @@ namespace ArchiveSystem.Core.Services
         public const string DuplicateInDatabase = "DuplicatePrisonerNumberInDatabase";
         public const string MixedLocationInDossier = "MixedLocationInDossier";
         public const string InvalidLocation = "InvalidLocation";
+        public const string DuplicateNameInDatabase = "DuplicateNameInDatabase";
         public const string SheetNameTitleMismatch = "SheetNameTitleMismatch";
     }
 
@@ -79,9 +80,49 @@ namespace ArchiveSystem.Core.Services
             "DuplicatePrisonerNumberInImport" => "رقم مكرر في ملف الاستيراد",
             "DuplicatePrisonerNumberInDatabase" => "رقم موجود مسبقاً في قاعدة البيانات",
             "MixedLocationInDossier" => "مواقع مختلطة في الدوسية",
+            "DuplicateNameInDatabase" => "اسم موجود مسبقاً في قاعدة البيانات",
             "InvalidLocation" => "الموقع غير موجود في النظام",
             "SheetNameTitleMismatch" => "اسم الشيت لا يطابق رقم الدوسية",
             _ => WarningType
+        };
+
+        public string SystemAction => WarningType switch
+        {
+            ImportWarningTypes.InvalidPrisonerNumber =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.MissingPrisonerNumber =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.MissingName =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.DuplicateInSheet =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.DuplicateInImport =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.DuplicateInDatabase =>
+                "❌ السجل لن يُحفظ",
+            ImportWarningTypes.MissingDossierMetadata =>
+                "❌ كل سجلات الشيت لن تُحفظ",
+            ImportWarningTypes.MissingHeaderRow =>
+                "❌ كل سجلات الشيت لن تُحفظ",
+            ImportWarningTypes.DuplicateSequence =>
+                "⚠️ يُحفظ بتسلسل تلقائي جديد",
+            ImportWarningTypes.MissingSequence =>
+                "⚠️ يُحفظ بتسلسل تلقائي",
+            ImportWarningTypes.InvalidSequence =>
+                "⚠️ يُحفظ بتسلسل تلقائي",
+            ImportWarningTypes.SuspiciousName =>
+                "✅ يُحفظ كما هو",
+            ImportWarningTypes.CountMismatch =>
+                "✅ يُحفظ كما هو",
+            ImportWarningTypes.SequenceGap =>
+                "✅ يُحفظ كما هو",
+            ImportWarningTypes.MixedLocationInDossier =>
+                "✅ يُحفظ — موقع الأغلبية",
+            ImportWarningTypes.InvalidLocation =>
+                "✅ يُحفظ — موقع جديد يُنشأ",
+            ImportWarningTypes.SheetNameTitleMismatch =>
+                "✅ يُحفظ — رقم العنوان يُستخدم",
+            _ => "—"
         };
     }
     public class StagingResult
@@ -150,10 +191,16 @@ namespace ArchiveSystem.Core.Services
                     }, tx);
 
                 var seenInImport = new HashSet<string>();
+             
                 var existingPrisoners = conn
-                    .Query<string>("SELECT PrisonerNumber FROM Records WHERE DeletedAt IS NULL",
+            .Query<string>("SELECT PrisonerNumber FROM Records WHERE DeletedAt IS NULL",
+                transaction: tx)
+            .ToHashSet();
+
+                var existingNames = conn
+                    .Query<string>("SELECT DISTINCT PersonName FROM Records WHERE DeletedAt IS NULL",
                         transaction: tx)
-                    .ToHashSet();
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
                 int totalSheets = workbook.Worksheets.Count;
                 int totalDossiers = 0, totalRecords = 0, totalWarnings = 0, totalDupes = 0;
@@ -162,7 +209,7 @@ namespace ArchiveSystem.Core.Services
                 foreach (var ws in workbook.Worksheets)
                 {
                     var sheetResult = ProcessSheet(
-                        conn, tx, ws, batchId, seenInImport, existingPrisoners, now);
+                        conn, tx, ws, batchId, seenInImport, existingPrisoners, existingNames, now);
 
                     totalDossiers++;
                     totalRecords += sheetResult.Records;
@@ -209,6 +256,30 @@ namespace ArchiveSystem.Core.Services
             return result;
         }
 
+        /// <summary>
+        /// Returns all import warnings recorded for a specific dossier number,
+        /// across any import batch.
+        /// </summary>
+        public List<ImportWarningView> GetWarningsForDossier(int dossierNumber)
+        {
+            using var conn = _db.CreateConnection();
+            return conn.Query<ImportWarningView>(@"
+        SELECT
+            iw.WarningId,
+            sd.SheetName,
+            sr.RowNumber,
+            sd.DossierNumber,
+            iw.WarningType,
+            iw.WarningMessage,
+            COALESCE(iw.SuggestedAction, '') AS SuggestedAction,
+            iw.IsResolved
+        FROM ImportWarnings iw
+        LEFT JOIN ImportStagingDossiers sd ON sd.StagingDossierId = iw.StagingDossierId
+        LEFT JOIN ImportStagingRecords  sr ON sr.StagingRecordId  = iw.StagingRecordId
+        WHERE sd.DossierNumber = @DossierNumber
+        ORDER BY iw.WarningId",
+                new { DossierNumber = dossierNumber }).AsList();
+        }
         // ── PROCESS ONE SHEET ─────────────────────────────────────────────────
         private record SheetProcessResult(int Records, int Warnings, int Duplicates, string Status);
 
@@ -219,6 +290,7 @@ namespace ArchiveSystem.Core.Services
             int batchId,
             HashSet<string> seenInImport,
             HashSet<string> existingInDb,
+            HashSet<string> existingNamesInDb,   // ← ADD
             string now)
         {
             string sheetName = ws.Name;
@@ -422,6 +494,10 @@ namespace ArchiveSystem.Core.Services
                     else
                     {
                         seenSeqInSheet.Add(seqVal);
+                        if (!string.IsNullOrEmpty(rawName))
+                        {
+                            bool nameExists = existingInDb.Any(/* but existingInDb is prisoner numbers, not names */);
+                        }
                         if (prevSeq > 0 && seqVal != prevSeq + 1)
                         {
                             AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
@@ -497,6 +573,17 @@ namespace ArchiveSystem.Core.Services
                     {
                         seenPrisonersInSheet.Add(cleanNum);
                         seenInImport.Add(cleanNum);
+                        if (!string.IsNullOrEmpty(rawName)
+                             && existingNamesInDb.Contains(rawName))
+                        {
+                            AddWarning(conn, tx, batchId, stagingDossierId, stagingRecordId,
+                                ImportWarningTypes.DuplicateNameInDatabase,
+                                $"الاسم '{rawName}' موجود مسبقاً في قاعدة البيانات برقم مختلف (صف {r})",
+                                "تحقق من أن هذا ليس نفس الشخص — رقم السجين مختلف لذا سيُحفظ");
+                            warnings++;
+                            hasWarnings = true;
+                            // rowHasWarning intentionally stays false — record is NOT blocked
+                        }
                     }
                 }
 
@@ -861,20 +948,25 @@ namespace ArchiveSystem.Core.Services
                     if (sd.HallwayNumber != null && sd.CabinetNumber != null && sd.ShelfNumber != null)
                         locationId = GetOrCreateLocation(conn, tx,
                             (int)sd.HallwayNumber, (int)sd.CabinetNumber, (int)sd.ShelfNumber, now);
-
-                    // ✅ FIX: Hard-delete any soft-deleted dossier with the same number
+                
+                    // Hard-delete ALL soft-deleted dossiers with the same number (and their records)
                     if (sd.DossierNumber != null)
                     {
-                        var softDeleted = conn.ExecuteScalar<int?>(
+                        var softDeletedIds = conn.Query<int>(
                             "SELECT DossierId FROM Dossiers WHERE DossierNumber = @N AND DeletedAt IS NOT NULL",
-                            new { N = (int)sd.DossierNumber }, tx);
+                            new { N = (int)sd.DossierNumber }, tx).AsList();
 
-                        if (softDeleted.HasValue)
+                        foreach (var softDeletedId in softDeletedIds)
                         {
+                            // Must delete records first due to foreign key / unique constraints
+                            conn.Execute("DELETE FROM RecordCustomFieldValues WHERE RecordId IN (SELECT RecordId FROM Records WHERE DossierId = @Id)",
+                                new { Id = softDeletedId }, tx);
                             conn.Execute("DELETE FROM Records WHERE DossierId = @Id",
-                                new { Id = softDeleted.Value }, tx);
+                                new { Id = softDeletedId }, tx);
+                            conn.Execute("DELETE FROM DossierMovements WHERE DossierId = @Id",
+                                new { Id = softDeletedId }, tx);
                             conn.Execute("DELETE FROM Dossiers WHERE DossierId = @Id",
-                                new { Id = softDeleted.Value }, tx);
+                                new { Id = softDeletedId }, tx);
                         }
                     }
 
@@ -1013,6 +1105,51 @@ namespace ArchiveSystem.Core.Services
         /// Caller MUST call BackupService.CreateBackup() BEFORE calling this method.
         /// </summary>
 
+        /// <summary>
+        /// Resolves all unresolved warnings for every import batch that
+        /// targeted this dossier number.
+        /// </summary>
+        public void ResolveAllWarningsForDossier(int dossierNumber)
+        {
+            using var conn = _db.CreateConnection();
+            conn.Execute(@"
+        UPDATE ImportWarnings
+        SET IsResolved       = 1,
+            ResolvedByUserId = @UserId,
+            ResolvedAt       = @Now
+        WHERE StagingDossierId IN (
+            SELECT StagingDossierId
+            FROM   ImportStagingDossiers
+            WHERE  DossierNumber = @DossierNumber
+        )
+        AND IsResolved = 0",
+                new
+                {
+                    UserId = UserSession.CurrentUser?.UserId,
+                    Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    DossierNumber = dossierNumber
+                });
+        }
+
+        /// <summary>
+        /// Resolves a single warning by its ID.
+        /// </summary>
+        public void ResolveWarningById(int warningId)
+        {
+            using var conn = _db.CreateConnection();
+            conn.Execute(@"
+        UPDATE ImportWarnings
+        SET IsResolved       = 1,
+            ResolvedByUserId = @UserId,
+            ResolvedAt       = @Now
+        WHERE WarningId = @Id",
+                new
+                {
+                    UserId = UserSession.CurrentUser?.UserId,
+                    Now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    Id = warningId
+                });
+        }
         public string? RollbackBatch(int batchId)
         {
             using var conn = _db.CreateConnection();
@@ -1211,7 +1348,23 @@ namespace ArchiveSystem.Core.Services
                 new { H = hallway, C = cabinet, S = shelf, Now = now }, tx);
         }
 
-
+        public void SoftDeleteExistingRecord(string prisonerNumber)
+{
+    using var conn = _db.CreateConnection();
+    string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+    int userId = UserSession.CurrentUser?.UserId ?? 0;
+    conn.Execute(@"
+        UPDATE Records
+        SET DeletedAt = @Now, DeletedByUserId = @UserId, Status = 'Deleted'
+        WHERE PrisonerNumber = @PNum AND DeletedAt IS NULL",
+        new { Now = now, UserId = userId, PNum = prisonerNumber });
+    conn.Execute(@"
+        INSERT INTO AuditLog (UserId, ActionType, Description, CreatedAt)
+        VALUES (@UserId, 'RecordDeleted', @Desc, @Now)",
+        new { UserId = userId,
+              Desc = $"حذف سجل قديم برقم {prisonerNumber} لإتاحة المجال للاستيراد",
+              Now = now });
+}
         private static string TranslateWarningType(string t) => t switch
         {
             ImportWarningTypes.MissingDossierMetadata => "بيانات دوسية مفقودة",
@@ -1220,7 +1373,10 @@ namespace ArchiveSystem.Core.Services
             ImportWarningTypes.InvalidPrisonerNumber => "رقم سجين غير صحيح",
             ImportWarningTypes.DuplicateInSheet => "رقم سجين مكرر في الشيت",
             ImportWarningTypes.DuplicateInImport => "رقم سجين مكرر في الاستيراد",
-            ImportWarningTypes.DuplicateInDatabase => "رقم سجين موجود في قاعدة البيانات",
+            ImportWarningTypes.DuplicateInDatabase =>
+                "❌ هذا السجل لن يُحفظ افتراضياً.\n" +
+                "   يمكنك الضغط على (حل) لحذف السجل القديم وإتاحة المجال للجديد.\n" +
+                "   أو اتركه كما هو إذا أردت الإبقاء على السجل القديم.",
             ImportWarningTypes.MissingName => "اسم مفقود",
             ImportWarningTypes.InvalidLocation => "موقع غير موجود في النظام",
             _ => t

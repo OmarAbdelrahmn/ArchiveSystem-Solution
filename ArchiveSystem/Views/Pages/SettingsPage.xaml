@@ -756,6 +756,63 @@
                                        TextWrapping="Wrap"/>
                         </Border>
 
+                        <!-- ══ KEYBOARD SHORTCUTS CARD ══ -->
+                        <Border Background="White" CornerRadius="8" Padding="20"
+                                   Margin="0,0,0,16">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" Opacity="0.08" ShadowDepth="1"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <TextBlock Text="⌨️  اختصارات لوحة المفاتيح — صفحة الإدخال"
+                                   FontSize="14" FontWeight="Bold"
+                                   Foreground="#1a7a60" Margin="0,0,0,16"/>
+
+                               <TextBlock Text="زر حفظ السجل"
+                                      FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                <ComboBox x:Name="SaveKeyCombo"
+          Width="220" Height="50"
+                                                                                    Style="{StaticResource MaterialDesignOutlinedComboBox}"
+
+          HorizontalAlignment="Right"
+          Margin="0,0,0,14"
+          FlowDirection="LeftToRight">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}"
+                       Foreground="#1a2e25"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+
+
+                                <TextBlock Text="زر مسح الحقول"
+                                     FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                <ComboBox x:Name="ClearKeyCombo"
+          Width="220" Height="50"
+          HorizontalAlignment="Right"
+                                                                                    Style="{StaticResource MaterialDesignOutlinedComboBox}"
+
+          FlowDirection="LeftToRight">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}"
+                       Foreground="#1a2e25"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+
+                                <TextBlock Text="التغيير يسري عند فتح صفحة الإدخال مجدداً."
+                                       FontSize="11" Foreground="#999"
+                                       Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        
                         <!-- Save button -->
                         <Button x:Name="SaveSettingsBtn"
                                 Content="💾  حفظ الإعدادات"

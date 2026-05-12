@@ -298,16 +298,128 @@ namespace ArchiveSystem.Views.Pages
         }
 
         // ── RESOLVE WARNING ───────────────────────────────────────────────────
-
         private void ResolveWarning_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn) return;
             if (btn.Tag is not int warningId) return;
+            if (btn.DataContext is not ImportWarningView warning) return;
+
+            string consequence = GetWarningConsequence(warning.WarningType);
+
+            var confirm = MessageBox.Show(
+                $"نوع التحذير:  {warning.WarningTypeDisplay}\n" +
+                $"الرسالة:  {warning.WarningMessage}\n\n" +
+                $"⚠️ ماذا سيحدث عند الاعتماد:\n{consequence}\n\n" +
+                "هل تريد تعليم هذا التحذير كـ\"محلول\" والمتابعة؟",
+                "تأكيد — اقرأ بعناية قبل المتابعة",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
 
             _importService.ResolveWarning(warningId);
+
+            if (warning.WarningType == ImportWarningTypes.DuplicateInDatabase)
+            {
+                // Extract the prisoner number from the warning message
+                var match = System.Text.RegularExpressions.Regex.Match(
+                    warning.WarningMessage, @"\b\d{10}\b");
+                if (match.Success)
+                {
+                    string prisonerNum = match.Value;
+                    var confirm2 = MessageBox.Show(
+                        $"سيتم حذف السجل القديم برقم {prisonerNum} من قاعدة البيانات\n" +
+                        "ليتمكن السجل الجديد من الحفظ عند الاعتماد.\n\nهل تريد المتابعة؟",
+                        "حذف السجل القديم",
+                        MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (confirm2 == MessageBoxResult.Yes)
+                    {
+                        _importService.SoftDeleteExistingRecord(prisonerNum);
+                    }
+                    else
+                    {
+                        return; // user cancelled — don't resolve the warning
+                    }
+                }
+            }
+
             RefreshReviewData();
         }
 
+        private static string GetWarningConsequence(string warningType) => warningType switch
+        {
+            ImportWarningTypes.InvalidPrisonerNumber =>
+                "❌ هذا السجل لن يُحفظ في النظام نهائياً.\n" +
+                "   رقم السجين غير صحيح (ليس 10 أرقام) لذا سيُتجاهل عند الاعتماد.",
+
+            ImportWarningTypes.MissingPrisonerNumber =>
+                "❌ هذا السجل لن يُحفظ في النظام نهائياً.\n" +
+                "   لا يمكن حفظ سجل بدون رقم سجين.",
+
+            ImportWarningTypes.MissingName =>
+                "❌ هذا السجل لن يُحفظ في النظام نهائياً.\n" +
+                "   لا يمكن حفظ سجل بدون اسم السجين.",
+
+            ImportWarningTypes.DuplicateInSheet =>
+                "❌ هذا السجل لن يُحفظ في النظام نهائياً.\n" +
+                "   رقم السجين مكرر داخل نفس الشيت، سيُحفظ السجل الأول فقط.",
+
+            ImportWarningTypes.DuplicateInImport =>
+                "❌ هذا السجل لن يُحفظ في النظام نهائياً.\n" +
+                "   رقم السجين موجود في شيت آخر بنفس الملف، سيُحفظ الأول فقط.",
+
+            ImportWarningTypes.DuplicateInDatabase =>
+                "❌ هذا السجل لن يُحفظ في النظام نهائياً.\n" +
+                "   رقم السجين موجود مسبقاً في قاعدة البيانات، لن يُضاف مجدداً.",
+
+            ImportWarningTypes.MissingDossierMetadata =>
+                "❌ جميع سجلات هذا الشيت لن تُحفظ في النظام.\n" +
+                "   بيانات الدوسية (الرقم، الشهر، السنة) مفقودة ولا يمكن إنشاء الدوسية بدونها.\n" +
+                "   يمكنك إدخال البيانات يدوياً بالنقر المزدوج على الشيت في جدول الدوسيات.",
+
+            ImportWarningTypes.MissingHeaderRow =>
+                "❌ جميع سجلات هذا الشيت لن تُحفظ في النظام.\n" +
+                "   لم يُعثر على صف الترويسة (تسلسل، اسم السجين، رقم السجين).",
+
+            ImportWarningTypes.CountMismatch =>
+                "✅ جميع السجلات الصحيحة ستُحفظ في النظام.\n" +
+                "   فقط عدد الملفات المتوقع لن يتطابق مع الفعلي في بيانات الدوسية.",
+
+            ImportWarningTypes.DuplicateSequence =>
+                "⚠️ السجل ذو التسلسل المكرر سيُحفظ بتسلسل تلقائي جديد.\n" +
+                "   النظام سيعطيه رقم تسلسل بعد آخر سجل في الدوسية.",
+
+            ImportWarningTypes.SequenceGap =>
+                "✅ جميع السجلات ستُحفظ في النظام كما هي.\n" +
+                "   الفجوة في التسلسل ستبقى كما هي في الدوسية.",
+
+            ImportWarningTypes.MissingSequence =>
+                "⚠️ هذا السجل سيُحفظ بتسلسل تلقائي.\n" +
+                "   النظام سيعطيه رقم تسلسل بعد آخر سجل في الدوسية.",
+
+            ImportWarningTypes.InvalidSequence =>
+                "⚠️ هذا السجل سيُحفظ بتسلسل تلقائي.\n" +
+                "   النظام سيعطيه رقم تسلسل بعد آخر سجل في الدوسية.",
+
+            ImportWarningTypes.SuspiciousName =>
+                "✅ هذا السجل سيُحفظ في النظام كما هو.\n" +
+                "   الاسم قصير لكن النظام سيقبله إذا قررت المتابعة.",
+
+            ImportWarningTypes.MixedLocationInDossier =>
+                "✅ جميع سجلات الدوسية ستُحفظ في النظام.\n" +
+                "   سيُستخدم الموقع الأكثر تكراراً في الشيت للدوسية كاملة.",
+
+            ImportWarningTypes.InvalidLocation =>
+                "✅ جميع السجلات ستُحفظ في النظام.\n" +
+                "   الموقع غير موجود مسبقاً لكن سيُنشأ تلقائياً عند الاعتماد.",
+
+            ImportWarningTypes.SheetNameTitleMismatch =>
+                "✅ جميع السجلات ستُحفظ باستخدام رقم الدوسية من العنوان.\n" +
+                "   اسم الشيت مختلف عن رقم الدوسية لكن هذا لا يمنع الحفظ.",
+
+            _ =>
+                "✅ تعليم هذا التحذير محلولاً سيسمح بالمتابعة في الاعتماد."
+        };
         // ── EDIT STAGING DOSSIER METADATA (FIX: was missing) ─────────────────
         // Double-click on a dossier row in the Dossiers tab to edit its metadata
 

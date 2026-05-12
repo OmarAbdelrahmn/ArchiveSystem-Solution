@@ -26,7 +26,7 @@ namespace ArchiveSystem.Core.Helpers
             {
                 Title = title,
                 Width = 420,
-                Height = 210,
+                Height = 290,
                 ResizeMode = ResizeMode.NoResize,
                 WindowStartupLocation = owner != null
                     ? WindowStartupLocation.CenterOwner

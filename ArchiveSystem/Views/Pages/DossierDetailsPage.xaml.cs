@@ -15,6 +15,7 @@ namespace ArchiveSystem.Views.Pages
         private readonly RecordService _recordService;
         private readonly CustomFieldService _customFieldService;
         private readonly ReportService _reportService;
+        private readonly ExcelImportService _importService;
 
         private readonly int _dossierId;
         private Dossier? _dossier;
@@ -72,8 +73,45 @@ namespace ArchiveSystem.Views.Pages
             _recordService = new RecordService(App.Database);
             _customFieldService = new CustomFieldService(App.Database);
             _reportService = new ReportService(App.Database);
+            _importService = new ExcelImportService(App.Database);
             _dossierId = dossierId;
             Loaded += (s, e) => Initialize();
+        }
+
+
+        private void LoadWarnings()
+        {
+            if (_dossier == null) return;
+
+            var warnings = _importService.GetWarningsForDossier(_dossier.DossierNumber);
+
+            if (warnings.Count == 0)
+            {
+                WarningsGrid.Visibility = Visibility.Collapsed;
+                NoWarningsText.Visibility = Visibility.Visible;
+                WarningsSummaryBar.Visibility = Visibility.Collapsed;
+                WarningsTabHeader.Text = "التحذيرات";
+                return;
+            }
+
+            WarningsGrid.ItemsSource = warnings;
+            WarningsGrid.Visibility = Visibility.Visible;
+            NoWarningsText.Visibility = Visibility.Collapsed;
+
+            int unresolved = warnings.Count(w => !w.IsResolved);
+
+            // Only show the action bar when there is something to resolve
+            WarningsSummaryBar.Visibility = Visibility.Visible;
+            ResolveAllWarningsBtn.Visibility = unresolved > 0
+                ? Visibility.Visible : Visibility.Collapsed;
+
+            WarningsTabHeader.Text = unresolved > 0
+                ? $"التحذيرات ⚠️ ({unresolved})"
+                : $"التحذيرات ✅ ({warnings.Count})";
+
+            WarningsSummaryText.Text = unresolved > 0
+                ? $"⚠️ {unresolved} تحذير غير محلول من أصل {warnings.Count}"
+                : $"✅ جميع التحذيرات ({warnings.Count}) محلولة";
         }
 
         // ── INIT ──────────────────────────────────────────────────────────────
@@ -98,6 +136,54 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(RegisterMoveBtn, Permissions.MoveDossier, hideInstead: true);
             PermissionHelper.Apply(DeleteDossierBtn, Permissions.DeleteDossier, hideInstead: true);
             PermissionHelper.Apply(AddRecordBtn, Permissions.AddRecord, hideInstead: true);
+            PermissionHelper.Apply(MoveRecordBtn, Permissions.EditRecord, hideInstead: true);
+        }
+
+        private void MoveRecord_Click(object sender, RoutedEventArgs e)
+        {
+            if (RecordsGrid.SelectedItem is not RecordRow row)
+            {
+                PromptSelectRecord();
+                return;
+            }
+
+            string? targetNumberStr = InputDialog.Show(
+                $"أدخل رقم الدوسية التي تريد نقل سجل '{row.PersonName}' إليها:\n\n" +
+                $"ملاحظة: سيتم الاحتفاظ بجميع بيانات الحقول المخصصة.",
+                "نقل السجل إلى دوسية أخرى",
+                owner: Window.GetWindow(this));
+
+            if (string.IsNullOrWhiteSpace(targetNumberStr)) return;
+
+            if (!int.TryParse(targetNumberStr, out int targetNumber) || targetNumber <= 0)
+            {
+                MessageBox.Show("رقم الدوسية غير صحيح.", "خطأ",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"هل تريد نقل سجل '{row.PersonName}' ({row.PrisonerNumber})\n" +
+                $"من الدوسية الحالية إلى الدوسية رقم {targetNumber}؟\n\n" +
+                $"جميع البيانات والحقول المخصصة ستُنقل معه.",
+                "تأكيد النقل",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            var err = _recordService.MoveRecord(row.RecordId, targetNumber);
+
+            if (err != null)
+            {
+                MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            MessageBox.Show(
+                $"✅ تم نقل سجل '{row.PersonName}' إلى الدوسية رقم {targetNumber} بنجاح.",
+                "تم النقل", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            LoadRecords();
         }
 
         private void DeleteDossier_Click(object sender, RoutedEventArgs e)
@@ -174,6 +260,30 @@ namespace ArchiveSystem.Views.Pages
 
             LoadRecords();
         }
+
+        private void ResolveAllWarnings_Click(object sender, RoutedEventArgs e)
+        {
+            if (_dossier == null) return;
+
+            var confirm = MessageBox.Show(
+                "سيتم تعليم جميع تحذيرات هذه الدوسية كمحلولة.\n\nهل تريد المتابعة؟",
+                "حل جميع التحذيرات",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            _importService.ResolveAllWarningsForDossier(_dossier.DossierNumber);
+            LoadWarnings();
+        }
+
+        private void ResolveWarning_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn || btn.Tag is not int warningId) return;
+
+            _importService.ResolveWarningById(warningId);
+            LoadWarnings();
+        }
+
         private void AddCustomFieldColumns()
         {
             // Remove any previously added custom columns (keep first 4 built-in)
@@ -202,8 +312,8 @@ namespace ArchiveSystem.Views.Pages
             LoadDossier();
             LoadRecords();
             LoadMovements();
+            LoadWarnings();   // ← add this line
         }
-
         private void LoadDossier()
         {
             _dossier = _dossierService.GetDossierById(_dossierId);

@@ -139,6 +139,7 @@ namespace ArchiveSystem.Views.Pages
             LoadCustomFields();
             LoadLocations();
             LoadBackupHistory();
+            PopulateShortcutCombos(); // ← add this line here
             LoadAppSettings();
         }
 
@@ -228,7 +229,36 @@ namespace ArchiveSystem.Views.Pages
 
             LoadBackupHistory();
         }
+        private void PopulateShortcutCombos()
+        {
+            var keys = new List<string>
+    {
+        "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"
+    };
 
+            SaveKeyCombo.ItemsSource = null;
+            ClearKeyCombo.ItemsSource = null;
+
+            SaveKeyCombo.ItemsSource = keys;
+            ClearKeyCombo.ItemsSource = keys;
+
+            // Set defaults so something is always selected
+            SaveKeyCombo.SelectedItem = "F5";
+            ClearKeyCombo.SelectedItem = "F6";
+        }
+
+        private static void SelectComboByTag(ComboBox combo, string tag)
+        {
+            foreach (var item in combo.Items)
+            {
+                if (item?.ToString() == tag)
+                {
+                    combo.SelectedItem = item;
+                    return;
+                }
+            }
+            if (combo.Items.Count > 0) combo.SelectedIndex = 0;
+        }
 
         private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
         {
@@ -743,6 +773,12 @@ namespace ArchiveSystem.Views.Pages
 
                 BackupTimeBox.Text = GetSetting(map, SettingKeys.BackupTime, "02:00");
 
+                string saveKey = GetSetting(map, SettingKeys.EntrySaveKey, "F5");
+                string clearKey = GetSetting(map, SettingKeys.EntryClearKey, "F6");
+
+                SaveKeyCombo.SelectedItem = saveKey;
+                ClearKeyCombo.SelectedItem = clearKey;
+
                 // Font scale
                 foreach (ComboBoxItem item in FontScaleCombo.Items)
                 {
@@ -821,6 +857,8 @@ namespace ArchiveSystem.Views.Pages
                     [SettingKeys.ThemeColor] = _selectedThemeColor,
                     [SettingKeys.Density] = (DensityCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Comfortable",
                     [SettingKeys.BackupTime] = BackupTimeBox.Text.Trim(),
+                    [SettingKeys.EntrySaveKey] = SaveKeyCombo.SelectedItem?.ToString() ?? "F5",
+                    [SettingKeys.EntryClearKey] = ClearKeyCombo.SelectedItem?.ToString() ?? "F6",
                 };
 
                 // ── Compute diff: only keys whose value actually changed ────────

@@ -96,6 +96,168 @@
                     </Grid>
                 </Border>
 
+                <!-- ══ BATCH DOSSIER FACE PRINT ══════════════════════════════ -->
+                <Border Background="White" CornerRadius="8" Padding="24"
+                        Margin="0,0,0,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Title row -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="طباعة مجموعة دوسيات (نطاق)"
+                                       FontSize="15" FontWeight="Bold"
+                                       Foreground="#1a7a60"
+                                       VerticalAlignment="Center"/>
+                            <Border Background="#E8F5E9" CornerRadius="4"
+                                    Padding="8,2" Margin="12,0,0,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="جديد"
+                                           FontSize="10" FontWeight="Bold"
+                                           Foreground="#2E7D32"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="تطبع واجهات جميع الدوسيات في نطاق رقمي محدد (من رقم إلى رقم) دفعةً واحدة في ملف PDF واحد."
+                                   FontSize="12" Foreground="#666"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,16"/>
+
+                        <!-- Range inputs row -->
+                        <Grid Grid.Row="2" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     x:Name="BatchFromBox"
+                                     materialDesign:HintAssist.Hint="من رقم الدوسية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly"
+                                     TextChanged="BatchRange_Changed"/>
+
+                            <TextBlock Grid.Column="1"
+                                       Text="←"
+                                       FontSize="18" Foreground="#AAAAAA"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+
+                            <TextBox Grid.Column="2"
+                                     x:Name="BatchToBox"
+                                     materialDesign:HintAssist.Hint="إلى رقم الدوسية *"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     PreviewTextInput="NumberOnly"
+                                     TextChanged="BatchRange_Changed"/>
+
+                            <!-- Info badge: how many dossiers will be printed -->
+                            <Border Grid.Column="4"
+                                    x:Name="BatchInfoBadge"
+                                    Background="#F0F7F4"
+                                    BorderBrush="#B2DFDB"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="12,6"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock x:Name="BatchCountText"
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="#1a7a60"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="BatchRecordsText"
+                                               FontSize="11" Foreground="#555"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Warning / info notice -->
+                        <Border Grid.Row="3"
+                                x:Name="BatchWarningBorder"
+                                Background="#FFF8E1"
+                                BorderBrush="#FFE082"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Padding="12,8"
+                                Margin="0,0,0,12"
+                                Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚠️ " FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="BatchWarningText"
+                                           FontSize="12" Foreground="#E65100"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Action buttons row (inside Grid.Row="3" via additional row) -->
+                        <Grid Grid.Row="3" Margin="0,4,0,0"
+                              x:Name="BatchButtonsGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Progress indicator (shown while generating) -->
+                            <StackPanel Grid.Column="0"
+                                        x:Name="BatchBusyPanel"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center"
+                                        Visibility="Collapsed">
+                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                             Value="0" IsIndeterminate="True"
+                                             Width="20" Height="20"
+                                             Margin="0,0,8,0"/>
+                                <TextBlock x:Name="BatchProgressText"
+                                           Text="جاري إنشاء PDF..."
+                                           FontSize="12" Foreground="#555"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <Button x:Name="BatchPreviewBtn"
+                                    Grid.Column="2"
+                                    Content="🔍 معاينة"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="44" Width="110"
+                                    Click="PreviewBatchDossierFace_Click"/>
+
+                            <Button x:Name="BatchSaveBtn"
+                                    Grid.Column="4"
+                                    Content="💾 حفظ PDF"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="44" Width="120"
+                                    Click="SaveBatchDossierFacePdf_Click"/>
+
+                            <Button x:Name="BatchPrintBtn"
+                                    Grid.Column="6"
+                                    Content="🖨️ طباعة مجموعة"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#1a7a60" Foreground="White"
+                                    Height="44" Width="160"
+                                    Click="PrintBatchDossierFaceDirect_Click"/>
+                        </Grid>
+
+                    </Grid>
+                </Border>
+
                 <!-- ══ MONTHLY REPORT ═════════════════════════════════════════ -->
                 <Border Background="White" CornerRadius="8" Padding="24"
                         Margin="0,0,0,24">
@@ -308,7 +470,6 @@
                         </Grid>
                     </Grid>
                 </Border>
-
 
                 <!-- ══ DATA QUALITY / ERRORS REPORT ═══════════════════════════════════════ -->
                 <Border Background="White" CornerRadius="8" Padding="24"
