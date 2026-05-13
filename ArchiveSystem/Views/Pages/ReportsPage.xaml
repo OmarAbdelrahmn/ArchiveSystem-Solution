@@ -3,7 +3,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       Title="التقارير"
-      Background="#F5F5F5"
+      Background="{StaticResource MidnightBase}"
+      FontFamily="Noto Kufi Arabic, Segoe UI"
       FlowDirection="RightToLeft">
 
     <Grid>
@@ -13,11 +14,17 @@
         </Grid.RowDefinitions>
 
         <!-- HEADER -->
-        <Border Grid.Row="0" Background="White"
-                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
+        <Border Grid.Row="0"
+                BorderThickness="0,0,0,1">
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.60"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
             <TextBlock Text="🖨️  التقارير"
                        FontSize="22" FontWeight="Bold"
-                       Foreground="#1a7a60"
+                       Foreground="{StaticResource RoseGold}"
                        VerticalAlignment="Center"
                        Margin="32,0"/>
         </Border>
@@ -26,12 +33,15 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="32,28,32,40" MaxWidth="960">
 
-                <!-- ══ DOSSIER FACE ═══════════════════════════════════════════ -->
-                <Border Background="White" CornerRadius="8" Padding="24"
-                        Margin="0,0,0,24">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ══ DOSSIER FACE ══ -->
+                <Border CornerRadius="8" Padding="24" Margin="0,0,0,20"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -42,15 +52,14 @@
                         <TextBlock Grid.Row="0"
                                    Text="واجهة الدوسية (طباعة)"
                                    FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60"
+                                   Foreground="{StaticResource RoseGold}"
                                    Margin="0,0,0,6"/>
 
                         <TextBlock Grid.Row="1"
                                    Text="تطبع جدول السجناء لدوسية محددة بالترتيب الصحيح ليُلصق على الغلاف الفيزيائي."
-                                   FontSize="12" Foreground="#666"
+                                   FontSize="12" Foreground="#4A5A7A"
                                    Margin="0,0,0,16"/>
 
-                        <!-- Input + three action buttons -->
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -65,43 +74,46 @@
                             <TextBox Grid.Column="0"
                                      x:Name="DossierFaceNumberBox"
                                      materialDesign:HintAssist.Hint="رقم الدوسية *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                     PreviewTextInput="NumberOnly" RenderTransformOrigin="0.502,0.638" Margin="0,0,0,-10"/>
+                                     PreviewTextInput="NumberOnly" Margin="0,0,0,-10"/>
 
-                            <!-- Preview (open PDF in viewer) -->
                             <Button x:Name="DossierFacePreviewBtn"
                                     Grid.Column="2"
                                     Content="🔍 معاينة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="110"
                                     Click="PreviewDossierFace_Click"/>
 
-                            <!-- Save PDF to file -->
                             <Button x:Name="DossierFaceSaveBtn"
                                     Grid.Column="4"
                                     Content="💾 حفظ PDF"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="120"
                                     Click="SaveDossierFacePdf_Click"/>
 
-                            <!-- Direct print (sends to printer) -->
                             <Button x:Name="DossierFacePrintBtn"
                                     Grid.Column="6"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintDossierFaceDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>
 
-                <!-- ══ BATCH DOSSIER FACE PRINT ══════════════════════════════ -->
-                <Border Background="White" CornerRadius="8" Padding="24"
-                        Margin="0,0,0,24">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ══ BATCH DOSSIER FACE PRINT ══ -->
+                <Border CornerRadius="8" Padding="24" Margin="0,0,0,20"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -110,28 +122,32 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Title row -->
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
                             <TextBlock Text="طباعة مجموعة دوسيات (نطاق)"
                                        FontSize="15" FontWeight="Bold"
-                                       Foreground="#1a7a60"
+                                       Foreground="{StaticResource RoseGold}"
                                        VerticalAlignment="Center"/>
-                            <Border Background="#E8F5E9" CornerRadius="4"
+                            <Border BorderThickness="1" CornerRadius="4"
                                     Padding="8,2" Margin="12,0,0,0"
                                     VerticalAlignment="Center">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.10"/>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.25"/>
+                                </Border.BorderBrush>
                                 <TextBlock Text="جديد"
                                            FontSize="10" FontWeight="Bold"
-                                           Foreground="#2E7D32"/>
+                                           Foreground="{StaticResource EmeraldMid}"/>
                             </Border>
                         </StackPanel>
 
                         <TextBlock Grid.Row="1"
                                    Text="تطبع واجهات جميع الدوسيات في نطاق رقمي محدد (من رقم إلى رقم) دفعةً واحدة في ملف PDF واحد."
-                                   FontSize="12" Foreground="#666"
+                                   FontSize="12" Foreground="#4A5A7A"
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,16"/>
 
-                        <!-- Range inputs row -->
                         <Grid Grid.Row="2" Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -144,66 +160,73 @@
                             <TextBox Grid.Column="0"
                                      x:Name="BatchFromBox"
                                      materialDesign:HintAssist.Hint="من رقم الدوسية *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly"
                                      TextChanged="BatchRange_Changed"/>
 
                             <TextBlock Grid.Column="1"
                                        Text="←"
-                                       FontSize="18" Foreground="#AAAAAA"
+                                       FontSize="18" Foreground="#4A5A7A"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
 
                             <TextBox Grid.Column="2"
                                      x:Name="BatchToBox"
                                      materialDesign:HintAssist.Hint="إلى رقم الدوسية *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly"
                                      TextChanged="BatchRange_Changed"/>
 
-                            <!-- Info badge: how many dossiers will be printed -->
                             <Border Grid.Column="4"
                                     x:Name="BatchInfoBadge"
-                                    Background="#F0F7F4"
-                                    BorderBrush="#B2DFDB"
                                     BorderThickness="1"
                                     CornerRadius="6"
                                     Padding="12,6"
                                     VerticalAlignment="Center"
                                     Visibility="Collapsed">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.08"/>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.25"/>
+                                </Border.BorderBrush>
                                 <StackPanel>
                                     <TextBlock x:Name="BatchCountText"
                                                FontSize="12" FontWeight="SemiBold"
-                                               Foreground="#1a7a60"
+                                               Foreground="{StaticResource EmeraldMid}"
                                                HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="BatchRecordsText"
-                                               FontSize="11" Foreground="#555"
+                                               FontSize="11" Foreground="#4A5A7A"
                                                HorizontalAlignment="Center"
                                                Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
 
-                        <!-- Warning / info notice -->
                         <Border Grid.Row="3"
                                 x:Name="BatchWarningBorder"
-                                Background="#FFF8E1"
-                                BorderBrush="#FFE082"
                                 BorderThickness="1"
                                 CornerRadius="4"
                                 Padding="12,8"
                                 Margin="0,0,0,12"
                                 Visibility="Collapsed">
+                            <Border.Background>
+                                <SolidColorBrush Color="#FFB300" Opacity="0.08"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#FFB300" Opacity="0.30"/>
+                            </Border.BorderBrush>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="⚠️ " FontSize="13" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="BatchWarningText"
-                                           FontSize="12" Foreground="#E65100"
+                                           FontSize="12" Foreground="#FFB300"
                                            TextWrapping="Wrap"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Action buttons row (inside Grid.Row="3" via additional row) -->
                         <Grid Grid.Row="3" Margin="0,4,0,0"
                               x:Name="BatchButtonsGrid">
                             <Grid.ColumnDefinitions>
@@ -216,7 +239,6 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Progress indicator (shown while generating) -->
                             <StackPanel Grid.Column="0"
                                         x:Name="BatchBusyPanel"
                                         Orientation="Horizontal"
@@ -228,7 +250,7 @@
                                              Margin="0,0,8,0"/>
                                 <TextBlock x:Name="BatchProgressText"
                                            Text="جاري إنشاء PDF..."
-                                           FontSize="12" Foreground="#555"
+                                           FontSize="12" Foreground="#4A5A7A"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
 
@@ -236,6 +258,7 @@
                                     Grid.Column="2"
                                     Content="🔍 معاينة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="110"
                                     Click="PreviewBatchDossierFace_Click"/>
 
@@ -243,6 +266,7 @@
                                     Grid.Column="4"
                                     Content="💾 حفظ PDF"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="120"
                                     Click="SaveBatchDossierFacePdf_Click"/>
 
@@ -250,7 +274,7 @@
                                     Grid.Column="6"
                                     Content="🖨️ طباعة مجموعة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
                                     Height="44" Width="160"
                                     Click="PrintBatchDossierFaceDirect_Click"/>
                         </Grid>
@@ -258,12 +282,15 @@
                     </Grid>
                 </Border>
 
-                <!-- ══ MONTHLY REPORT ═════════════════════════════════════════ -->
-                <Border Background="White" CornerRadius="8" Padding="24"
-                        Margin="0,0,0,24">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ══ MONTHLY REPORT ══ -->
+                <Border CornerRadius="8" Padding="24" Margin="0,0,0,20"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -274,12 +301,12 @@
                         <TextBlock Grid.Row="0"
                                    Text="تقرير شهري"
                                    FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60"
+                                   Foreground="{StaticResource RoseGold}"
                                    Margin="0,0,0,6"/>
 
                         <TextBlock Grid.Row="1"
                                    Text="جميع الدوسيات والملفات لشهر هجري محدد."
-                                   FontSize="12" Foreground="#666"
+                                   FontSize="12" Foreground="#4A5A7A"
                                    Margin="0,0,0,16"/>
 
                         <Grid Grid.Row="2">
@@ -298,12 +325,14 @@
                             <TextBox Grid.Column="0"
                                      x:Name="MonthlyMonthBox"
                                      materialDesign:HintAssist.Hint="الشهر (1-12) *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly" Grid.ColumnSpan="2" Margin="0,0,10,-10"/>
 
                             <TextBox Grid.Column="2"
                                      x:Name="MonthlyYearBox"
                                      materialDesign:HintAssist.Hint="السنة الهجرية *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly" Margin="0,0,0,-10"/>
 
@@ -311,6 +340,7 @@
                                     Grid.Column="4"
                                     Content="🔍 معاينة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="110"
                                     Click="PreviewMonthly_Click"/>
 
@@ -318,6 +348,7 @@
                                     Grid.Column="6"
                                     Content="💾 حفظ PDF"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="120"
                                     Click="SaveMonthlyPdf_Click"/>
 
@@ -325,19 +356,22 @@
                                     Grid.Column="8"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintMonthlyDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>
 
-                <!-- ══ WEEKLY REPORT ══════════════════════════════════════════════════ -->
-                <Border Background="White" CornerRadius="8" Padding="24"
-        Margin="0,0,0,24">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ══ WEEKLY REPORT ══ -->
+                <Border CornerRadius="8" Padding="24" Margin="0,0,0,20"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -346,15 +380,15 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0"
-                   Text="تقرير أسبوعي"
-                   FontSize="15" FontWeight="Bold"
-                   Foreground="#1a7a60"
-                   Margin="0,0,0,6"/>
+                                   Text="تقرير أسبوعي"
+                                   FontSize="15" FontWeight="Bold"
+                                   Foreground="{StaticResource RoseGold}"
+                                   Margin="0,0,0,6"/>
 
                         <TextBlock Grid.Row="1"
-                   Text="جميع السجلات المُضافة خلال أسبوع محدد (حسب تاريخ الإنشاء الميلادي)."
-                   FontSize="12" Foreground="#666"
-                   Margin="0,0,0,16"/>
+                                   Text="جميع السجلات المُضافة خلال أسبوع محدد (حسب تاريخ الإنشاء الميلادي)."
+                                   FontSize="12" Foreground="#4A5A7A"
+                                   Margin="0,0,0,16"/>
 
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
@@ -370,47 +404,54 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox Grid.Column="0"
-                     x:Name="WeeklyFromBox"
-                     materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd) *"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     Height="53" Grid.ColumnSpan="2" Margin="0,0,10,0" VerticalAlignment="Top"/>
+                                     x:Name="WeeklyFromBox"
+                                     materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd) *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Height="53" Grid.ColumnSpan="2" Margin="0,0,10,0" VerticalAlignment="Top"/>
 
                             <TextBox Grid.Column="2"
-                     x:Name="WeeklyToBox"
-                     materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd) *"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,4,0,0"/>
+                                     x:Name="WeeklyToBox"
+                                     materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd) *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,4,0,0"/>
 
                             <Button x:Name="WeeklyPreviewBtn"
-                    Grid.Column="4"
-                    Content="🔍 معاينة"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Height="44" Width="110"
-                    Click="PreviewWeekly_Click"/>
+                                    Grid.Column="4"
+                                    Content="🔍 معاينة"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
+                                    Height="44" Width="110"
+                                    Click="PreviewWeekly_Click"/>
 
                             <Button x:Name="WeeklySaveBtn"
-                    Grid.Column="6"
-                    Content="💾 حفظ PDF"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Height="44" Width="120"
-                    Click="SaveWeeklyPdf_Click"/>
+                                    Grid.Column="6"
+                                    Content="💾 حفظ PDF"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
+                                    Height="44" Width="120"
+                                    Click="SaveWeeklyPdf_Click"/>
 
                             <Button x:Name="WeeklyPrintBtn"
-                    Grid.Column="8"
-                    Content="🖨️ طباعة مباشرة"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="#1a7a60" Foreground="White"
-                    Height="44" Width="150"
-                    Click="PrintWeeklyDirect_Click"/>
+                                    Grid.Column="8"
+                                    Content="🖨️ طباعة مباشرة"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Height="44" Width="150"
+                                    Click="PrintWeeklyDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>
 
-                <!-- ══ YEARLY REPORT ══════════════════════════════════════════ -->
-                <Border Background="White" CornerRadius="8" Padding="24"
-                        Margin="0,0,0,24">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ══ YEARLY REPORT ══ -->
+                <Border CornerRadius="8" Padding="24" Margin="0,0,0,20"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -421,12 +462,12 @@
                         <TextBlock Grid.Row="0"
                                    Text="تقرير سنوي"
                                    FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60"
+                                   Foreground="{StaticResource RoseGold}"
                                    Margin="0,0,0,6"/>
 
                         <TextBlock Grid.Row="1"
                                    Text="ملخص سنوي لجميع الدوسيات."
-                                   FontSize="12" Foreground="#666"
+                                   FontSize="12" Foreground="#4A5A7A"
                                    Margin="0,0,0,16"/>
 
                         <Grid Grid.Row="2">
@@ -443,6 +484,7 @@
                             <TextBox Grid.Column="0"
                                      x:Name="YearlyYearBox"
                                      materialDesign:HintAssist.Hint="السنة الهجرية *"
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly" Margin="0,0,0,-9"/>
 
@@ -450,6 +492,7 @@
                                     Grid.Column="2"
                                     Content="🔍 معاينة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="110"
                                     Click="PreviewYearly_Click"/>
 
@@ -457,6 +500,7 @@
                                     Grid.Column="4"
                                     Content="💾 حفظ PDF"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="120"
                                     Click="SaveYearlyPdf_Click"/>
 
@@ -464,19 +508,22 @@
                                     Grid.Column="6"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintYearlyDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>
 
-                <!-- ══ DATA QUALITY / ERRORS REPORT ═══════════════════════════════════════ -->
-                <Border Background="White" CornerRadius="8" Padding="24"
-        Margin="0,0,0,24">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ══ DATA QUALITY REPORT ══ -->
+                <Border CornerRadius="8" Padding="24" Margin="0,0,0,20"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -486,49 +533,71 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0"
-                   Text="تقرير جودة البيانات والأخطاء"
-                   FontSize="15" FontWeight="Bold"
-                   Foreground="#1a7a60"
-                   Margin="0,0,0,6"/>
+                                   Text="تقرير جودة البيانات والأخطاء"
+                                   FontSize="15" FontWeight="Bold"
+                                   Foreground="{StaticResource RoseGold}"
+                                   Margin="0,0,0,6"/>
 
                         <TextBlock Grid.Row="1"
-                   Text="ملخص التحذيرات غير المحلولة من الاستيراد، الدوسيات ذات التعداد غير المطابق، ونسبة تعبئة الحقول المخصصة."
-                   FontSize="12" Foreground="#666"
-                   TextWrapping="Wrap"
-                   Margin="0,0,0,16"/>
+                                   Text="ملخص التحذيرات غير المحلولة من الاستيراد، الدوسيات ذات التعداد غير المطابق، ونسبة تعبئة الحقول المخصصة."
+                                   FontSize="12" Foreground="#4A5A7A"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,16"/>
 
-                        <!-- Live summary strip (loaded on Loaded event) -->
                         <Border Grid.Row="2"
-                x:Name="DataQualitySummaryBorder"
-                Background="#F0F7F4" CornerRadius="4"
-                Padding="12,8" Margin="0,0,0,16"
-                Visibility="Collapsed">
+                                x:Name="DataQualitySummaryBorder"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="12,8" Margin="0,0,0,16"
+                                Visibility="Collapsed">
+                            <Border.Background>
+                                <SolidColorBrush Color="#00E676" Opacity="0.06"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#00E676" Opacity="0.15"/>
+                            </Border.BorderBrush>
                             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                                <Border Background="#FFEBEE" CornerRadius="4"
-                        Padding="10,5" Margin="0,0,10,0"
-                        x:Name="DQWarningsBadge">
+                                <Border BorderThickness="1" CornerRadius="4"
+                                        Padding="10,5" Margin="0,0,10,0"
+                                        x:Name="DQWarningsBadge">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#E53935" Opacity="0.10"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="#E53935" Opacity="0.25"/>
+                                    </Border.BorderBrush>
                                     <TextBlock x:Name="DQWarningsText"
-                               FontSize="12" FontWeight="SemiBold"
-                               Foreground="#C62828"/>
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource DangerRed}"/>
                                 </Border>
-                                <Border Background="#FFF8E1" CornerRadius="4"
-                        Padding="10,5" Margin="0,0,10,0"
-                        x:Name="DQMismatchBadge">
+                                <Border BorderThickness="1" CornerRadius="4"
+                                        Padding="10,5" Margin="0,0,10,0"
+                                        x:Name="DQMismatchBadge">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#FFB300" Opacity="0.08"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="#FFB300" Opacity="0.25"/>
+                                    </Border.BorderBrush>
                                     <TextBlock x:Name="DQMismatchText"
-                               FontSize="12" FontWeight="SemiBold"
-                               Foreground="#E65100"/>
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="#FFB300"/>
                                 </Border>
-                                <Border Background="#E8F5E9" CornerRadius="4"
-                        Padding="10,5"
-                        x:Name="DQRecordsBadge">
+                                <Border BorderThickness="1" CornerRadius="4"
+                                        Padding="10,5"
+                                        x:Name="DQRecordsBadge">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#00E676" Opacity="0.08"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="#00E676" Opacity="0.20"/>
+                                    </Border.BorderBrush>
                                     <TextBlock x:Name="DQRecordsText"
-                               FontSize="12" FontWeight="SemiBold"
-                               Foreground="#2E7D32"/>
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource EmeraldMid}"/>
                                 </Border>
                             </StackPanel>
                         </Border>
 
-                        <!-- Action buttons -->
                         <Grid Grid.Row="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -540,38 +609,39 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Spacer / description -->
                             <TextBlock Grid.Column="0"
-                       Text="يمكن تصدير التقرير كملف PDF أو إرساله للطباعة مباشرة."
-                       FontSize="11" Foreground="#999"
-                       VerticalAlignment="Center"/>
+                                       Text="يمكن تصدير التقرير كملف PDF أو إرساله للطباعة مباشرة."
+                                       FontSize="11" Foreground="#4A5A7A"
+                                       VerticalAlignment="Center"/>
 
                             <Button x:Name="DataQualityPreviewBtn"
-                    Grid.Column="2"
-                    Content="🔍 معاينة"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Height="44" Width="110"
-                    Click="PreviewDataQuality_Click"/>
+                                    Grid.Column="2"
+                                    Content="🔍 معاينة"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
+                                    Height="44" Width="110"
+                                    Click="PreviewDataQuality_Click"/>
 
                             <Button x:Name="DataQualitySaveBtn"
-                    Grid.Column="4"
-                    Content="💾 حفظ PDF"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Height="44" Width="120"
-                    Click="SaveDataQualityPdf_Click"/>
+                                    Grid.Column="4"
+                                    Content="💾 حفظ PDF"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
+                                    Height="44" Width="120"
+                                    Click="SaveDataQualityPdf_Click"/>
 
                             <Button x:Name="DataQualityPrintBtn"
-                    Grid.Column="6"
-                    Content="🖨️ طباعة مباشرة"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="#1a7a60" Foreground="White"
-                    Height="44" Width="150"
-                    Click="PrintDataQualityDirect_Click"/>
+                                    Grid.Column="6"
+                                    Content="🖨️ طباعة مباشرة"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Height="44" Width="150"
+                                    Click="PrintDataQualityDirect_Click"/>
                         </Grid>
                     </Grid>
                 </Border>
 
-                <!-- ══ ERROR / STATUS ═════════════════════════════════════════ -->
+                <!-- ══ ERROR / STATUS ══ -->
                 <Border x:Name="MsgBorder"
                         CornerRadius="6" Padding="14,10"
                         Visibility="Collapsed">

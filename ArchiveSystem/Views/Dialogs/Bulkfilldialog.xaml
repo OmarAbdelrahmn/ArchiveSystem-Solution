@@ -7,8 +7,8 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
-        FontFamily="Segoe UI"
-        Background="#F5F5F5">
+        FontFamily="Noto Kufi Arabic, Segoe UI"
+        Background="{StaticResource MidnightBase}">
 
     <Grid Margin="28">
         <Grid.RowDefinitions>
@@ -21,27 +21,37 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Title -->
         <TextBlock Grid.Row="0"
                    x:Name="TitleText"
                    Text="تعبئة حقل لعدد من السجلات"
-                   FontSize="17" FontWeight="Bold"
-                   Foreground="#1a7a60"
+                   FontSize="18" FontWeight="Bold"
+                   Foreground="{StaticResource RoseGold}"
                    Margin="0,0,0,6"/>
 
+        <!-- Count -->
         <TextBlock Grid.Row="1"
                    x:Name="CountText"
-                   FontSize="12" Foreground="#666"
+                   FontSize="12"
+                   Foreground="{StaticResource TextSecondary}"
                    Margin="0,0,0,18"/>
 
         <!-- Error -->
         <Border Grid.Row="2"
                 x:Name="ErrorBorder"
-                Background="#FFEBEE" BorderBrush="#EF9A9A"
-                BorderThickness="1" CornerRadius="4"
-                Padding="10,6" Margin="0,0,0,10"
+                CornerRadius="6"
+                Padding="10,6" Margin="0,0,0,12"
                 Visibility="Collapsed">
+            <Border.Background>
+                <SolidColorBrush Color="#FF5252" Opacity="0.10"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#FF5252" Opacity="0.35"/>
+            </Border.BorderBrush>
+            <Border.BorderThickness>1</Border.BorderThickness>
             <TextBlock x:Name="ErrorText"
-                       Foreground="#C62828" FontSize="12"
+                       Foreground="{StaticResource DangerRed}"
+                       FontSize="12"
                        TextWrapping="Wrap"/>
         </Border>
 
@@ -49,29 +59,35 @@
         <ComboBox Grid.Row="3"
                   x:Name="FieldCombo"
                   materialDesign:HintAssist.Hint="اختر الحقل"
+                  materialDesign:HintAssist.Foreground="#4A5A7A"
                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
                   DisplayMemberPath="ArabicLabel"
                   SelectedValuePath="CustomFieldId"
                   Margin="0,0,0,14"
                   SelectionChanged="FieldCombo_SelectionChanged"/>
 
-        <!-- Value input (plain text — field-type-aware UI can be extended later) -->
+        <!-- Value input -->
         <TextBox Grid.Row="4"
                  x:Name="ValueBox"
                  materialDesign:HintAssist.Hint="القيمة الجديدة"
+                 materialDesign:HintAssist.Foreground="#4A5A7A"
                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                  Margin="0,0,0,4"/>
 
         <!-- Suggestions list -->
         <Border Grid.Row="5"
                 x:Name="SuggestionsBorder"
-                BorderBrush="#E0E0E0"
-                BorderThickness="1"
-                CornerRadius="4"
-                Background="White"
+                CornerRadius="6"
                 MaxHeight="90"
                 Margin="0,4,0,0"
                 Visibility="Collapsed">
+            <Border.Background>
+                <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
+            <Border.BorderThickness>1</Border.BorderThickness>
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl x:Name="SuggestionsList"
                               Margin="4">
@@ -79,6 +95,7 @@
                         <DataTemplate>
                             <Button Content="{Binding}"
                                     Style="{StaticResource MaterialDesignFlatButton}"
+                                    Foreground="{StaticResource EmeraldMid}"
                                     HorizontalContentAlignment="Right"
                                     Height="30" Padding="8,0"
                                     Tag="{Binding}"
@@ -90,21 +107,39 @@
         </Border>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="6"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Left"
-                    Margin="0,16,0,0">
-            <Button Content="تطبيق"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="#1a7a60" Foreground="White"
-                    Width="110" Height="38"
-                    Margin="0,0,10,0"
-                    Click="Apply_Click"/>
-            <Button Content="إلغاء"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Width="100" Height="38"
-                    Click="Cancel_Click"/>
-        </StackPanel>
+        <Border Grid.Row="6"
+                BorderThickness="0,1,0,0"
+                Padding="0,14,0,0"
+                Margin="0,16,0,0">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+                <Button Content="تطبيق"
+                        Height="38" Width="110"
+                        Margin="0,0,10,0"
+                        Foreground="#050D1A" FontWeight="SemiBold"
+                        Click="Apply_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Style>
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00BCD4" Offset="0"/>
+                            <GradientStop Color="#00E676" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
+                <Button Content="إلغاء"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
+                        Width="100" Height="38"
+                        Click="Cancel_Click"/>
+            </StackPanel>
+        </Border>
 
     </Grid>
 </Window>

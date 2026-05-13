@@ -3,7 +3,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       Title="استيراد Excel"
-      Background="#F5F5F5"
+      Background="{StaticResource MidnightBase}"
+      FontFamily="Noto Kufi Arabic, Segoe UI"
       FlowDirection="RightToLeft">
 
     <Grid>
@@ -12,9 +13,15 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="0" Background="White"
-                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
+        <!-- ══ HEADER ══ -->
+        <Border Grid.Row="0"
+                BorderThickness="0,0,0,1">
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.60"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
             <Grid Margin="24,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -23,31 +30,36 @@
                 <TextBlock Grid.Column="0"
                            Text="📥  استيراد Excel"
                            FontSize="22" FontWeight="Bold"
-                           Foreground="#1a7a60"
+                           Foreground="{StaticResource RoseGold}"
                            VerticalAlignment="Center"/>
                 <Button Grid.Column="1"
                         Content="🔄 تحديث"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
                         Height="36"
                         Click="Refresh_Click"/>
             </Grid>
         </Border>
 
-        <!-- ══ CONTENT ═════════════════════════════════════════════════════════ -->
+        <!-- ══ CONTENT ══ -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="28,24,28,32">
 
-                <!-- ── FILE PICKER CARD ──────────────────────────────────────── -->
-                <Border Background="White" CornerRadius="8" Padding="24"
-                        Margin="0,0,0,20">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ── FILE PICKER CARD ── -->
+                <Border CornerRadius="8" Padding="24" Margin="0,0,0,20"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <StackPanel>
 
                         <TextBlock Text="تحميل ملف Excel للاستيراد"
                                    FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60" Margin="0,0,0,14"/>
+                                   Foreground="{StaticResource RoseGold}"
+                                   Margin="0,0,0,14"/>
 
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -60,11 +72,14 @@
                                      x:Name="FilePathBox"
                                      IsReadOnly="True"
                                      materialDesign:HintAssist.Hint="اختر ملف Excel (xlsx.)..."
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,10,0"/>
+                                     materialDesign:HintAssist.Foreground="#4A5A7A"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Margin="0,0,10,0"/>
 
                             <Button Grid.Column="1"
                                     Content="📂 اختيار ملف"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="44" Width="130"
                                     Margin="0,0,10,0"
                                     Click="BrowseFile_Click"/>
@@ -73,7 +88,7 @@
                                     x:Name="StageButton"
                                     Content="⚡ معالجة الملف"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
                                     Height="44" Width="155"
                                     Click="StageFile_Click"/>
                         </Grid>
@@ -88,20 +103,24 @@
                                          Width="22" Height="22"
                                          Margin="0,0,10,0"/>
                             <TextBlock Text="جاري قراءة الملف ومعالجة البيانات..."
-                                       FontSize="13" Foreground="#555"
+                                       FontSize="13" Foreground="#4A5A7A"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
 
                     </StackPanel>
                 </Border>
 
-                <!-- ── STAGING RESULT CARD ────────────────────────────────────── -->
+                <!-- ── STAGING RESULT CARD ── -->
                 <Border x:Name="StagingResultBorder"
-                        Background="White" CornerRadius="8" Padding="24"
-                        Margin="0,0,0,20" Visibility="Collapsed">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                        CornerRadius="8" Padding="24"
+                        Margin="0,0,0,20" Visibility="Collapsed"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <StackPanel>
 
                         <!-- Title + Action buttons -->
@@ -115,9 +134,9 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock x:Name="StagingTitleText"
                                            FontSize="15" FontWeight="Bold"
-                                           Foreground="#1a7a60"/>
+                                           Foreground="{StaticResource RoseGold}"/>
                                 <TextBlock x:Name="StagingSubText"
-                                           FontSize="11" Foreground="#888"
+                                           FontSize="11" Foreground="#4A5A7A"
                                            Margin="0,2,0,0"/>
                             </StackPanel>
 
@@ -125,7 +144,7 @@
                                     x:Name="ApproveButton"
                                     Content="✅ اعتماد الاستيراد"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
+                                    Background="{StaticResource EmeraldMid}" Foreground="White"
                                     Height="40" Width="170"
                                     Margin="0,0,10,0"
                                     Click="Approve_Click"/>
@@ -134,7 +153,7 @@
                                     Grid.Column="2"
                                     Content="❌ إلغاء الدفعة"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
-                                    Foreground="#C62828"
+                                    Foreground="{StaticResource DangerRed}"
                                     Height="40" Width="150"
                                     Click="Rollback_Click"/>
                         </Grid>
@@ -142,62 +161,92 @@
                         <!-- Summary stat boxes -->
                         <UniformGrid Columns="5" Margin="0,0,0,16">
 
-                            <Border Background="#F0F7F4" CornerRadius="6"
-                                    Padding="14,10" Margin="0,0,8,0">
+                            <Border CornerRadius="6" Padding="14,10" Margin="0,0,8,0"
+                                    BorderThickness="1">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.08"/>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.20"/>
+                                </Border.BorderBrush>
                                 <StackPanel>
                                     <TextBlock x:Name="SumSheets"
                                                FontSize="26" FontWeight="Bold"
-                                               Foreground="#1a7a60"/>
+                                               Foreground="{StaticResource EmeraldMid}"/>
                                     <TextBlock Text="شيت"
-                                               FontSize="11" Foreground="#666"
+                                               FontSize="11" Foreground="#4A5A7A"
                                                Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="#F0F7F4" CornerRadius="6"
-                                    Padding="14,10" Margin="0,0,8,0">
+                            <Border CornerRadius="6" Padding="14,10" Margin="0,0,8,0"
+                                    BorderThickness="1">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.08"/>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#00E676" Opacity="0.20"/>
+                                </Border.BorderBrush>
                                 <StackPanel>
                                     <TextBlock x:Name="SumDossiers"
                                                FontSize="26" FontWeight="Bold"
-                                               Foreground="#1a7a60"/>
+                                               Foreground="{StaticResource EmeraldMid}"/>
                                     <TextBlock Text="دوسية"
-                                               FontSize="11" Foreground="#666"
+                                               FontSize="11" Foreground="#4A5A7A"
                                                Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="#E3F2FD" CornerRadius="6"
-                                    Padding="14,10" Margin="0,0,8,0">
+                            <Border CornerRadius="6" Padding="14,10" Margin="0,0,8,0"
+                                    BorderThickness="1">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#B8860B" Opacity="0.10"/>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#B8860B" Opacity="0.25"/>
+                                </Border.BorderBrush>
                                 <StackPanel>
                                     <TextBlock x:Name="SumRecords"
                                                FontSize="26" FontWeight="Bold"
-                                               Foreground="#1565C0"/>
+                                               Foreground="{StaticResource RoseGold}"/>
                                     <TextBlock Text="سجل"
-                                               FontSize="11" Foreground="#666"
+                                               FontSize="11" Foreground="#4A5A7A"
                                                Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="#FFF8E1" CornerRadius="6"
-                                    Padding="14,10" Margin="0,0,8,0">
+                            <Border CornerRadius="6" Padding="14,10" Margin="0,0,8,0"
+                                    BorderThickness="1">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#FFB300" Opacity="0.08"/>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#FFB300" Opacity="0.25"/>
+                                </Border.BorderBrush>
                                 <StackPanel>
                                     <TextBlock x:Name="SumWarnings"
                                                FontSize="26" FontWeight="Bold"
-                                               Foreground="#F57F17"/>
+                                               Foreground="#FFB300"/>
                                     <TextBlock Text="تحذير"
-                                               FontSize="11" Foreground="#666"
+                                               FontSize="11" Foreground="#4A5A7A"
                                                Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="#FFEBEE" CornerRadius="6"
-                                    Padding="14,10">
+                            <Border CornerRadius="6" Padding="14,10"
+                                    BorderThickness="1">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#E53935" Opacity="0.08"/>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#E53935" Opacity="0.25"/>
+                                </Border.BorderBrush>
                                 <StackPanel>
                                     <TextBlock x:Name="SumDupes"
                                                FontSize="26" FontWeight="Bold"
-                                               Foreground="#C62828"/>
+                                               Foreground="{StaticResource DangerRed}"/>
                                     <TextBlock Text="مكرر"
-                                               FontSize="11" Foreground="#666"
+                                               FontSize="11" Foreground="#4A5A7A"
                                                Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
@@ -205,14 +254,18 @@
                         </UniformGrid>
 
                         <!-- Custom fields notice -->
-                        <Border Background="#E3F2FD"
-                                BorderBrush="#90CAF9"
-                                BorderThickness="1" CornerRadius="4"
+                        <Border BorderThickness="1" CornerRadius="4"
                                 Padding="12,9" Margin="0,0,0,8">
+                            <Border.Background>
+                                <SolidColorBrush Color="#B8860B" Opacity="0.08"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#B8860B" Opacity="0.30"/>
+                            </Border.BorderBrush>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="ℹ️ " FontSize="14" VerticalAlignment="Center"/>
                                 <TextBlock TextWrapping="Wrap"
-                                           Foreground="#1565C0" FontSize="12"
+                                           Foreground="{StaticResource RoseGold}" FontSize="12"
                                            VerticalAlignment="Center">
                                     <Run FontWeight="SemiBold">ملاحظة بشأن الحقول المخصصة:</Run>
                                     <Run>ملف Excel لا يحتوي على أعمدة للحقول المخصصة (مثل الجنسية وغيرها). ستُضاف السجلات المستوردة بقيم فارغة لهذه الحقول، ويمكن تعبئتها لاحقاً من شاشة "كل البيانات" باستخدام خاصية التعبئة الجماعية، أو يدوياً من تفاصيل كل سجل.</Run>
@@ -222,13 +275,18 @@
 
                         <!-- Blocker warning -->
                         <Border x:Name="BlockerBorder"
-                                Background="#FFEBEE" BorderBrush="#EF9A9A"
                                 BorderThickness="1" CornerRadius="4"
                                 Padding="12,10" Visibility="Collapsed">
+                            <Border.Background>
+                                <SolidColorBrush Color="#E53935" Opacity="0.08"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#E53935" Opacity="0.30"/>
+                            </Border.BorderBrush>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🚫 " FontSize="14"/>
                                 <TextBlock x:Name="BlockerText"
-                                           Foreground="#C62828" FontSize="12"
+                                           Foreground="{StaticResource DangerRed}" FontSize="12"
                                            TextWrapping="Wrap"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
@@ -236,57 +294,56 @@
 
                         <!-- All-clear message -->
                         <Border x:Name="ReadyBorder"
-                                Background="#E8F5E9" BorderBrush="#A5D6A7"
                                 BorderThickness="1" CornerRadius="4"
                                 Padding="12,10" Visibility="Collapsed">
+                            <Border.Background>
+                                <SolidColorBrush Color="#00E676" Opacity="0.08"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#00E676" Opacity="0.25"/>
+                            </Border.BorderBrush>
                             <TextBlock Text="✅ لا توجد تحذيرات حارجة — يمكن اعتماد الاستيراد مباشرة."
-                                       Foreground="#2E7D32" FontSize="12"/>
+                                       Foreground="{StaticResource EmeraldMid}" FontSize="12"/>
                         </Border>
 
                     </StackPanel>
                 </Border>
 
-                <!-- ── REVIEW TABS: DOSSIERS + WARNINGS ────────────────────── -->
+                <!-- ── REVIEW TABS ── -->
                 <Border x:Name="ReviewBorder"
-                        Background="White" CornerRadius="8" Padding="20"
-                        Margin="0,0,0,20" Visibility="Collapsed">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                        CornerRadius="8" Padding="20"
+                        Margin="0,0,0,20" Visibility="Collapsed"
+                        BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
 
                     <TabControl Style="{StaticResource MaterialDesignTabControl}">
 
                         <!-- Staged Dossiers -->
                         <TabItem Header="الدوسيات المُرحَّلة">
-                            <!-- FIX: MouseDoubleClick wired to DossiersGrid_DoubleClick -->
                             <DataGrid x:Name="DossiersGrid"
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
                                       CanUserAddRows="False"
                                       Style="{StaticResource MaterialDesignDataGrid}"
                                       materialDesign:DataGridAssist.CellPadding="10 7 10 7"
-                                      RowBackground="White"
-                                      AlternatingRowBackground="#F9FBF9"
+                                      VirtualizingPanel.IsVirtualizing="True"
                                       Margin="0,12,0,0"
                                       MaxHeight="380"
                                       MouseDoubleClick="DossiersGrid_DoubleClick">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="الشيت"
-                                        Binding="{Binding SheetName}"      Width="110"/>
-                                    <DataGridTextColumn Header="رقم الدوسية"
-                                        Binding="{Binding DossierNumber}"  Width="100"/>
-                                    <DataGridTextColumn Header="الشهر"
-                                        Binding="{Binding HijriMonth}"     Width="65"/>
-                                    <DataGridTextColumn Header="السنة"
-                                        Binding="{Binding HijriYear}"      Width="75"/>
-                                    <DataGridTextColumn Header="المتوقع"
-                                        Binding="{Binding ExpectedCount}"  Width="75"/>
-                                    <DataGridTextColumn Header="الفعلي"
-                                        Binding="{Binding ActualRowCount}" Width="70"/>
-                                    <DataGridTextColumn Header="تحذيرات"
-                                        Binding="{Binding WarningCount}"   Width="75"/>
-                                    <DataGridTextColumn Header="الحالة"
-                                        Binding="{Binding StatusDisplay}"  Width="*"/>
+                                    <DataGridTextColumn Header="الشيت"        Binding="{Binding SheetName}"      Width="110"/>
+                                    <DataGridTextColumn Header="رقم الدوسية"  Binding="{Binding DossierNumber}"  Width="100"/>
+                                    <DataGridTextColumn Header="الشهر"        Binding="{Binding HijriMonth}"     Width="65"/>
+                                    <DataGridTextColumn Header="السنة"        Binding="{Binding HijriYear}"      Width="75"/>
+                                    <DataGridTextColumn Header="المتوقع"      Binding="{Binding ExpectedCount}"  Width="75"/>
+                                    <DataGridTextColumn Header="الفعلي"       Binding="{Binding ActualRowCount}" Width="70"/>
+                                    <DataGridTextColumn Header="تحذيرات"      Binding="{Binding WarningCount}"   Width="75"/>
+                                    <DataGridTextColumn Header="الحالة"       Binding="{Binding StatusDisplay}"  Width="*"/>
                                     <DataGridTemplateColumn Header="إجراء" Width="120">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -297,11 +354,11 @@
                                                         <Style TargetType="Button"
                                                                BasedOn="{StaticResource MaterialDesignFlatButton}">
                                                             <Setter Property="Content"    Value="❌ رفض"/>
-                                                            <Setter Property="Foreground" Value="#C62828"/>
+                                                            <Setter Property="Foreground" Value="{StaticResource DangerRed}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Status}" Value="Rejected">
                                                                     <Setter Property="Content"    Value="↩ استعادة"/>
-                                                                    <Setter Property="Foreground" Value="#1a7a60"/>
+                                                                    <Setter Property="Foreground" Value="{StaticResource EmeraldMid}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -314,15 +371,28 @@
 
                                 <DataGrid.RowStyle>
                                     <Style TargetType="DataGridRow">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                                            </Setter.Value>
+                                        </Setter>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Status}" Value="Ready">
-                                                <Setter Property="Background" Value="#F1F8F5"/>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <SolidColorBrush Color="#00E676" Opacity="0.07"/>
+                                                    </Setter.Value>
+                                                </Setter>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding Status}" Value="NeedsReview">
-                                                <Setter Property="Background" Value="#FFF9E6"/>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <SolidColorBrush Color="#FFB300" Opacity="0.08"/>
+                                                    </Setter.Value>
+                                                </Setter>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding Status}" Value="Rejected">
-                                                <Setter Property="Background" Value="#FFF0F0"/>
+                                                <Setter Property="Background" Value="#20E53935"/>
                                                 <Setter Property="Opacity" Value="0.7"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -343,18 +413,18 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock x:Name="WarningsSummaryText"
-                                        Grid.Column="0"
-                                        FontSize="12" Foreground="#888"
-                                        VerticalAlignment="Center"/>
+                                               Grid.Column="0"
+                                               FontSize="12" Foreground="#4A5A7A"
+                                               VerticalAlignment="Center"/>
 
-                                                        <Button Grid.Column="1"
-                                    x:Name="ResolveAllBtn"
-                                    Content="✔ حل جميع التحذيرات"
-                                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                                    Foreground="#1a7a60"
-                                    Height="32"
-                                    Click="ResolveAllWarnings_Click"/>
-                                                    </Grid>
+                                    <Button Grid.Column="1"
+                                            x:Name="ResolveAllBtn"
+                                            Content="✔ حل جميع التحذيرات"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Foreground="{StaticResource EmeraldMid}"
+                                            Height="32"
+                                            Click="ResolveAllWarnings_Click"/>
+                                </Grid>
 
                                 <DataGrid x:Name="WarningsGrid"
                                           AutoGenerateColumns="False"
@@ -362,67 +432,60 @@
                                           CanUserAddRows="False"
                                           Style="{StaticResource MaterialDesignDataGrid}"
                                           materialDesign:DataGridAssist.CellPadding="10 7 10 7"
-                                          RowBackground="White"
-                                          AlternatingRowBackground="#FFFDE7"
                                           MaxHeight="360">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="الشيت"
-                                            Binding="{Binding SheetName}"       Width="90"/>
-                                        <DataGridTextColumn Header="صف"
-                                            Binding="{Binding RowDisplay}"      Width="45"/>
-                                        <DataGridTextColumn Header="النوع"
-                                            Binding="{Binding WarningTypeDisplay}"     Width="190"/>
-                                        <DataGridTextColumn Header="الرسالة"
-                                            Binding="{Binding WarningMessage}"  Width="*"/>
-                                        <DataGridTextColumn Header="الإجراء المقترح"
-                                            Binding="{Binding SuggestedAction}" Width="170"/>
-                                        <DataGridTextColumn Header="ماذا سيفعل النظام"
-                                            Binding="{Binding SystemAction}"
-                                            Width="200"/>
+                                        <DataGridTextColumn Header="الشيت"             Binding="{Binding SheetName}"           Width="90"/>
+                                        <DataGridTextColumn Header="صف"               Binding="{Binding RowDisplay}"          Width="45"/>
+                                        <DataGridTextColumn Header="النوع"             Binding="{Binding WarningTypeDisplay}"  Width="190"/>
+                                        <DataGridTextColumn Header="الرسالة"           Binding="{Binding WarningMessage}"      Width="*"/>
+                                        <DataGridTextColumn Header="الإجراء المقترح"   Binding="{Binding SuggestedAction}"     Width="170"/>
+                                        <DataGridTextColumn Header="ماذا سيفعل النظام" Binding="{Binding SystemAction}"        Width="200"/>
 
-                                        <!-- Resolve button -->
                                         <DataGridTemplateColumn Width="90">
                                             <DataGridTemplateColumn.Header>
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="إجراء" VerticalAlignment="Center"/>
-                                                    <Border Background="#E3F2FD"
-                                                        CornerRadius="8"
-                                                        Padding="5,1"
-                                                        Margin="6,0,0,0"
-                                                        VerticalAlignment="Center"
-                                                        ToolTip="تعليم التحذير كـ'محلول' يعني أنك راجعته وقررت المتابعة رغمه. لن يُحذف التحذير، فقط يُخفى من عداد الموانع.">
-                                                        <TextBlock Text="ℹ️" FontSize="11" Foreground="#1565C0"/>
+                                                    <Border BorderThickness="1"
+                                                            CornerRadius="8"
+                                                            Padding="5,1"
+                                                            Margin="6,0,0,0"
+                                                            VerticalAlignment="Center"
+                                                            ToolTip="تعليم التحذير كـ'محلول' يعني أنك راجعته وقررت المتابعة رغمه. لن يُحذف التحذير، فقط يُخفى من عداد الموانع.">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="#B8860B" Opacity="0.15"/>
+                                                        </Border.Background>
+                                                        <Border.BorderBrush>
+                                                            <SolidColorBrush Color="#B8860B" Opacity="0.30"/>
+                                                        </Border.BorderBrush>
+                                                        <TextBlock Text="ℹ️" FontSize="11" Foreground="{StaticResource RoseGold}"/>
                                                     </Border>
                                                 </StackPanel>
                                             </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Button Tag="{Binding WarningId}"
-                                                        Click="ResolveWarning_Click"
-                                                        Height="28" Padding="6,0">              
+                                                            Click="ResolveWarning_Click"
+                                                            Height="28" Padding="6,0">
                                                         <Button.ToolTip>
                                                             <ToolTip MaxWidth="280">
                                                                 <StackPanel>
-                                                                     <TextBlock Text="تعليم هذا التحذير كـ&quot;محلول&quot;"
-                                                                   FontWeight="SemiBold"
-                                                                   FontSize="12"
-                                                                   Margin="0,0,0,4"/>
-                                                                    <TextBlock TextWrapping="Wrap"
-                                                                       FontSize="11"
-                                                                       Text="يعني أنك راجعت هذا التحذير وقررت تجاهله والمتابعة. التحذير لن يُحذف، لكنه لن يمنع الاعتماد بعد الآن."/> 
-                                                                    <TextBlock TextWrapping="Wrap"
-                                                                       FontSize="11"
-                                                                       Foreground="#E65100"
-                                                                       Margin="0,4,0,0"
-                                                                       Text="⚠️ تأكد من مراجعة التحذير قبل تعليمه محلولاً."/> 
+                                                                    <TextBlock Text="تعليم هذا التحذير كـ&quot;محلول&quot;"
+                                                                               FontWeight="SemiBold" FontSize="12"
+                                                                               Margin="0,0,0,4"/>
+                                                                    <TextBlock TextWrapping="Wrap" FontSize="11"
+                                                                               Text="يعني أنك راجعت هذا التحذير وقررت تجاهله والمتابعة. التحذير لن يُحذف، لكنه لن يمنع الاعتماد بعد الآن."/>
+                                                                    <TextBlock TextWrapping="Wrap" FontSize="11"
+                                                                               Foreground="#E65100"
+                                                                               Margin="0,4,0,0"
+                                                                               Text="⚠️ تأكد من مراجعة التحذير قبل تعليمه محلولاً."/>
                                                                 </StackPanel>
                                                             </ToolTip>
                                                         </Button.ToolTip>
                                                         <Button.Style>
                                                             <Style TargetType="Button"
-                                                                    BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                                                   BasedOn="{StaticResource MaterialDesignFlatButton}">
                                                                 <Setter Property="Content"    Value="✔ حل"/>
-                                                                <Setter Property="Foreground" Value="#1a7a60"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource EmeraldMid}"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsResolved}" Value="True">
                                                                         <Setter Property="Content"   Value="✔ مُحلول"/>
@@ -441,17 +504,20 @@
 
                                     <DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                                                </Setter.Value>
+                                            </Setter>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsResolved}" Value="True">
                                                     <Setter Property="Opacity" Value="0.45"/>
                                                 </DataTrigger>
-                                                  <DataTrigger Binding="{Binding SystemAction}"
-                                                            Value="❌ السجل لن يُحفظ">
-                                                    <Setter Property="Background" Value="#FFF0F0"/>
+                                                <DataTrigger Binding="{Binding SystemAction}" Value="❌ السجل لن يُحفظ">
+                                                    <Setter Property="Background" Value="#20E53935"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding SystemAction}"
-                                                       Value="❌ كل سجلات الشيت لن تُحفظ">
-                                                    <Setter Property="Background" Value="#FFF0F0"/>
+                                                <DataTrigger Binding="{Binding SystemAction}" Value="❌ كل سجلات الشيت لن تُحفظ">
+                                                    <Setter Property="Background" Value="#20E53935"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -464,16 +530,20 @@
                     </TabControl>
                 </Border>
 
-                <!-- ── RECENT BATCHES ──────────────────────────────────────── -->
-                <Border Background="White" CornerRadius="8" Padding="20">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="6" Opacity="0.08" ShadowDepth="2"/>
-                    </Border.Effect>
+                <!-- ── RECENT BATCHES ── -->
+                <Border CornerRadius="8" Padding="20" BorderThickness="1">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <StackPanel>
 
                         <TextBlock Text="آخر عمليات الاستيراد  (انقر مرتين لمراجعة دفعة قيد الانتظار)"
                                    FontSize="14" FontWeight="Bold"
-                                   Foreground="#1a7a60" Margin="0,0,0,12"/>
+                                   Foreground="{StaticResource RoseGold}"
+                                   Margin="0,0,0,12"/>
 
                         <DataGrid x:Name="RecentGrid"
                                   AutoGenerateColumns="False"
@@ -481,39 +551,45 @@
                                   CanUserAddRows="False"
                                   Style="{StaticResource MaterialDesignDataGrid}"
                                   materialDesign:DataGridAssist.CellPadding="10 6 10 6"
-                                  RowBackground="White"
-                                  AlternatingRowBackground="#F9FBF9"
+                                  VirtualizingPanel.IsVirtualizing="True"
                                   MaxHeight="220"
                                   MouseDoubleClick="RecentBatch_DoubleClick">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="اسم الملف"
-                                    Binding="{Binding FileName}"     Width="*"/>
-                                <DataGridTextColumn Header="شيتات"
-                                    Binding="{Binding TotalSheets}"  Width="70"/>
-                                <DataGridTextColumn Header="سجلات"
-                                    Binding="{Binding TotalRecords}" Width="80"/>
-                                <DataGridTextColumn Header="تحذيرات"
-                                    Binding="{Binding WarningCount}" Width="75"/>
-                                <DataGridTextColumn Header="الحالة"
-                                    Binding="{Binding Status}"       Width="120"/>
-                                <DataGridTextColumn Header="التاريخ"
-                                    Binding="{Binding CreatedAt}"    Width="150"/>
+                                <DataGridTextColumn Header="اسم الملف" Binding="{Binding FileName}"     Width="*"/>
+                                <DataGridTextColumn Header="شيتات"     Binding="{Binding TotalSheets}"  Width="70"/>
+                                <DataGridTextColumn Header="سجلات"     Binding="{Binding TotalRecords}" Width="80"/>
+                                <DataGridTextColumn Header="تحذيرات"   Binding="{Binding WarningCount}" Width="75"/>
+                                <DataGridTextColumn Header="الحالة"    Binding="{Binding Status}"       Width="120"/>
+                                <DataGridTextColumn Header="التاريخ"   Binding="{Binding CreatedAt}"    Width="150"/>
                             </DataGrid.Columns>
 
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                                        </Setter.Value>
+                                    </Setter>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Status}" Value="Imported">
-                                            <Setter Property="Background" Value="#F1F8F5"/>
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="#00E676" Opacity="0.07"/>
+                                                </Setter.Value>
+                                            </Setter>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="Failed">
-                                            <Setter Property="Background" Value="#FFF0F0"/>
+                                            <Setter Property="Background" Value="#20E53935"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="RolledBack">
                                             <Setter Property="Opacity" Value="0.55"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="ReadyForReview">
-                                            <Setter Property="Background" Value="#FFF9E6"/>
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="#FFB300" Opacity="0.08"/>
+                                                </Setter.Value>
+                                            </Setter>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                         </DataTrigger>
                                     </Style.Triggers>

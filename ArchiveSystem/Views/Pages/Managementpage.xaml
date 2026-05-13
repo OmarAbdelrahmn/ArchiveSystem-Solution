@@ -3,7 +3,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       Title="الإدارة"
-      Background="#F5F5F5"
+      Background="{StaticResource MidnightBase}"
+      FontFamily="Noto Kufi Arabic, Segoe UI"
       FlowDirection="RightToLeft">
 
     <Grid>
@@ -12,9 +13,15 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="0" Background="White"
-                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
+        <!-- ══ HEADER ══ -->
+        <Border Grid.Row="0"
+                BorderThickness="0,0,0,1">
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.60"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
             <Grid Margin="24,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -26,14 +33,14 @@
                 <TextBlock Grid.Column="0"
                            Text="🏢  الإدارة"
                            FontSize="22" FontWeight="Bold"
-                           Foreground="#1a7a60"
+                           Foreground="{StaticResource RoseGold}"
                            VerticalAlignment="Center"/>
 
                 <Button x:Name="AddRootManagementBtn"
                         Grid.Column="1"
                         Content="➕ إدارة جديدة"
                         Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="#1a7a60" Foreground="White"
+                        Background="{StaticResource EmeraldMid}" Foreground="White"
                         Height="36" Margin="0,0,8,0"
                         Click="AddRootManagement_Click"/>
 
@@ -41,6 +48,7 @@
                         Grid.Column="2"
                         Content="➕ شعبة او قسم"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
                         Height="36" Margin="0,0,8,0"
                         IsEnabled="False"
                         Click="AddSubManagement_Click"/>
@@ -49,24 +57,29 @@
                         Grid.Column="3"
                         Content="✏️ تعديل الإدارة"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
                         Height="36"
                         IsEnabled="False"
                         Click="EditManagement_Click"/>
             </Grid>
         </Border>
 
-        <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════ -->
+        <!-- ══ MAIN CONTENT ══ -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="270"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ── LEFT: Management Tree ─────────────────────────────────── -->
+            <!-- ── LEFT: Management Tree ── -->
             <Border Grid.Column="0"
-                    Background="White"
-                    BorderThickness="0,0,1,0"
-                    BorderBrush="#E0E0E0">
+                    BorderThickness="0,0,1,0">
+                <Border.Background>
+                    <SolidColorBrush Color="#0D1F3C" Opacity="0.90"/>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                </Border.BorderBrush>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -75,61 +88,74 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0"
-                            Background="#F0F7F4"
-                            BorderThickness="0,0,0,1" BorderBrush="#C8E6C9"
+                            BorderThickness="0,0,0,1"
                             Padding="14,10">
+                        <Border.Background>
+                            <SolidColorBrush Color="#0A1628" Opacity="0.70"/>
+                        </Border.Background>
+                        <Border.BorderBrush>
+                            <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                        </Border.BorderBrush>
                         <TextBlock Text="قائمة الإدارات"
                                    FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#1a7a60"/>
+                                   Foreground="{StaticResource RoseGold}"/>
                     </Border>
 
                     <ListBox Grid.Row="1"
-         x:Name="ManagementsList"
-         BorderThickness="0"
-         Background="Transparent"
-         VirtualizingPanel.IsVirtualizing="True"
-         SelectionChanged="ManagementsList_SelectionChanged">
+                             x:Name="ManagementsList"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             SelectionChanged="ManagementsList_SelectionChanged">
 
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="0,1">
 
-                                    <!-- ROOT — hidden by default, shown when ParentManagementId = null -->
+                                    <!-- ROOT -->
                                     <Border x:Name="RootIndicator"
-                        Background="#E8F5E9"
-                        CornerRadius="4"
-                        Padding="10,7"
-                        Visibility="Collapsed">
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Padding="10,7"
+                                            Visibility="Collapsed">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#00E676" Opacity="0.08"/>
+                                        </Border.Background>
+                                        <Border.BorderBrush>
+                                            <SolidColorBrush Color="#00E676" Opacity="0.20"/>
+                                        </Border.BorderBrush>
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="🏢 " FontSize="14" VerticalAlignment="Center"/>
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name, Mode=OneWay}"
-                                       FontSize="13" FontWeight="Bold"
-                                       Foreground="#1a7a60"/>
-                                                <TextBlock FontSize="10" Foreground="#888" Margin="0,1,0,0">
-                                <Run Text="{Binding DossierCount, Mode=OneWay}"/>
-                                <Run Text=" دوسية"/>
+                                                           FontSize="13" FontWeight="Bold"
+                                                           Foreground="{StaticResource EmeraldMid}"/>
+                                                <TextBlock FontSize="10" Foreground="#4A5A7A" Margin="0,1,0,0">
+                                                    <Run Text="{Binding DossierCount, Mode=OneWay}"/>
+                                                    <Run Text=" دوسية"/>
                                                 </TextBlock>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
 
-                                    <!-- SUB — visible by default (fallback for non-null parent) -->
+                                    <!-- SUB -->
                                     <Border x:Name="SubIndicator"
-                        Padding="8,6"
-                        Margin="16,0,0,0"
-                        CornerRadius="3"
-                        Background="#F9F9F9">
+                                            Padding="8,6"
+                                            Margin="16,0,0,0"
+                                            CornerRadius="3">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                                        </Border.Background>
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="└  " FontSize="12"
-                                   Foreground="#AAAAAA"
-                                   VerticalAlignment="Center"/>
+                                                       Foreground="#4A5A7A"
+                                                       VerticalAlignment="Center"/>
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name, Mode=OneWay}"
-                                       FontSize="12" Foreground="#444"/>
-                                                <TextBlock FontSize="10" Foreground="#BBB" Margin="0,1,0,0">
-                                <Run Text="{Binding DossierCount, Mode=OneWay}"/>
-                                <Run Text=" دوسية"/>
+                                                           FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+                                                <TextBlock FontSize="10" Foreground="#4A5A7A" Margin="0,1,0,0">
+                                                    <Run Text="{Binding DossierCount, Mode=OneWay}"/>
+                                                    <Run Text=" دوسية"/>
                                                 </TextBlock>
                                             </StackPanel>
                                         </StackPanel>
@@ -138,9 +164,8 @@
                                 </StackPanel>
 
                                 <DataTemplate.Triggers>
-                                    <!-- When root (no parent): show root, hide sub -->
                                     <DataTrigger Binding="{Binding ParentManagementId, Mode=OneWay}"
-                             Value="{x:Null}">
+                                                 Value="{x:Null}">
                                         <Setter TargetName="RootIndicator" Property="Visibility" Value="Visible"/>
                                         <Setter TargetName="SubIndicator"  Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
@@ -155,7 +180,7 @@
                                 <Setter Property="Background" Value="Transparent"/>
                                 <Style.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background" Value="#C8E6C9"/>
+                                        <Setter Property="Background" Value="#1A2E4A"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -165,12 +190,15 @@
 
                     <!-- Delete management button at the bottom -->
                     <Border Grid.Row="2"
-                            BorderThickness="0,1,0,0" BorderBrush="#EEEEEE"
+                            BorderThickness="0,1,0,0"
                             Padding="10,8">
+                        <Border.BorderBrush>
+                            <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                        </Border.BorderBrush>
                         <Button x:Name="DeleteManagementBtn"
                                 Content="🗑 حذف الإدارة المحددة"
                                 Style="{StaticResource MaterialDesignFlatButton}"
-                                Foreground="#C62828"
+                                Foreground="{StaticResource DangerRed}"
                                 Height="32"
                                 IsEnabled="False"
                                 HorizontalAlignment="Stretch"
@@ -179,28 +207,28 @@
                 </Grid>
             </Border>
 
-            <!-- ── RIGHT: Dossiers Area ────────────────────────────────── -->
+            <!-- ── RIGHT: Dossiers Area ── -->
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <!-- Management info bar -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Types + dossier actions bar -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Filters bar -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Result count -->
                     <RowDefinition Height="*"/>
-                    <!-- DataGrid -->
                 </Grid.RowDefinitions>
 
                 <!-- Management info bar -->
                 <Border Grid.Row="0"
                         x:Name="ManagementInfoBar"
-                        Background="#F0F7F4"
-                        BorderThickness="0,0,0,1" BorderBrush="#C8E6C9"
+                        BorderThickness="0,0,0,1"
                         Padding="20,12"
                         Visibility="Collapsed">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0A1628" Opacity="0.70"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -210,18 +238,18 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock x:Name="SelectedManagementName"
                                        FontSize="18" FontWeight="Bold"
-                                       Foreground="#1a7a60"/>
+                                       Foreground="{StaticResource RoseGold}"/>
                             <TextBlock x:Name="SelectedManagementDesc"
-                                       FontSize="12" Foreground="#888"
+                                       FontSize="12" Foreground="#4A5A7A"
                                        Margin="0,2,0,0"
                                        Visibility="Collapsed"/>
                         </StackPanel>
 
-                        <!-- Dossier Types management -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <Button x:Name="ManageTypesBtn"
                                     Content="🏷️ أنواع الدوسيات"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource TextSecondary}"
                                     Height="34" Margin="0,0,8,0"
                                     Click="ManageTypes_Click"/>
                         </StackPanel>
@@ -230,9 +258,14 @@
 
                 <!-- Dossier actions bar -->
                 <Border Grid.Row="1"
-                        Background="White"
-                        BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
+                        BorderThickness="0,0,0,1"
                         Padding="16,10">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.60"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -245,7 +278,7 @@
                                 Grid.Column="0"
                                 Content="➕ إضافة دوسية"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="#1a7a60" Foreground="White"
+                                Background="{StaticResource EmeraldMid}" Foreground="White"
                                 Height="34" Margin="0,0,8,0"
                                 IsEnabled="False"
                                 Click="AddDossier_Click"/>
@@ -254,6 +287,7 @@
                                 Grid.Column="1"
                                 Content="✏️ تعديل"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Foreground="{StaticResource TextSecondary}"
                                 Height="34" Margin="0,0,8,0"
                                 IsEnabled="False"
                                 Click="EditDossier_Click"/>
@@ -262,16 +296,15 @@
                                 Grid.Column="2"
                                 Content="🗑 حذف"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Foreground="#C62828"
+                                Foreground="{StaticResource DangerRed}"
                                 Height="34"
                                 IsEnabled="False"
                                 Click="DeleteDossier_Click"/>
 
-                        <!-- empty placeholder stays for no management selected text -->
                         <TextBlock x:Name="NoManagementHint"
                                    Grid.Column="3"
                                    Text="← اختر إدارة من القائمة لعرض دوسياتها"
-                                   FontSize="12" Foreground="#AAA"
+                                   FontSize="12" Foreground="#4A5A7A"
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Center"
                                    Visibility="Visible"/>
@@ -280,30 +313,35 @@
 
                 <!-- Filters bar -->
                 <Border Grid.Row="2"
-                        Background="White"
-                        BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
+                        BorderThickness="0,0,0,1"
                         Padding="16,10"
                         x:Name="FiltersBar"
                         Visibility="Collapsed">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.60"/>
+                    </Border.BorderBrush>
                     <WrapPanel>
 
-                        <!-- Dossier number search -->
                         <TextBox x:Name="DossierNumBox"
                                  materialDesign:HintAssist.Hint="رقم الدوسية"
+                                 materialDesign:HintAssist.Foreground="#4A5A7A"
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                  Width="130" Height="50" Margin="0,0,8,0"
                                  TextChanged="Filter_Changed"/>
 
-                        <!-- Year -->
                         <ComboBox x:Name="YearCombo"
                                   materialDesign:HintAssist.Hint="السنة الهجرية"
+                                  materialDesign:HintAssist.Foreground="#4A5A7A"
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                   Width="140" Height="50" Margin="0,0,8,0"
                                   SelectionChanged="Filter_Changed"/>
 
-                        <!-- Month -->
                         <ComboBox x:Name="MonthCombo"
                                   materialDesign:HintAssist.Hint="الشهر"
+                                  materialDesign:HintAssist.Foreground="#4A5A7A"
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                   Width="90" Height="50" Margin="0,0,8,0"
                                   SelectionChanged="Filter_Changed">
@@ -322,33 +360,37 @@
                             <ComboBoxItem Content="12" Tag="12"/>
                         </ComboBox>
 
-                        <!-- Type -->
                         <ComboBox x:Name="TypeFilterCombo"
                                   materialDesign:HintAssist.Hint="النوع"
+                                  materialDesign:HintAssist.Foreground="#4A5A7A"
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                   DisplayMemberPath="TypeName"
                                   SelectedValuePath="TypeId"
                                   Width="160" Height="50" Margin="0,0,8,0"
                                   SelectionChanged="Filter_Changed"/>
 
-                        <!-- Reset -->
                         <Button Content="مسح"
                                 Style="{StaticResource MaterialDesignFlatButton}"
-                                Foreground="#C62828" Height="38"
+                                Foreground="{StaticResource DangerRed}" Height="38"
                                 Click="ResetFilter_Click"/>
                     </WrapPanel>
                 </Border>
 
                 <!-- Result count -->
                 <Border Grid.Row="3"
-                        Background="#F0F7F4"
-                        BorderThickness="0,0,0,1" BorderBrush="#E0E0E0"
+                        BorderThickness="0,0,0,1"
                         Padding="16,6"
                         x:Name="ResultBar"
                         Visibility="Collapsed">
+                    <Border.Background>
+                        <SolidColorBrush Color="#00E676" Opacity="0.06"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#00E676" Opacity="0.15"/>
+                    </Border.BorderBrush>
                     <TextBlock x:Name="ResultCountText"
                                FontSize="12" FontWeight="SemiBold"
-                               Foreground="#1a7a60"
+                               Foreground="{StaticResource EmeraldMid}"
                                VerticalAlignment="Center"/>
                 </Border>
 
@@ -361,12 +403,16 @@
                           SelectionMode="Single"
                           Style="{StaticResource MaterialDesignDataGrid}"
                           materialDesign:DataGridAssist.CellPadding="12 8 12 8"
-                          RowBackground="White"
-                          AlternatingRowBackground="#F9FBF9"
+                          RowBackground="Transparent"
+                          AlternatingRowBackground="Transparent"
                           VirtualizingPanel.IsVirtualizing="True"
                           Margin="12,0,12,12"
                           MouseDoubleClick="DossiersGrid_DoubleClick"
                           SelectionChanged="DossiersGrid_SelectionChanged">
+
+                    <DataGrid.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.50"/>
+                    </DataGrid.Background>
 
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="رقم الدوسية"
@@ -391,9 +437,14 @@
 
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                                </Setter.Value>
+                            </Setter>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding StatusDisplay}" Value="محذوف">
-                                    <Setter Property="Background" Value="#FFF0F0"/>
+                                    <Setter Property="Background" Value="#20E53935"/>
                                     <Setter Property="Opacity" Value="0.6"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -406,7 +457,7 @@
                 <TextBlock Grid.Row="4"
                            x:Name="EmptyHint"
                            Text="لا توجد دوسيات لهذه الإدارة."
-                           FontSize="14" Foreground="#AAA"
+                           FontSize="14" Foreground="#4A5A7A"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Visibility="Collapsed"/>

@@ -7,8 +7,8 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
-        FontFamily="Segoe UI"
-        Background="#F5F5F5">
+        FontFamily="Noto Kufi Arabic, Segoe UI"
+        Background="{StaticResource MidnightBase}">
 
     <Grid Margin="28">
         <Grid.RowDefinitions>
@@ -26,18 +26,25 @@
         <TextBlock Grid.Row="0"
                    Text="تعديل بيانات الدوسية"
                    FontSize="18" FontWeight="Bold"
-                   Foreground="#1a7a60"
+                   Foreground="{StaticResource RoseGold}"
                    Margin="0,0,0,20"/>
 
         <!-- Error -->
         <Border Grid.Row="1"
                 x:Name="ErrorBorder"
-                Background="#FFEBEE" BorderBrush="#EF9A9A"
-                BorderThickness="1" CornerRadius="4"
+                CornerRadius="6"
                 Padding="10,6" Margin="0,0,0,12"
                 Visibility="Collapsed">
+            <Border.Background>
+                <SolidColorBrush Color="#FF5252" Opacity="0.10"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#FF5252" Opacity="0.35"/>
+            </Border.BorderBrush>
+            <Border.BorderThickness>1</Border.BorderThickness>
             <TextBlock x:Name="ErrorText"
-                       Foreground="#C62828" FontSize="12"
+                       Foreground="{StaticResource DangerRed}"
+                       FontSize="12"
                        TextWrapping="Wrap"/>
         </Border>
 
@@ -52,11 +59,13 @@
             <TextBox Grid.Column="0"
                      x:Name="HijriMonthBox"
                      materialDesign:HintAssist.Hint="الشهر الهجري (1-12) *"
+                     materialDesign:HintAssist.Foreground="#4A5A7A"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
 
             <TextBox Grid.Column="2"
                      x:Name="HijriYearBox"
                      materialDesign:HintAssist.Hint="السنة الهجرية *"
+                     materialDesign:HintAssist.Foreground="#4A5A7A"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
         </Grid>
 
@@ -64,6 +73,7 @@
         <TextBox Grid.Row="3"
                  x:Name="ExpectedCountBox"
                  materialDesign:HintAssist.Hint="عدد الملفات المتوقع (اختياري)"
+                 materialDesign:HintAssist.Foreground="#4A5A7A"
                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                  Margin="0,0,0,20"/>
 
@@ -71,7 +81,7 @@
         <TextBlock Grid.Row="4"
                    Text="الموقع الفيزيائي"
                    FontSize="13" FontWeight="SemiBold"
-                   Foreground="#555"
+                   Foreground="{StaticResource RoseGoldLight}"
                    Margin="0,0,0,10"/>
 
         <!-- Location fields -->
@@ -87,41 +97,63 @@
             <TextBox Grid.Column="0"
                      x:Name="HallwayBox"
                      materialDesign:HintAssist.Hint="ممر *"
+                     materialDesign:HintAssist.Foreground="#4A5A7A"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
 
             <TextBox Grid.Column="2"
                      x:Name="CabinetBox"
                      materialDesign:HintAssist.Hint="كبينة *"
+                     materialDesign:HintAssist.Foreground="#4A5A7A"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
 
             <TextBox Grid.Column="4"
                      x:Name="ShelfBox"
                      materialDesign:HintAssist.Hint="رف *"
+                     materialDesign:HintAssist.Foreground="#4A5A7A"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
         </Grid>
 
         <TextBlock Grid.Row="6"
                    Text="تغيير الموقع هنا يُحدِّث بيانات الدوسية فقط. لتسجيل حركة رسمية استخدم 'نقل الدوسية'."
-                   FontSize="11" Foreground="#999"
+                   FontSize="11"
+                   Foreground="{StaticResource TextSecondary}"
                    TextWrapping="Wrap"
                    Margin="0,4,0,0"/>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="8"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Left"
-                    Margin="0,20,0,0">
-            <Button Content="حفظ"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="#1a7a60" Foreground="White"
-                    Width="100" Height="38"
-                    Margin="0,0,10,0"
-                    Click="Save_Click"/>
-            <Button Content="إلغاء"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Width="100" Height="38"
-                    Click="Cancel_Click"/>
-        </StackPanel>
+        <Border Grid.Row="8"
+                BorderThickness="0,1,0,0"
+                Padding="0,14,0,0"
+                Margin="0,20,0,0">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+                <Button Content="حفظ"
+                        Height="38" Width="100"
+                        Margin="0,0,10,0"
+                        Foreground="#050D1A" FontWeight="SemiBold"
+                        Click="Save_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Style>
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00BCD4" Offset="0"/>
+                            <GradientStop Color="#00E676" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
+                <Button Content="إلغاء"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
+                        Width="100" Height="38"
+                        Click="Cancel_Click"/>
+            </StackPanel>
+        </Border>
 
     </Grid>
 </Window>

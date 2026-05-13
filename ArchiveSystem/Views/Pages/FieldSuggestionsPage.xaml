@@ -3,7 +3,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       Title="إدارة قوائم الاقتراحات"
-      Background="#F5F5F5"
+      Background="{StaticResource MidnightBase}"
+      FontFamily="Noto Kufi Arabic, Segoe UI"
       FlowDirection="RightToLeft">
 
     <Grid>
@@ -13,8 +14,14 @@
         </Grid.RowDefinitions>
 
         <!-- HEADER -->
-        <Border Grid.Row="0" Background="White"
-                BorderThickness="0,0,0,1" BorderBrush="#E0E0E0">
+        <Border Grid.Row="0"
+                BorderThickness="0,0,0,1">
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.60"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
             <Grid Margin="24,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -23,11 +30,12 @@
                 <TextBlock Grid.Column="0"
                            Text="💡  إدارة قوائم الاقتراحات"
                            FontSize="22" FontWeight="Bold"
-                           Foreground="#1a7a60"
+                           Foreground="{StaticResource RoseGold}"
                            VerticalAlignment="Center"/>
                 <Button Grid.Column="1"
                         Content="🔄 تحديث"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
                         Height="36"
                         Click="Refresh_Click"/>
             </Grid>
@@ -42,17 +50,22 @@
 
             <!-- LEFT: Fields List -->
             <Border Grid.Column="0"
-                    Background="White"
-                    BorderThickness="0,0,1,0"
-                    BorderBrush="#E0E0E0">
+                    BorderThickness="0,0,1,0">
+                <Border.Background>
+                    <SolidColorBrush Color="#0D1F3C" Opacity="0.90"/>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                </Border.BorderBrush>
                 <StackPanel>
                     <TextBlock Text="الحقول من نوع اقتراحات"
                                FontSize="13" FontWeight="SemiBold"
-                               Foreground="#555"
+                               Foreground="{StaticResource RoseGold}"
                                Margin="16,16,16,10"/>
                     <ListBox x:Name="FieldsList"
                              BorderThickness="0"
                              Background="Transparent"
+                             Foreground="{StaticResource TextSecondary}"
                              DisplayMemberPath="ArabicLabel"
                              SelectionChanged="FieldsList_SelectionChanged"/>
                 </StackPanel>
@@ -69,9 +82,14 @@
 
                 <!-- Field title + add form -->
                 <Border Grid.Row="0"
-                        Background="#F0F7F4"
-                        BorderThickness="0,0,0,1" BorderBrush="#C8E6C9"
+                        BorderThickness="0,0,0,1"
                         Padding="20,14">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0A1628" Opacity="0.70"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -83,12 +101,12 @@
                                    x:Name="FieldTitleText"
                                    Text="اختر حقلاً من القائمة"
                                    FontSize="15" FontWeight="Bold"
-                                   Foreground="#1a7a60"
+                                   Foreground="{StaticResource RoseGold}"
                                    VerticalAlignment="Center"/>
 
-                        <TextBox
-                                 x:Name="NewSuggestionBox"
+                        <TextBox x:Name="NewSuggestionBox"
                                  materialDesign:HintAssist.Hint="قيمة اقتراح جديدة"
+                                 materialDesign:HintAssist.Foreground="#4A5A7A"
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                  Width="220"
                                  Margin="121,0,10,-6"
@@ -98,7 +116,7 @@
                                 x:Name="AddSuggestionBtn"
                                 Content="➕ إضافة"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="#1a7a60" Foreground="White"
+                                Background="{StaticResource EmeraldMid}" Foreground="White"
                                 Height="40" Width="100"
                                 IsEnabled="False"
                                 Click="AddSuggestion_Click"/>
@@ -107,9 +125,14 @@
 
                 <!-- Stats bar -->
                 <Border Grid.Row="1"
-                        Background="#F9F9F9"
-                        BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"
+                        BorderThickness="0,0,0,1"
                         Padding="20,8">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.60"/>
+                    </Border.BorderBrush>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -118,14 +141,14 @@
 
                         <TextBlock Grid.Column="0"
                                    x:Name="StatsText"
-                                   FontSize="12" Foreground="#666"
+                                   FontSize="12" Foreground="#4A5A7A"
                                    VerticalAlignment="Center"/>
 
                         <Button Grid.Column="1"
                                 x:Name="ClearAllBtn"
                                 Content="🗑 مسح كل الاقتراحات"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Foreground="#C62828"
+                                Foreground="{StaticResource DangerRed}"
                                 Height="32"
                                 IsEnabled="False"
                                 Click="ClearAll_Click"/>
@@ -150,10 +173,24 @@
                           SelectionMode="Single"
                           Style="{StaticResource MaterialDesignDataGrid}"
                           materialDesign:DataGridAssist.CellPadding="12 8 12 8"
-                          RowBackground="White"
-                          AlternatingRowBackground="#F9FBF9"
+                          RowBackground="Transparent"
+                          AlternatingRowBackground="Transparent"
                           VirtualizingPanel.IsVirtualizing="True"
                           Margin="12,8,12,12">
+
+                    <DataGrid.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.50"/>
+                    </DataGrid.Background>
+
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.RowStyle>
 
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="قيمة الاقتراح"
@@ -171,7 +208,7 @@
                                     <Button Content="🗑 حذف"
                                             Tag="{Binding Value}"
                                             Style="{StaticResource MaterialDesignFlatButton}"
-                                            Foreground="#C62828"
+                                            Foreground="{StaticResource DangerRed}"
                                             Height="28" Padding="6,0"
                                             Click="DeleteSuggestion_Click"/>
                                 </DataTemplate>
@@ -185,7 +222,7 @@
                 <TextBlock Grid.Row="3"
                            x:Name="EmptyText"
                            Text="لا توجد اقتراحات محفوظة لهذا الحقل."
-                           FontSize="14" Foreground="#AAA"
+                           FontSize="14" Foreground="#4A5A7A"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Visibility="Collapsed"/>
