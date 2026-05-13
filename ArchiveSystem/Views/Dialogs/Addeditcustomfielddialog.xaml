@@ -3,14 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="حقل مخصص"
-        Height="620" Width="500"
-        Padding="20"
+        Height="640" Width="500"
+        Padding="0"
         MinHeight="500"
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
-        FontFamily="Segoe UI"
-        Background="#F5F5F5">
+        FontFamily="Noto Kufi Arabic, Segoe UI"
+        Background="{StaticResource MidnightBase}">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -28,31 +28,39 @@
                 <TextBlock x:Name="TitleText"
                            Text="إضافة حقل مخصص"
                            FontSize="18" FontWeight="Bold"
-                           Foreground="#1a7a60"
+                           Foreground="{StaticResource RoseGold}"
                            Margin="0,0,0,20"/>
 
                 <!-- Error -->
                 <Border x:Name="ErrorBorder"
-                        Background="#FFEBEE" BorderBrush="#EF9A9A"
-                        BorderThickness="1" CornerRadius="4"
+                        CornerRadius="6"
                         Padding="10,6" Margin="0,0,0,12"
                         Visibility="Collapsed">
+                    <Border.Background>
+                        <SolidColorBrush Color="#FF5252" Opacity="0.10"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#FF5252" Opacity="0.35"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>1</Border.BorderThickness>
                     <TextBlock x:Name="ErrorText"
-                               Foreground="#C62828" FontSize="12"
-                               TextWrapping="Wrap"/>
+                               Foreground="{StaticResource DangerRed}"
+                               FontSize="12" TextWrapping="Wrap"/>
                 </Border>
 
                 <!-- Arabic label -->
                 <TextBox x:Name="ArabicLabelBox"
                          materialDesign:HintAssist.Hint="التسمية العربية *"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="20,0,20,14"/>
+                         Margin="0,0,0,14"/>
 
                 <!-- Field type -->
                 <ComboBox x:Name="FieldTypeCombo"
                           materialDesign:HintAssist.Hint="نوع الحقل *"
+                          materialDesign:HintAssist.Foreground="#4A5A7A"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="20,0,20,14"
+                          Margin="0,0,0,14"
                           SelectionChanged="FieldTypeCombo_SelectionChanged">
                     <ComboBoxItem Content="نص"                  Tag="Text"/>
                     <ComboBoxItem Content="نص مع اقتراحات"      Tag="TextWithSuggestions"/>
@@ -64,21 +72,23 @@
                 </ComboBox>
 
                 <!-- Suggestion limit (TextWithSuggestions only) -->
-                <StackPanel x:Name="SuggestionPanel" Visibility="Collapsed" Margin="20,0,20,14">
+                <StackPanel x:Name="SuggestionPanel" Visibility="Collapsed" Margin="0,0,0,14">
                     <TextBox x:Name="SuggestionLimitBox"
                              materialDesign:HintAssist.Hint="حد الاقتراحات (0 = بلا حد)"
+                             materialDesign:HintAssist.Foreground="#4A5A7A"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
                              PreviewTextInput="NumberOnly"/>
                 </StackPanel>
 
                 <!-- Options panel (SingleChoice / MultiChoice) -->
-                <StackPanel x:Name="OptionsPanel" Visibility="Collapsed" Margin="20,0,20,14">
+                <StackPanel x:Name="OptionsPanel" Visibility="Collapsed" Margin="0,0,0,14">
                     <TextBlock Text="خيارات القائمة"
                                FontSize="13" FontWeight="SemiBold"
-                               Foreground="#555" Margin="0,0,0,8"/>
+                               Foreground="{StaticResource RoseGoldLight}"
+                               Margin="0,0,0,8"/>
 
                     <!-- Add option row -->
-                    <Grid Margin="20,0,20,8">
+                    <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -86,42 +96,70 @@
                         <TextBox Grid.Column="0"
                                  x:Name="NewOptionBox"
                                  materialDesign:HintAssist.Hint="قيمة جديدة"
+                                 materialDesign:HintAssist.Foreground="#4A5A7A"
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                  Height="40" Margin="0,0,8,0"/>
                         <Button Grid.Column="1"
                                 Content="➕ إضافة"
-                                Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="#1a7a60" Foreground="White"
                                 Height="40" Width="90"
-                                Click="AddOption_Click"/>
+                                Foreground="#050D1A" FontWeight="SemiBold"
+                                Click="AddOption_Click">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                                    <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Style>
+                            <Button.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#00BCD4" Offset="0"/>
+                                    <GradientStop Color="#00E676" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Button.Background>
+                        </Button>
                     </Grid>
 
                     <!-- Options list -->
-                    <Border BorderBrush="#E0E0E0" BorderThickness="1"
-                            CornerRadius="4" Background="White" MaxHeight="160">
+                    <Border CornerRadius="6" MaxHeight="160">
+                        <Border.Background>
+                            <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                        </Border.Background>
+                        <Border.BorderBrush>
+                            <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                        </Border.BorderBrush>
+                        <Border.BorderThickness>1</Border.BorderThickness>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="OptionsList" Margin="4">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="0,2">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0"
-                                                       Text="{Binding ArabicValue}"
-                                                       FontSize="13"
-                                                       VerticalAlignment="Center"
-                                                       Padding="8,4"/>
-                                            <Button Grid.Column="1"
-                                                    Content="✕"
-                                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                                    Foreground="#C62828"
-                                                    Height="28" Width="32"
-                                                    Padding="0"
-                                                    Tag="{Binding CustomFieldOptionId}"
-                                                    Click="RemoveOption_Click"/>
-                                        </Grid>
+                                        <Border CornerRadius="6" Margin="0,3" Padding="10,6">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="#00E676" Opacity="0.06"/>
+                                            </Border.Background>
+                                            <Border.BorderBrush>
+                                                <SolidColorBrush Color="#00E676" Opacity="0.15"/>
+                                            </Border.BorderBrush>
+                                            <Border.BorderThickness>1</Border.BorderThickness>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding ArabicValue}"
+                                                           FontSize="13"
+                                                           VerticalAlignment="Center"
+                                                           Padding="8,4"
+                                                           Foreground="{StaticResource EmeraldMid}"/>
+                                                <Button Grid.Column="1"
+                                                        Content="✕"
+                                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                                        Foreground="{StaticResource DangerRed}"
+                                                        Height="28" Width="32"
+                                                        Padding="0"
+                                                        Tag="{Binding CustomFieldOptionId}"
+                                                        Click="RemoveOption_Click"/>
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -132,19 +170,20 @@
                 <!-- Sort order -->
                 <TextBox x:Name="SortOrderBox"
                          materialDesign:HintAssist.Hint="ترتيب العرض (0 = أول)"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="20,0,20,16"
+                         Margin="0,0,0,16"
                          PreviewTextInput="NumberOnly"/>
 
                 <!-- Checkboxes -->
                 <WrapPanel Margin="0,0,0,6">
-                    <CheckBox x:Name="IsRequiredChk"    Content="مطلوب"             Margin="0,0,16,8"/>
-                    <CheckBox x:Name="IsActiveChk"      Content="نشط"               Margin="0,0,16,8" IsChecked="True"/>
-                    <CheckBox x:Name="ShowInEntryChk"   Content="يظهر في الإدخال"   Margin="0,0,16,8" IsChecked="True"/>
+                    <CheckBox x:Name="IsRequiredChk"    Content="مطلوب"               Margin="0,0,16,8"/>
+                    <CheckBox x:Name="IsActiveChk"      Content="نشط"                 Margin="0,0,16,8" IsChecked="True"/>
+                    <CheckBox x:Name="ShowInEntryChk"   Content="يظهر في الإدخال"     Margin="0,0,16,8" IsChecked="True"/>
                     <CheckBox x:Name="ShowInAllDataChk" Content="يظهر في كل البيانات" Margin="0,0,16,8" IsChecked="True"/>
-                    <CheckBox x:Name="ShowInReportsChk" Content="يظهر في التقارير"  Margin="0,0,16,8"/>
-                    <CheckBox x:Name="EnableStatisticsChk" Content="إحصاءات"        Margin="0,0,16,8"/>
-                    <CheckBox x:Name="AllowBulkUpdateChk" Content="تعبئة جماعية"    Margin="0,0,16,8" IsChecked="True"/>
+                    <CheckBox x:Name="ShowInReportsChk" Content="يظهر في التقارير"    Margin="0,0,16,8"/>
+                    <CheckBox x:Name="EnableStatisticsChk" Content="إحصاءات"          Margin="0,0,16,8"/>
+                    <CheckBox x:Name="AllowBulkUpdateChk"  Content="تعبئة جماعية"     Margin="0,0,16,8" IsChecked="True"/>
                 </WrapPanel>
 
             </StackPanel>
@@ -153,18 +192,34 @@
         <!-- Fixed buttons at bottom -->
         <Border Grid.Row="1"
                 BorderThickness="0,1,0,0"
-                BorderBrush="#E0E0E0"
-                Background="#F5F5F5"
                 Padding="28,14">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.60"/>
+            </Border.Background>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button Content="حفظ"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="#1a7a60" Foreground="White"
-                        Width="100" Height="38"
+                        Height="38" Width="100"
                         Margin="0,0,10,0"
-                        Click="Save_Click"/>
+                        Foreground="#050D1A" FontWeight="SemiBold"
+                        Click="Save_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Style>
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00BCD4" Offset="0"/>
+                            <GradientStop Color="#00E676" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
                 <Button Content="إلغاء"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
                         Width="100" Height="38"
                         Click="Cancel_Click"/>
             </StackPanel>
