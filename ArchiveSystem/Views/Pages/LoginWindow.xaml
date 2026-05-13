@@ -305,7 +305,7 @@
                         </Image>
 
                         <!-- Title — white to rose gold gradient -->
-                        <TextBlock Text="مركز الوثائق و المعلومات"
+                        <TextBlock Text="مركز الوثائق و المحفوظات"
                                    FontSize="32" FontWeight="Bold"
                                    HorizontalAlignment="Center"
                                    TextAlignment="Center">
