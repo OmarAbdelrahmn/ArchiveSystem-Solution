@@ -984,7 +984,7 @@ namespace ArchiveSystem.Views.Pages
         // ═════════════════════════════════════════════════════════════════════
 
         private void ShowMsg(string msg) =>
-            MessageBox.Show(msg, "أرشيف الملفات",
+            MessageBox.Show(msg, "وثاق",
                 MessageBoxButton.OK, MessageBoxImage.Information);
 
         private void NumberOnly(object sender, TextCompositionEventArgs e)

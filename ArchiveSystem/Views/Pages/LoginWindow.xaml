@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Title="أرشيف الملفات"
+        Title="وثاق"
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
@@ -21,7 +21,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- ══ LOGIN CARD ══ -->
-        <Grid Grid.Column="1" Background="#F0F0F5">
+        <Grid Grid.Column="1" Background="#F0F4F2">
             <Border VerticalAlignment="Center"
                     HorizontalAlignment="Center"
                     Width="340"
@@ -37,7 +37,7 @@
 
                     <TextBlock Text="تسجيل الدخول"
                                FontSize="22" FontWeight="Bold"
-                               Foreground="#1A1A2E"/>
+                               Foreground="#0D3B2B"/>
 
                     <TextBlock x:Name="SubtitleText"
                                Text="أدخل بيانات حسابك للدخول إلى النظام."
@@ -120,8 +120,8 @@
                             Click="LoginButton_Click">
                         <Button.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#1a7a60" Offset="0"/>
-                                <GradientStop Color="#5B3D8A" Offset="1"/>
+                                <GradientStop Color="#0D6B47" Offset="0"/>
+                                <GradientStop Color="#1a9e6e" Offset="1"/>
                             </LinearGradientBrush>
                         </Button.Background>
                         <Button.Foreground>
@@ -167,19 +167,20 @@
             <Border CornerRadius="20" Margin="32,32,32,32" ClipToBounds="True">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#0A3D2E" Offset="0"/>
-                        <GradientStop Color="#2D1B55" Offset="0.40"/>
-                        <GradientStop Color="#3B1F6A" Offset="0.65"/>
-                        <GradientStop Color="#1a7a60" Offset="1"/>
+                        <GradientStop Color="#042B1A" Offset="0"/>
+                        <GradientStop Color="#0A4D2E" Offset="0.30"/>
+                        <GradientStop Color="#0D6B45" Offset="0.60"/>
+                        <GradientStop Color="#0A3D2A" Offset="0.80"/>
+                        <GradientStop Color="#041E12" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
 
                 <Grid>
 
-                    <!-- Decorative circles -->
-                    <Ellipse Width="500" Height="500"
+                    <!-- Decorative circles — gold tones on deep green -->
+                    <Ellipse Width="560" Height="560"
                              HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-200,-200,0" Opacity="0.07">
+                             Margin="0,-220,-220,0" Opacity="0.09">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
                                 <GradientStop Color="#D4AF37" Offset="0"/>
@@ -188,20 +189,21 @@
                         </Ellipse.Fill>
                     </Ellipse>
 
-                    <Ellipse Width="380" Height="380"
+                    <Ellipse Width="420" Height="420"
                              HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-150,0,0,-150" Opacity="0.08">
+                             Margin="-180,0,0,-180" Opacity="0.10">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
-                                <GradientStop Color="#7C4DBA" Offset="0"/>
+                                <GradientStop Color="#1adf8a" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
                     </Ellipse>
 
-                    <Ellipse Width="260" Height="260"
+                    <!-- Soft centre glow -->
+                    <Ellipse Width="340" Height="340"
                              HorizontalAlignment="Center" VerticalAlignment="Center"
-                             Margin="0,80,0,0" Opacity="0.05">
+                             Margin="0,60,0,0" Opacity="0.07">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
                                 <GradientStop Color="#D4AF37" Offset="0"/>
@@ -210,7 +212,7 @@
                         </Ellipse.Fill>
                     </Ellipse>
 
-                    <!-- Gold accent top-left corner bar -->
+                    <!-- Gold accent left edge bar -->
                     <Border Width="4" HorizontalAlignment="Left"
                             VerticalAlignment="Stretch"
                             Margin="0,60,0,60" CornerRadius="2">
@@ -223,54 +225,58 @@
                         </Border.Background>
                     </Border>
 
-                    <!-- Main content: image + title + description -->
+                    <!-- Main content -->
                     <StackPanel VerticalAlignment="Center"
-                                HorizontalAlignment="Left"
-                                Margin="60,0,60,0">
+                                HorizontalAlignment="Center"
+                                Margin="60,0,60,120">
 
-                        <!-- App logo image — large and prominent -->
+                        <!-- App logo — centred, larger, with gold glow -->
                         <Image Source="pack://application:,,,/Assets/main.png"
-                               Height="180"
-                               HorizontalAlignment="Right"
-                               Margin="0,0,0,22"
+                               Height="250"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,15"
                                RenderOptions.BitmapScalingMode="HighQuality">
                             <Image.Effect>
-                                <DropShadowEffect BlurRadius="28" ShadowDepth="0"
-                                                  Color="#D4AF37" Opacity="0.22"/>
+                                <DropShadowEffect BlurRadius="40" ShadowDepth="0"
+                                                  Color="#D4AF37" Opacity="0.35"/>
                             </Image.Effect>
                         </Image>
 
                         <!-- Title -->
-                        <TextBlock Text="أرشيف الملفات"
-                                   FontSize="52" FontWeight="Bold">
+                        <TextBlock Text="وثاق"
+                                   FontSize="52" FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center">
                             <TextBlock.Foreground>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="White"   Offset="0"/>
+                                    <GradientStop Color="#FFFFFF" Offset="0"/>
                                     <GradientStop Color="#D4AF37" Offset="1"/>
                                 </LinearGradientBrush>
                             </TextBlock.Foreground>
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="30" ShadowDepth="0"
-                                                  Color="#000" Opacity="0.25"/>
+                                                  Color="#000" Opacity="0.30"/>
                             </TextBlock.Effect>
                         </TextBlock>
 
-                        <!-- Gold divider line -->
+                        <!-- Gold divider -->
                         <Border Height="2" CornerRadius="1"
-                                Margin="0,10,0,14" Width="220"
-                                HorizontalAlignment="Right">
+                                Margin="0,12,0,16" Width="260"
+                                HorizontalAlignment="Center">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#D4AF37" Offset="0"/>
+                                    <GradientStop Color="Transparent" Offset="0"/>
+                                    <GradientStop Color="#D4AF37" Offset="0.5"/>
                                     <GradientStop Color="Transparent" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
 
                         <TextBlock Text="بحث سريع، إدخال ذكي، تقارير، وتتبع كامل لمكان كل دوسية."
-                                   FontSize="15" Foreground="#C8B8E8"
-                                   TextWrapping="Wrap" MaxWidth="520"
-                                   LineHeight="26" TextAlignment="Right"/>
+                                   FontSize="15" Foreground="#A8D8C0"
+                                   TextWrapping="Wrap" MaxWidth="500"
+                                   LineHeight="26" TextAlignment="Center"
+                                   HorizontalAlignment="Center"/>
                     </StackPanel>
 
                     <!-- Bottom Stats Bar -->
@@ -286,19 +292,19 @@
                                 Padding="20,16" Margin="0,0,8,0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#1a7a6033" Offset="0"/>
-                                    <GradientStop Color="#00000022" Offset="1"/>
+                                    <GradientStop Color="#0D6B4530" Offset="0"/>
+                                    <GradientStop Color="#00000025" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.BorderBrush>
-                                <SolidColorBrush Color="#D4AF37" Opacity="0.25"/>
+                                <SolidColorBrush Color="#D4AF37" Opacity="0.30"/>
                             </Border.BorderBrush>
                             <Border.BorderThickness>1</Border.BorderThickness>
                             <StackPanel HorizontalAlignment="Right">
                                 <TextBlock x:Name="LastBackupTimeText" Text="--:--"
-                                           FontSize="26" FontWeight="Bold" Foreground="White"/>
+                                           FontSize="24" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="آخر نسخة احتياطية"
-                                           FontSize="12" Foreground="#A895D0"
+                                           FontSize="12" Foreground="#7EC8A0"
                                            HorizontalAlignment="Right" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
@@ -308,19 +314,19 @@
                                 Padding="20,16" Margin="8,0,8,0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#5B3D8A33" Offset="0"/>
-                                    <GradientStop Color="#00000022" Offset="1"/>
+                                    <GradientStop Color="#1a9e6e28" Offset="0"/>
+                                    <GradientStop Color="#00000025" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.BorderBrush>
-                                <SolidColorBrush Color="#D4AF37" Opacity="0.25"/>
+                                <SolidColorBrush Color="#D4AF37" Opacity="0.30"/>
                             </Border.BorderBrush>
                             <Border.BorderThickness>1</Border.BorderThickness>
                             <StackPanel HorizontalAlignment="Right">
                                 <TextBlock x:Name="TotalFilesText" Text="0"
-                                           FontSize="26" FontWeight="Bold" Foreground="White"/>
+                                           FontSize="24" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="ملف داخل النظام"
-                                           FontSize="12" Foreground="#A895D0"
+                                           FontSize="12" Foreground="#7EC8A0"
                                            HorizontalAlignment="Right" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
@@ -330,23 +336,23 @@
                                 Padding="20,16" Margin="8,0,0,0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#D4AF3722" Offset="0"/>
-                                    <GradientStop Color="#00000022" Offset="1"/>
+                                    <GradientStop Color="#1a9e6e28" Offset="0"/>
+                                    <GradientStop Color="#00000025" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.BorderBrush>
-                                <SolidColorBrush Color="#D4AF37" Opacity="0.35"/>
+                                <SolidColorBrush Color="#D4AF37" Opacity="0.40"/>
                             </Border.BorderBrush>
                             <Border.BorderThickness>1</Border.BorderThickness>
                             <StackPanel HorizontalAlignment="Right">
                                 <TextBlock x:Name="TotalFoldersText" Text="0"
-                                           FontSize="26" FontWeight="Bold">
+                                           FontSize="24" FontWeight="Bold">
                                     <TextBlock.Foreground>
                                         <SolidColorBrush Color="#D4AF37"/>
                                     </TextBlock.Foreground>
                                 </TextBlock>
                                 <TextBlock Text="دوسية مستوردة"
-                                           FontSize="12" Foreground="#A895D0"
+                                           FontSize="12" Foreground="#7EC8A0"
                                            HorizontalAlignment="Right" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
