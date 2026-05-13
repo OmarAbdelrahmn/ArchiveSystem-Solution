@@ -8,8 +8,8 @@
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
-        FontFamily="Segoe UI"
-        Background="#F5F5F5">
+        FontFamily="Noto Kufi Arabic, Segoe UI"
+        Background="{StaticResource MidnightBase}">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -17,7 +17,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Scrollable fields -->
         <ScrollViewer Grid.Row="0"
                       VerticalScrollBarVisibility="Auto"
                       Padding="28,24,28,0">
@@ -25,43 +24,47 @@
 
                 <TextBlock Text="تعديل السجل"
                            FontSize="18" FontWeight="Bold"
-                           Foreground="#1a7a60"
+                           Foreground="{StaticResource RoseGold}"
                            Margin="0,0,0,20"/>
 
-                <!-- Error -->
                 <Border x:Name="ErrorBorder"
-                        Background="#FFEBEE" BorderBrush="#EF9A9A"
-                        BorderThickness="1" CornerRadius="4"
-                        Padding="10,6" Margin="0,0,0,12"
+                        CornerRadius="6" Padding="10,6" Margin="0,0,0,12"
                         Visibility="Collapsed">
+                    <Border.Background>
+                        <SolidColorBrush Color="#FF5252" Opacity="0.10"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#FF5252" Opacity="0.35"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>1</Border.BorderThickness>
                     <TextBlock x:Name="ErrorText"
-                               Foreground="#C62828" FontSize="12"
-                               TextWrapping="Wrap"/>
+                               Foreground="{StaticResource DangerRed}"
+                               FontSize="12" TextWrapping="Wrap"/>
                 </Border>
 
-                <!-- Sequence (read-only) -->
                 <TextBox x:Name="SequenceBox"
                          materialDesign:HintAssist.Hint="رقم التسلسل"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         IsReadOnly="True" Opacity="0.6"
+                         IsReadOnly="True" Opacity="0.5"
                          Margin="20,0,20,14"/>
 
-                <!-- Person name -->
                 <TextBox x:Name="PersonNameBox"
                          materialDesign:HintAssist.Hint="اسم السجين *"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Margin="20,0,20,14"/>
 
-                <!-- Prisoner number -->
                 <TextBox x:Name="PrisonerNumberBox"
                          materialDesign:HintAssist.Hint="رقم السجين (10 أرقام) *"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          MaxLength="10"
                          Margin="20,0,20,14"/>
 
-                <!-- Notes -->
                 <TextBox x:Name="NotesBox"
                          materialDesign:HintAssist.Hint="ملاحظات (اختياري)"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          AcceptsReturn="True"
                          Height="70"
@@ -69,27 +72,40 @@
                          VerticalScrollBarVisibility="Auto"
                          Margin="20,0,20,14"/>
 
-                <!-- Custom fields injected in code-behind -->
                 <StackPanel x:Name="CustomFieldsPanel" Margin="20,0,20,14"/>
 
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Buttons -->
         <Border Grid.Row="1"
                 BorderThickness="0,1,0,0"
-                BorderBrush="#E0E0E0"
-                Background="#F5F5F5"
                 Padding="28,14">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.60"/>
+            </Border.Background>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button Content="حفظ"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="#1a7a60" Foreground="White"
-                        Width="100" Height="38"
-                        Margin="0,0,10,0"
-                        Click="Save_Click"/>
+                        Height="38" Width="100" Margin="0,0,10,0"
+                        Foreground="#050D1A" FontWeight="SemiBold"
+                        Click="Save_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Style>
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00BCD4" Offset="0"/>
+                            <GradientStop Color="#00E676" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
                 <Button Content="إلغاء"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
                         Width="100" Height="38"
                         Click="Cancel_Click"/>
             </StackPanel>
