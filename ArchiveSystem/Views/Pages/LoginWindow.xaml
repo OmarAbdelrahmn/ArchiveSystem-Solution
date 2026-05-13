@@ -9,7 +9,7 @@
         MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterScreen"
         FlowDirection="RightToLeft"
-        FontFamily="Noto Kufi Arabic, Segoe UI"
+        FontFamily="Amiri, Segoe UI"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="#E8EAED"
         Icon="pack://application:,,,/Assets/app.ico">
@@ -34,7 +34,6 @@
                 </Border.Effect>
 
                 <StackPanel>
-
                     <TextBlock Text="تسجيل الدخول"
                                FontSize="22" FontWeight="Bold"
                                Foreground="#0D3B2B"/>
@@ -44,7 +43,6 @@
                                FontSize="12" Foreground="#888"
                                TextWrapping="Wrap"
                                Margin="0,6,0,20"/>
-
                     <!-- Error Banner -->
                     <Border x:Name="ErrorBorder"
                             Background="#FFF0F0" BorderBrush="#FFBCBC"
@@ -243,7 +241,7 @@
                         </Image>
 
                         <!-- Title -->
-                        <TextBlock Text="مركز الوثائق و المعلومات"
+                        <TextBlock Text="مركز الوثائق و المحفوظات"
                                    FontSize="33" FontWeight="Bold"
                                    HorizontalAlignment="Center"
                                    TextAlignment="Center">
@@ -356,7 +354,6 @@
                                            HorizontalAlignment="Left" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
-
                     </Grid>
                 </Grid>
             </Border>

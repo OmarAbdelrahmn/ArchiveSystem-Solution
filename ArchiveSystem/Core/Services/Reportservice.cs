@@ -100,7 +100,7 @@ namespace ArchiveSystem.Core.Services
         private readonly DatabaseContext _db = db;
 
         // ─── Shared style constants ────────────────────────────────────────────
-        private static readonly string FontName = "Noto Kufi Arabic";
+        private static readonly string FontName = "Amiri";
         private static readonly string HeaderBg = Colors.Teal.Medium;
         private static readonly string HeaderFg = Colors.White;
         private static readonly string AltRowBg = Colors.Grey.Lighten4;

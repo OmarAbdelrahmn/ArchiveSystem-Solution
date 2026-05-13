@@ -46,7 +46,7 @@ namespace ArchiveSystem.Core.Helpers
                 FontSize = 13,
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 0, 0, 12),
-                FontFamily = new System.Windows.Media.FontFamily("Noto Kufi Arabic, Segoe UI")
+                FontFamily = new System.Windows.Media.FontFamily("Amiri, Segoe UI")
             });
 
             // Text input
@@ -56,7 +56,7 @@ namespace ArchiveSystem.Core.Helpers
                 Height = 46,
                 FontSize = 13,
                 Margin = new Thickness(0, 0, 0, 14),
-                FontFamily = new System.Windows.Media.FontFamily("Noto Kufi Arabic, Segoe UI"),
+                FontFamily = new System.Windows.Media.FontFamily("Amiri, Segoe UI"),
                 VerticalContentAlignment = VerticalAlignment.Center,
                 Padding = new Thickness(8, 0, 8, 0),
                 BorderBrush = new System.Windows.Media.SolidColorBrush(
@@ -79,7 +79,7 @@ namespace ArchiveSystem.Core.Helpers
                 Width = 90,
                 Height = 34,
                 Margin = new Thickness(0, 0, 10, 0),
-                FontFamily = new System.Windows.Media.FontFamily("Noto Kufi Arabic, Segoe UI"),
+                FontFamily = new System.Windows.Media.FontFamily("Amiri, Segoe UI"),
                 Background = new System.Windows.Media.SolidColorBrush(
                     (System.Windows.Media.Color)System.Windows.Media.ColorConverter
                         .ConvertFromString("#1a7a60")),
@@ -93,7 +93,7 @@ namespace ArchiveSystem.Core.Helpers
                 Content = "إلغاء",
                 Width = 80,
                 Height = 34,
-                FontFamily = new System.Windows.Media.FontFamily("Noto Kufi Arabic, Segoe UI"),
+                FontFamily = new System.Windows.Media.FontFamily("Amiri, Segoe UI"),
                 Background = System.Windows.Media.Brushes.White,
                 BorderBrush = new System.Windows.Media.SolidColorBrush(
                     (System.Windows.Media.Color)System.Windows.Media.ColorConverter

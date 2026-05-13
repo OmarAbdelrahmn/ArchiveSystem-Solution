@@ -24,10 +24,10 @@
 		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\main.png" />
-		<Resource Include="Assets\Fonts\NotoKufiArabic-Regular.ttf" />
-		<Resource Include="Assets\Fonts\NotoKufiArabic-Medium.ttf" />
-		<Resource Include="Assets\Fonts\NotoKufiArabic-SemiBold.ttf" />
-		<Resource Include="Assets\Fonts\NotoKufiArabic-Bold.ttf" />
+		<Resource Include="Assets\Fonts\Amiri-Regular.ttf" />
+		<Resource Include="Assets\Fonts\Amiri-Bold.ttf" />
+		<Resource Include="Assets\Fonts\Amiri-Italic.ttf" />
+		<Resource Include="Assets\Fonts\Amiri-BoldItalic.ttf" />
 	</ItemGroup>
 	
   <ItemGroup>
