@@ -1,4 +1,5 @@
-﻿<Window x:Class="ArchiveSystem.Views.Dialogs.AddUserDialog"
+﻿<!-- AddUserDialog.xaml -->
+<Window x:Class="ArchiveSystem.Views.Dialogs.AddUserDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -8,8 +9,8 @@
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
-        FontFamily="Segoe UI"
-        Background="#F5F5F5">
+        FontFamily="Noto Kufi Arabic, Segoe UI"
+        Background="{StaticResource MidnightBase}">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -17,7 +18,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Scrollable content -->
         <ScrollViewer Grid.Row="0"
                       VerticalScrollBarVisibility="Auto"
                       Padding="28,24,28,16">
@@ -25,41 +25,52 @@
 
                 <TextBlock Text="إضافة مستخدم جديد"
                            FontSize="18" FontWeight="Bold"
-                           Foreground="#1a7a60"
+                           Foreground="{StaticResource RoseGold}"
                            Margin="0,0,0,20"/>
 
                 <Border x:Name="ErrorBorder"
-                        Background="#FFEBEE" BorderBrush="#EF9A9A"
-                        BorderThickness="1" CornerRadius="4"
+                        CornerRadius="6"
                         Padding="10,6" Margin="0,0,0,12"
                         Visibility="Collapsed">
+                    <Border.Background>
+                        <SolidColorBrush Color="#FF5252" Opacity="0.10"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#FF5252" Opacity="0.35"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>1</Border.BorderThickness>
                     <TextBlock x:Name="ErrorText"
-                               Foreground="#C62828" FontSize="12"
-                               TextWrapping="Wrap"/>
+                               Foreground="{StaticResource DangerRed}"
+                               FontSize="12" TextWrapping="Wrap"/>
                 </Border>
 
                 <TextBox x:Name="FullNameBox"
                          materialDesign:HintAssist.Hint="الاسم الكامل *"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Margin="20,0,20,14"/>
 
                 <TextBox x:Name="UsernameBox"
                          materialDesign:HintAssist.Hint="اسم المستخدم *"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Margin="20,0,20,14"/>
 
                 <TextBox x:Name="EmployeeNumberBox"
                          materialDesign:HintAssist.Hint="رقم الموظف (اختياري)"
+                         materialDesign:HintAssist.Foreground="#4A5A7A"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Margin="20,0,20,14"/>
 
                 <PasswordBox x:Name="PasswordBox"
                              materialDesign:HintAssist.Hint="كلمة المرور * (6 أحرف على الأقل)"
+                             materialDesign:HintAssist.Foreground="#4A5A7A"
                              Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
                              Margin="20,0,20,14"/>
 
                 <ComboBox x:Name="RoleCombo"
                           materialDesign:HintAssist.Hint="الدور *"
+                          materialDesign:HintAssist.Foreground="#4A5A7A"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
                           DisplayMemberPath="RoleName"
                           SelectedValuePath="RoleId"
@@ -68,22 +79,36 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Fixed buttons at bottom -->
         <Border Grid.Row="1"
                 BorderThickness="0,1,0,0"
-                BorderBrush="#E0E0E0"
-                Background="#F5F5F5"
                 Padding="28,14">
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Left">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.60"/>
+            </Border.Background>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button Content="إضافة"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="#1a7a60" Foreground="White"
-                        Width="100" Height="38"
+                        Height="38" Width="100"
                         Margin="0,0,10,0"
-                        Click="AddButton_Click"/>
+                        Foreground="#050D1A" FontWeight="SemiBold"
+                        Click="AddButton_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Style>
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00BCD4" Offset="0"/>
+                            <GradientStop Color="#00E676" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
                 <Button Content="إلغاء"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource TextSecondary}"
                         Width="100" Height="38"
                         Click="CancelButton_Click"/>
             </StackPanel>

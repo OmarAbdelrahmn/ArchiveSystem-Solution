@@ -1,4 +1,7 @@
-﻿<Window x:Class="ArchiveSystem.Views.Dialogs.EditRoleDialog"
+﻿<!-- ═══════════════════════════════════════════════════════════════
+     EditRoleDialog.xaml
+═══════════════════════════════════════════════════════════════ -->
+<Window x:Class="ArchiveSystem.Views.Dialogs.EditRoleDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -7,8 +10,8 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
-        FontFamily="Segoe UI"
-        Background="#F5F5F5">
+        FontFamily="Noto Kufi Arabic, Segoe UI"
+        Background="{StaticResource MidnightBase}">
 
     <Grid Margin="28">
         <Grid.RowDefinitions>
@@ -20,33 +23,34 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Title -->
         <TextBlock Grid.Row="0"
                    Text="تعديل الدور والصلاحيات"
                    FontSize="18" FontWeight="Bold"
-                   Foreground="#1a7a60"
+                   Foreground="{StaticResource RoseGold}"
                    Margin="0,0,0,16"/>
 
-        <!-- Error -->
         <Border Grid.Row="1"
                 x:Name="ErrorBorder"
-                Background="#FFEBEE" BorderBrush="#EF9A9A"
-                BorderThickness="1" CornerRadius="4"
-                Padding="10,6" Margin="0,0,0,10"
+                CornerRadius="6" Padding="10,6" Margin="0,0,0,10"
                 Visibility="Collapsed">
-            <TextBlock x:Name="ErrorText"
-                       Foreground="#C62828" FontSize="12"
-                       TextWrapping="Wrap"/>
+            <Border.Background>
+                <SolidColorBrush Color="#FF5252" Opacity="0.10"/>
+            </Border.Background>
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#FF5252" Opacity="0.35"/>
+            </Border.BorderBrush>
+            <Border.BorderThickness>1</Border.BorderThickness>
+            <TextBlock x:Name="ErrorText" Foreground="{StaticResource DangerRed}"
+                       FontSize="12" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Role name -->
         <TextBox Grid.Row="2"
                  x:Name="RoleNameBox"
                  materialDesign:HintAssist.Hint="اسم الدور *"
+                 materialDesign:HintAssist.Foreground="#4A5A7A"
                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                  Margin="0,0,0,16"/>
 
-        <!-- Dropdown + Add button -->
         <Grid Grid.Row="3" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -56,57 +60,71 @@
             <ComboBox Grid.Column="0"
                       x:Name="PermissionCombo"
                       materialDesign:HintAssist.Hint="اختر صلاحية لإضافتها"
+                      materialDesign:HintAssist.Foreground="#4A5A7A"
                       Style="{StaticResource MaterialDesignOutlinedComboBox}"
                       DisplayMemberPath="ArabicLabel"
                       Margin="0,0,10,0"/>
 
             <Button Grid.Column="1"
                     Content="➕ إضافة"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="#1a7a60" Foreground="White"
                     Height="40" Width="90"
-                    Click="AddPermission_Click"/>
+                    Foreground="#050D1A" FontWeight="SemiBold"
+                    Click="AddPermission_Click">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                        <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Style>
+                <Button.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#00BCD4" Offset="0"/>
+                        <GradientStop Color="#00E676" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+            </Button>
         </Grid>
 
-        <!-- Assigned permissions list -->
         <StackPanel Grid.Row="4">
             <TextBlock Text="الصلاحيات المُعيَّنة"
                        FontSize="13" FontWeight="SemiBold"
-                       Foreground="#555"
+                       Foreground="{StaticResource RoseGoldLight}"
                        Margin="0,0,0,8"/>
 
-            <Border BorderBrush="#E0E0E0"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Background="White">
-                <ScrollViewer MaxHeight="260"
-                              VerticalScrollBarVisibility="Auto">
-                    <ItemsControl x:Name="AssignedList"
-                                  Margin="8">
+            <Border CornerRadius="6">
+                <Border.Background>
+                    <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                </Border.BorderBrush>
+                <Border.BorderThickness>1</Border.BorderThickness>
+                <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="AssignedList" Margin="8">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#F1F8F5"
-                                        CornerRadius="4"
-                                        Margin="0,3"
-                                        Padding="10,6">
+                                <Border CornerRadius="6" Margin="0,3" Padding="10,6">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#00E676" Opacity="0.06"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="#00E676" Opacity="0.15"/>
+                                    </Border.BorderBrush>
+                                    <Border.BorderThickness>1</Border.BorderThickness>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-
                                         <TextBlock Grid.Column="0"
                                                    Text="{Binding ArabicLabel}"
                                                    FontSize="13"
                                                    VerticalAlignment="Center"
-                                                   Foreground="#1a7a60"/>
-
+                                                   Foreground="{StaticResource EmeraldMid}"/>
                                         <Button Grid.Column="1"
                                                 Content="✕"
                                                 Style="{StaticResource MaterialDesignFlatButton}"
-                                                Foreground="#C62828"
-                                                Height="28" Width="32"
-                                                Padding="0"
+                                                Foreground="{StaticResource DangerRed}"
+                                                Height="28" Width="32" Padding="0"
                                                 Tag="{Binding PermissionKey}"
                                                 Click="RemovePermission_Click"/>
                                     </Grid>
@@ -118,19 +136,27 @@
             </Border>
         </StackPanel>
 
-        <!-- Buttons -->
-        <StackPanel Grid.Row="5"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Left"
-                    Margin="0,16,0,0">
+        <StackPanel Grid.Row="5" Orientation="Horizontal"
+                    HorizontalAlignment="Left" Margin="0,16,0,0">
             <Button Content="حفظ"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="#1a7a60" Foreground="White"
-                    Width="100" Height="38"
-                    Margin="0,0,10,0"
-                    Click="SaveButton_Click"/>
+                    Height="38" Width="100" Margin="0,0,10,0"
+                    Foreground="#050D1A" FontWeight="SemiBold"
+                    Click="SaveButton_Click">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                        <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Style>
+                <Button.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#00BCD4" Offset="0"/>
+                        <GradientStop Color="#00E676" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+            </Button>
             <Button Content="إغلاق"
                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Foreground="{StaticResource TextSecondary}"
                     Width="100" Height="38"
                     Click="CloseButton_Click"/>
         </StackPanel>

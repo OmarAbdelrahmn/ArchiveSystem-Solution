@@ -3,24 +3,29 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       Title="البحث"
-      Background="#F2F4F7"
       FlowDirection="RightToLeft">
+
+    <Page.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#050D1A" Offset="0"/>
+            <GradientStop Color="#0A1628" Offset="1"/>
+        </LinearGradientBrush>
+    </Page.Background>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="56"/>
-            <!-- header -->
             <RowDefinition Height="Auto"/>
-            <!-- stat cards -->
             <RowDefinition Height="Auto"/>
-            <!-- search bar -->
             <RowDefinition Height="*"/>
-            <!-- content area -->
         </Grid.RowDefinitions>
 
-        <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="0" Background="White"
-                BorderThickness="0,0,0,1" BorderBrush="#E5E7EB">
+        <!-- ══ HEADER ══ -->
+        <Border Grid.Row="0" Background="#0D1F3C"
+                BorderThickness="0,0,0,1">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#C9956A" Opacity="0.20"/>
+            </Border.BorderBrush>
             <Grid Margin="20,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -29,32 +34,38 @@
 
                 <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
                     <TextBlock Text="بحث فوري"
-                               FontSize="10" Foreground="#9CA3AF"
+                               FontSize="10" Foreground="#4A5A7A"
                                Margin="0,0,0,1"/>
                     <TextBlock Text="لوحة البحث السريع"
                                FontSize="17" FontWeight="Bold"
-                               Foreground="#111827"/>
+                               Foreground="#E8EDF5"/>
                 </StackPanel>
 
                 <Button Grid.Column="1"
                         x:Name="QuickPrintBtn"
                         Content="🖨️ طباعة واجهة الدوسية"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Foreground="{StaticResource RoseGold}"
+                        BorderBrush="{StaticResource RoseGoldDark}"
                         Height="32"
                         Visibility="Collapsed"
                         Click="QuickPrint_Click"/>
             </Grid>
         </Border>
 
-        <!-- ══ STAT CARDS ═══════════════════════════════════════════════════════ -->
-        <Border Grid.Row="1" Background="White"
-                BorderThickness="0,0,0,1" BorderBrush="#E5E7EB"
-                Padding="20,12">
-            <UniformGrid x:Name="StatsPanel" Columns="5"/>
+        <!-- ══ STAT CARDS ══ -->
+        <Border Grid.Row="1" Background="#0A1628"
+                BorderThickness="0,0,0,1">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+            </Border.BorderBrush>
+            <Border Padding="20,12">
+                <UniformGrid x:Name="StatsPanel" Columns="5"/>
+            </Border>
         </Border>
 
-        <!-- ══ SEARCH BAR ══════════════════════════════════════════════════════ -->
-        <Border Grid.Row="2" Background="White"
+        <!-- ══ SEARCH BAR ══ -->
+        <Border Grid.Row="2" Background="#0A1628"
                 Padding="20,14,20,14">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -63,11 +74,16 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- Search input — glassmorphism box -->
                 <Border Grid.Column="0"
-                        Background="#F9FAFB"
-                        BorderBrush="#D1D5DB"
-                        BorderThickness="1"
-                        CornerRadius="6">
+                        CornerRadius="8">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.90"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1adf8a" Opacity="0.30"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>1</Border.BorderThickness>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -78,13 +94,14 @@
                                    FontSize="15"
                                    VerticalAlignment="Center"
                                    Margin="12,0,6,0"
-                                   Foreground="#9CA3AF"/>
+                                   Foreground="#4A5A7A"/>
                         <TextBox Grid.Column="1"
                                  x:Name="SearchBox"
                                  materialDesign:HintAssist.Hint="ابحث باسم السجين أو رقمه أو رقم الدوسية أو حقل إضافي..."
-                                 materialDesign:HintAssist.Foreground="#9CA3AF"
+                                 materialDesign:HintAssist.Foreground="#4A5A7A"
                                  Background="Transparent"
                                  BorderThickness="0"
+                                 Foreground="#E8EDF5"
                                  FontSize="13"
                                  Height="40"
                                  Padding="0,0,8,0"
@@ -94,20 +111,36 @@
                     </Grid>
                 </Border>
 
+                <!-- Search button — emerald glow -->
                 <Button Grid.Column="1"
                         Content="بحث"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="#1a7a60"
-                        Foreground="White"
                         Height="40" Width="80"
                         Margin="10,0,0,0"
-                        Click="Search_Click"/>
+                        Foreground="#050D1A"
+                        FontWeight="SemiBold"
+                        Click="Search_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Style>
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00BCD4" Offset="0"/>
+                            <GradientStop Color="#00E676" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                    <Button.Effect>
+                        <DropShadowEffect BlurRadius="14" ShadowDepth="0"
+                                          Color="#00E676" Opacity="0.40"/>
+                    </Button.Effect>
+                </Button>
 
                 <Button x:Name="ClearBtn"
                         Grid.Column="2"
                         Content="✕"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        Foreground="#9CA3AF"
+                        Foreground="#4A5A7A"
                         Height="40" Width="40"
                         Margin="4,0,0,0"
                         Visibility="Collapsed"
@@ -115,7 +148,7 @@
             </Grid>
         </Border>
 
-        <!-- ══ CONTENT AREA ════════════════════════════════════════════════════ -->
+        <!-- ══ CONTENT AREA ══ -->
         <Grid Grid.Row="3" Margin="20,16,20,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -123,16 +156,14 @@
                 <ColumnDefinition Width="320"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ── LEFT: RESULT PANEL ──────────────────────────────────────── -->
+            <!-- ── LEFT: RESULT PANEL ── -->
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Result count bar -->
-                <Border Grid.Row="0"
-                        Padding="0,0,0,10">
+                <Border Grid.Row="0" Padding="0,0,0,10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -140,220 +171,212 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0"
                                    x:Name="ResultCountText"
-                                   FontSize="12" Foreground="#6B7280"
+                                   FontSize="12" Foreground="#4A5A7A"
                                    VerticalAlignment="Center"/>
                         <Button x:Name="QuickCardBtn"
                                 Grid.Column="1"
                                 Content="🪪 بطاقة السجل"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Foreground="{StaticResource RoseGold}"
+                                BorderBrush="{StaticResource RoseGoldDark}"
                                 Height="28" FontSize="11"
                                 Visibility="Collapsed"
                                 Click="QuickCard_Click"/>
                     </Grid>
                 </Border>
 
-                <!-- Results DataGrid (when search is active) -->
+                <!-- Results DataGrid -->
                 <Border Grid.Row="1"
                         x:Name="ResultsContainer"
-                        Background="White"
-                        CornerRadius="8"
+                        CornerRadius="10"
                         BorderThickness="1"
-                        BorderBrush="#E5E7EB"
                         Visibility="Collapsed">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                    </Border.BorderBrush>
                     <DataGrid x:Name="ResultsGrid"
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
                               SelectionMode="Single"
                               BorderThickness="0"
+                              Background="Transparent"
                               Style="{StaticResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="12 8 12 8"
-                              RowBackground="White"
-                              AlternatingRowBackground="#F9FAFB"
                               SelectionChanged="ResultsGrid_SelectionChanged"
                               MouseDoubleClick="ResultsGrid_DoubleClick">
-                            <DataGrid.RowStyle>
-                                <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
-                                    <Setter Property="Cursor" Value="Hand"/>
-                                </Style>
-                            </DataGrid.RowStyle>
-
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                                <Setter Property="Cursor" Value="Hand"/>
+                            </Style>
+                        </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="رقم الدوسية"
-                                                Binding="{Binding DossierNumber}"
-                                                Width="100"/>
-                            <DataGridTextColumn Header="تسلسل"
-                                                Binding="{Binding SequenceNumber}"
-                                                Width="65"/>
-                            <DataGridTextColumn Header="اسم السجين"
-                                                Binding="{Binding PersonName}"
-                                                Width="*"/>
-                            <DataGridTextColumn Header="رقم السجين"
-                                                Binding="{Binding PrisonerNumber}"
-                                                Width="120"/>
-                            <DataGridTextColumn Header="التاريخ"
-                                                Binding="{Binding HijriDisplay}"
-                                                Width="90"/>
-                            <DataGridTextColumn Header="الموقع"
-                                                Binding="{Binding LocationDisplay}"
-                                                Width="170"/>
+                            <DataGridTextColumn Header="رقم الدوسية"  Binding="{Binding DossierNumber}"  Width="100"/>
+                            <DataGridTextColumn Header="تسلسل"        Binding="{Binding SequenceNumber}" Width="65"/>
+                            <DataGridTextColumn Header="اسم السجين"   Binding="{Binding PersonName}"     Width="*"/>
+                            <DataGridTextColumn Header="رقم السجين"   Binding="{Binding PrisonerNumber}" Width="120"/>
+                            <DataGridTextColumn Header="التاريخ"      Binding="{Binding HijriDisplay}"   Width="90"/>
+                            <DataGridTextColumn Header="الموقع"       Binding="{Binding LocationDisplay}" Width="170"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
 
-                <!-- ── SEARCH RESULT DETAIL CARD (single row selected) ──────── -->
+                <!-- Detail card -->
                 <Border Grid.Row="1"
                         x:Name="ResultDetailCard"
                         Visibility="Collapsed">
                     <StackPanel>
-                        <!-- Grid results (compact) + detail card below -->
-                        <Border Background="White"
-                                CornerRadius="8"
-                                BorderThickness="1"
-                                BorderBrush="#E5E7EB"
-                                Margin="0,0,0,12"
-                                MaxHeight="260">
+                        <Border CornerRadius="10" BorderThickness="1"
+                                Margin="0,0,0,12" MaxHeight="260">
+                            <Border.Background>
+                                <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                            </Border.BorderBrush>
                             <DataGrid x:Name="ResultsGridCompact"
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
                                       CanUserAddRows="False"
                                       SelectionMode="Single"
                                       BorderThickness="0"
+                                      Background="Transparent"
                                       Style="{StaticResource MaterialDesignDataGrid}"
                                       materialDesign:DataGridAssist.CellPadding="10 6 10 6"
-                                      RowBackground="White"
-                                      AlternatingRowBackground="#F9FAFB"
                                       Visibility="Collapsed"/>
                         </Border>
 
-                        <!-- Detail card — shown when 1 row selected -->
-                        <Border Background="White"
-                                CornerRadius="8"
-                                BorderThickness="1"
-                                BorderBrush="#D1FAE5"
-                                Padding="0">
+                        <!-- Found card — glassmorphism -->
+                        <Border CornerRadius="12" BorderThickness="1" Padding="0">
+                            <Border.Background>
+                                <SolidColorBrush Color="#0D1F3C" Opacity="0.90"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#00E676" Opacity="0.30"/>
+                            </Border.BorderBrush>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20" ShadowDepth="0"
+                                                  Color="#00E676" Opacity="0.10"/>
+                            </Border.Effect>
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Found badge + name -->
                                 <Border Grid.Row="0"
-                                        Background="#ECFDF5"
-                                        CornerRadius="8,8,0,0"
+                                        CornerRadius="12,12,0,0"
                                         Padding="18,12">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#00E676" Opacity="0.08"/>
+                                    </Border.Background>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <Border Grid.Column="0"
-                                                Background="#059669"
-                                                CornerRadius="4"
-                                                Padding="8,3"
+                                                CornerRadius="6" Padding="10,4"
                                                 Margin="0,0,12,0"
                                                 VerticalAlignment="Center">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                    <GradientStop Color="#00BCD4" Offset="0"/>
+                                                    <GradientStop Color="#00E676" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
                                             <TextBlock Text="تم العثور"
                                                        FontSize="11"
-                                                       Foreground="White"
-                                                       FontWeight="SemiBold"/>
+                                                       Foreground="#050D1A"
+                                                       FontWeight="Bold"/>
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock x:Name="DetailName"
                                                        FontSize="16"
                                                        FontWeight="Bold"
-                                                       Foreground="#064E3B"/>
+                                                       Foreground="#E8EDF5"/>
                                             <TextBlock x:Name="DetailPrisonerNum"
                                                        FontSize="11"
-                                                       Foreground="#065F46"
+                                                       Foreground="#8A9BB8"
                                                        Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
 
                                 <!-- Info grid -->
-                                <UniformGrid Grid.Row="1"
-                                             Columns="3"
+                                <UniformGrid Grid.Row="1" Columns="3"
                                              Margin="16,14,16,14">
 
-                                    <Border Background="#F9FAFB"
-                                            CornerRadius="6"
-                                            Padding="14,10"
+                                    <Border CornerRadius="8" Padding="14,10"
                                             Margin="0,0,8,8">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#162844" Opacity="0.80"/>
+                                        </Border.Background>
                                         <StackPanel>
                                             <TextBlock x:Name="DetailMonth"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#1a7a60"/>
-                                            <TextBlock Text="الشهر"
-                                                       FontSize="11"
-                                                       Foreground="#9CA3AF"
-                                                       Margin="0,2,0,0"/>
+                                                       FontSize="22" FontWeight="Bold"
+                                                       Foreground="{StaticResource EmeraldGlow}"/>
+                                            <TextBlock Text="الشهر" FontSize="11"
+                                                       Foreground="#4A5A7A" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Background="#F9FAFB"
-                                            CornerRadius="6"
-                                            Padding="14,10"
+                                    <Border CornerRadius="8" Padding="14,10"
                                             Margin="0,0,8,8">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#162844" Opacity="0.80"/>
+                                        </Border.Background>
                                         <StackPanel>
                                             <TextBlock x:Name="DetailDossier"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#1a7a60"/>
-                                            <TextBlock Text="الدوسية"
-                                                       FontSize="11"
-                                                       Foreground="#9CA3AF"
-                                                       Margin="0,2,0,0"/>
+                                                       FontSize="22" FontWeight="Bold"
+                                                       Foreground="{StaticResource RoseGold}"/>
+                                            <TextBlock Text="الدوسية" FontSize="11"
+                                                       Foreground="#4A5A7A" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Background="#F9FAFB"
-                                            CornerRadius="6"
-                                            Padding="14,10"
+                                    <Border CornerRadius="8" Padding="14,10"
                                             Margin="0,0,0,8">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#162844" Opacity="0.80"/>
+                                        </Border.Background>
                                         <StackPanel>
                                             <TextBlock x:Name="DetailHallway"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#1a7a60"/>
-                                            <TextBlock Text="الممر"
-                                                       FontSize="11"
-                                                       Foreground="#9CA3AF"
-                                                       Margin="0,2,0,0"/>
+                                                       FontSize="22" FontWeight="Bold"
+                                                       Foreground="{StaticResource EmeraldMid}"/>
+                                            <TextBlock Text="الممر" FontSize="11"
+                                                       Foreground="#4A5A7A" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Background="#F9FAFB"
-                                            CornerRadius="6"
-                                            Padding="14,10"
+                                    <Border CornerRadius="8" Padding="14,10"
                                             Margin="0,0,8,0">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#162844" Opacity="0.80"/>
+                                        </Border.Background>
                                         <StackPanel>
                                             <TextBlock x:Name="DetailCabinet"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#1a7a60"/>
-                                            <TextBlock Text="الكبينة"
-                                                       FontSize="11"
-                                                       Foreground="#9CA3AF"
-                                                       Margin="0,2,0,0"/>
+                                                       FontSize="22" FontWeight="Bold"
+                                                       Foreground="{StaticResource EmeraldGlow}"/>
+                                            <TextBlock Text="الكبينة" FontSize="11"
+                                                       Foreground="#4A5A7A" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Background="#F9FAFB"
-                                            CornerRadius="6"
-                                            Padding="14,10"
+                                    <Border CornerRadius="8" Padding="14,10"
                                             Margin="0,0,8,0">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#162844" Opacity="0.80"/>
+                                        </Border.Background>
                                         <StackPanel>
                                             <TextBlock x:Name="DetailShelf"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#1a7a60"/>
-                                            <TextBlock Text="الرف"
-                                                       FontSize="11"
-                                                       Foreground="#9CA3AF"
-                                                       Margin="0,2,0,0"/>
+                                                       FontSize="22" FontWeight="Bold"
+                                                       Foreground="{StaticResource RoseGold}"/>
+                                            <TextBlock Text="الرف" FontSize="11"
+                                                       Foreground="#4A5A7A" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </Border>
 
@@ -362,16 +385,28 @@
                         </Border>
 
                         <!-- Action buttons -->
-                        <StackPanel Orientation="Horizontal"
-                                    Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                             <Button Content="📁 فتح الدوسية"
-                                    Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="#1a7a60" Foreground="White"
                                     Height="34" Margin="0,0,8,0"
+                                    Foreground="#050D1A" FontWeight="SemiBold"
                                     Click="OpenDossierFromDetail_Click"
-                                    x:Name="OpenDossierDetailBtn"/>
+                                    x:Name="OpenDossierDetailBtn">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                                        <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+                                    </Style>
+                                </Button.Style>
+                                <Button.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#00BCD4" Offset="0"/>
+                                        <GradientStop Color="#00E676" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                            </Button>
                             <Button Content="🖨️ طباعة واجهة الدوسية"
                                     Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{StaticResource RoseGold}"
+                                    BorderBrush="{StaticResource RoseGoldDark}"
                                     Height="34"
                                     Click="QuickPrint_Click"
                                     x:Name="PrintFromDetailBtn"/>
@@ -379,29 +414,33 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ── EMPTY STATE (no search, no results) ─────────────────── -->
+                <!-- Empty state -->
                 <Border Grid.Row="1"
                         x:Name="EmptySearchState"
-                        Background="White"
-                        CornerRadius="8"
+                        CornerRadius="10"
                         BorderThickness="1"
-                        BorderBrush="#E5E7EB"
                         Padding="32">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.60"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#1E3050" Opacity="0.60"/>
+                    </Border.BorderBrush>
                     <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                         <TextBlock Text="🔍"
-                                   FontSize="40"
+                                   FontSize="42"
                                    HorizontalAlignment="Center"
-                                   Margin="0,0,0,12"/>
+                                   Margin="0,0,0,14"/>
                         <TextBlock Text="ابحث عن سجل أو دوسية"
                                    FontSize="15"
                                    FontWeight="SemiBold"
-                                   Foreground="#374151"
+                                   Foreground="#8A9BB8"
                                    HorizontalAlignment="Center"
                                    Margin="0,0,0,6"/>
                         <TextBlock Text="أدخل رقم السجين أو اسمه أو رقم الدوسية في مربع البحث أعلاه"
                                    FontSize="12"
-                                   Foreground="#9CA3AF"
+                                   Foreground="#4A5A7A"
                                    HorizontalAlignment="Center"
                                    TextWrapping="Wrap"
                                    TextAlignment="Center"
@@ -410,47 +449,55 @@
                 </Border>
             </Grid>
 
-            <!-- ── RIGHT: RECENT DOSSIERS ──────────────────────────────────── -->
+            <!-- ── RIGHT: RECENT DOSSIERS ── -->
             <Border Grid.Column="2"
-                    Background="White"
-                    CornerRadius="8"
-                    BorderThickness="1"
-                    BorderBrush="#E5E7EB">
+                    CornerRadius="10"
+                    BorderThickness="1">
+                <Border.Background>
+                    <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
+                </Border.BorderBrush>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Section header -->
                     <Border Grid.Row="0"
                             BorderThickness="0,0,0,1"
-                            BorderBrush="#F3F4F6"
                             Padding="16,12">
+                        <Border.BorderBrush>
+                            <SolidColorBrush Color="#C9956A" Opacity="0.20"/>
+                        </Border.BorderBrush>
                         <TextBlock Text="آخر الدوسيات"
-                                   FontSize="13"
-                                   FontWeight="SemiBold"
-                                   Foreground="#374151"/>
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{StaticResource RoseGold}"/>
                     </Border>
 
-                    <!-- Dossier list -->
                     <ScrollViewer Grid.Row="1"
                                   VerticalScrollBarVisibility="Auto">
-                        <ItemsControl x:Name="RecentDossiersList"
-                                      Margin="0">
+                        <ItemsControl x:Name="RecentDossiersList" Margin="0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border BorderThickness="0,0,0,1"
-                                        BorderBrush="#F3F4F6"
-                                        Padding="16,10"
-                                        Cursor="Hand"
-                                        Background="Transparent"
-                                        MouseLeftButtonUp="RecentDossierItem_Click">
+                                            Padding="16,10"
+                                            Cursor="Hand"
+                                            Background="Transparent"
+                                            MouseLeftButtonUp="RecentDossierItem_Click">
+                                        <Border.BorderBrush>
+                                            <SolidColorBrush Color="#1E3050" Opacity="0.60"/>
+                                        </Border.BorderBrush>
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Style.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="#F9FAFB"/>
+                                                        <Setter Property="Background">
+                                                            <Setter.Value>
+                                                                <SolidColorBrush Color="#162844" Opacity="0.60"/>
+                                                            </Setter.Value>
+                                                        </Setter>
                                                     </Trigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -462,44 +509,40 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Dossier number badge -->
                                             <Border Grid.Column="0"
-                                                    Background="#ECFDF5"
-                                                    CornerRadius="6"
-                                                    Padding="8,4"
+                                                    CornerRadius="6" Padding="8,4"
                                                     Margin="0,0,10,0"
                                                     VerticalAlignment="Center">
+                                                <Border.Background>
+                                                    <SolidColorBrush Color="#00E676" Opacity="0.10"/>
+                                                </Border.Background>
+                                                <Border.BorderBrush>
+                                                    <SolidColorBrush Color="#00E676" Opacity="0.25"/>
+                                                </Border.BorderBrush>
+                                                <Border.BorderThickness>1</Border.BorderThickness>
                                                 <TextBlock Text="{Binding DossierNumber}"
-                                                           FontSize="13"
-                                                           FontWeight="Bold"
-                                                           Foreground="#065F46"/>
+                                                           FontSize="13" FontWeight="Bold"
+                                                           Foreground="{StaticResource EmeraldGlow}"/>
                                             </Border>
 
-                                            <!-- Info -->
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding HijriDisplay}"
-                                                           FontSize="12"
-                                                           Foreground="#374151"/>
+                                                           FontSize="12" Foreground="#8A9BB8"/>
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding RecordCount}"
-                                                               FontSize="11"
-                                                               Foreground="#9CA3AF"/>
+                                                               FontSize="11" Foreground="#4A5A7A"/>
                                                     <TextBlock Text=" ملف  ·  "
-                                                               FontSize="11"
-                                                               Foreground="#D1D5DB"/>
+                                                               FontSize="11" Foreground="#1E3050"/>
                                                     <TextBlock Text="{Binding LocationDisplay}"
-                                                               FontSize="11"
-                                                               Foreground="#9CA3AF"
+                                                               FontSize="11" Foreground="#4A5A7A"
                                                                TextTrimming="CharacterEllipsis"
                                                                MaxWidth="100"/>
                                                 </StackPanel>
                                             </StackPanel>
 
-                                            <!-- Arrow -->
                                             <TextBlock Grid.Column="2"
-                                                       Text="←"
-                                                       FontSize="12"
-                                                       Foreground="#D1D5DB"
+                                                       Text="←" FontSize="12"
+                                                       Foreground="#1E3050"
                                                        VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
@@ -508,7 +551,6 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!-- Fallback: old RecentGrid for code-behind binding compat -->
                     <DataGrid Grid.Row="1"
                               x:Name="RecentGrid"
                               Visibility="Collapsed"
@@ -516,17 +558,14 @@
                               IsReadOnly="True"
                               CanUserAddRows="False"
                               SelectionMode="Single"
+                              Background="Transparent"
                               Style="{StaticResource MaterialDesignDataGrid}"
                               MouseDoubleClick="RecentGrid_DoubleClick">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="رقم الدوسية"
-                                                Binding="{Binding DossierNumber}" Width="90"/>
-                            <DataGridTextColumn Header="التاريخ"
-                                                Binding="{Binding HijriDisplay}" Width="*"/>
-                            <DataGridTextColumn Header="الموقع"
-                                                Binding="{Binding LocationDisplay}" Width="130"/>
-                            <DataGridTextColumn Header="ملفات"
-                                                Binding="{Binding RecordCount}" Width="60"/>
+                            <DataGridTextColumn Header="رقم الدوسية" Binding="{Binding DossierNumber}" Width="90"/>
+                            <DataGridTextColumn Header="التاريخ"     Binding="{Binding HijriDisplay}"  Width="*"/>
+                            <DataGridTextColumn Header="الموقع"      Binding="{Binding LocationDisplay}" Width="130"/>
+                            <DataGridTextColumn Header="ملفات"       Binding="{Binding RecordCount}"   Width="60"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

@@ -1304,7 +1304,7 @@ namespace ArchiveSystem.Core.Services
                             col.Item().PaddingVertical(6).Column(inner =>
                             {
                                 inner.Item().AlignCenter()
-                                    .Text("سجل الأحداث — وثاق")
+                                    .Text("سجل الأحداث — موثق")
                                     .FontSize(16).Bold().FontColor(Colors.Teal.Darken3);
                                 if (!string.IsNullOrWhiteSpace(periodLabel))
                                     inner.Item().AlignCenter().PaddingTop(2).Text(periodLabel)

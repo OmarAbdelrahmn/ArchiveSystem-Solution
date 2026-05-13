@@ -5,119 +5,173 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light"
-                                             PrimaryColor="Teal"
+                <materialDesign:BundledTheme BaseTheme="Dark"
+                                             PrimaryColor="BlueGrey"
                                              SecondaryColor="Teal"/>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- ═══════════════════════════════════════════
-                 BRAND COLOR PALETTE
+                 BRAND COLOR PALETTE — Midnight / Rose Gold / Emerald
             ═══════════════════════════════════════════ -->
-            <SolidColorBrush x:Key="PrimaryDark"     Color="#155a44"/>
-            <SolidColorBrush x:Key="Primary"         Color="#1a7a60"/>
-            <SolidColorBrush x:Key="PrimaryLight"    Color="#23a07f"/>
-            <SolidColorBrush x:Key="PrimaryGhost"    Color="#e6f4f0"/>
-            <SolidColorBrush x:Key="AccentGold"      Color="#c8932a"/>
-            <SolidColorBrush x:Key="SurfaceWhite"    Color="#ffffff"/>
-            <SolidColorBrush x:Key="SurfaceGrey"     Color="#f5f7fa"/>
-            <SolidColorBrush x:Key="BorderLight"     Color="#dde3ea"/>
-            <SolidColorBrush x:Key="TextPrimary"     Color="#1a2e25"/>
-            <SolidColorBrush x:Key="TextSecondary"   Color="#4a6355"/>
-            <SolidColorBrush x:Key="TextMuted"       Color="#8aa89a"/>
-            <SolidColorBrush x:Key="DangerRed"       Color="#c0392b"/>
+
+            <!-- Deep Midnight Blue family -->
+            <SolidColorBrush x:Key="MidnightDeep"      Color="#050D1A"/>
+            <SolidColorBrush x:Key="MidnightBase"      Color="#0A1628"/>
+            <SolidColorBrush x:Key="MidnightMid"       Color="#0D1F3C"/>
+            <SolidColorBrush x:Key="MidnightLight"     Color="#162844"/>
+            <SolidColorBrush x:Key="MidnightSurface"   Color="#1A2F4A"/>
+
+            <!-- Rose Gold / Copper accent family -->
+            <SolidColorBrush x:Key="RoseGold"          Color="#C9956A"/>
+            <SolidColorBrush x:Key="RoseGoldLight"     Color="#DDB48E"/>
+            <SolidColorBrush x:Key="RoseGoldDark"      Color="#A8794E"/>
+            <SolidColorBrush x:Key="Copper"            Color="#B87333"/>
+            <SolidColorBrush x:Key="RoseGoldGhost"     Color="#2A1F16"/>
+
+            <!-- Emerald Glow family -->
+            <SolidColorBrush x:Key="EmeraldGlow"       Color="#00E676"/>
+            <SolidColorBrush x:Key="EmeraldMid"        Color="#1adf8a"/>
+            <SolidColorBrush x:Key="EmeraldSoft"       Color="#00BCD4"/>
+            <SolidColorBrush x:Key="EmeraldGhost"      Color="#0A2A1E"/>
+            <SolidColorBrush x:Key="EmeraldDark"       Color="#00C853"/>
+
+            <!-- Glassmorphism surfaces -->
+            <SolidColorBrush x:Key="GlassWhite"        Color="#1AFFFFFF"/>
+            <SolidColorBrush x:Key="GlassMid"          Color="#12FFFFFF"/>
+            <SolidColorBrush x:Key="GlassBorder"       Color="#25FFFFFF"/>
+            <SolidColorBrush x:Key="GlassDark"         Color="#0AFFFFFF"/>
+
+            <!-- Semantic / text -->
+            <SolidColorBrush x:Key="TextPrimary"       Color="#E8EDF5"/>
+            <SolidColorBrush x:Key="TextSecondary"     Color="#8A9BB8"/>
+            <SolidColorBrush x:Key="TextMuted"         Color="#4A5A7A"/>
+            <SolidColorBrush x:Key="TextAccent"        Color="#C9956A"/>
+            <SolidColorBrush x:Key="DangerRed"         Color="#FF5252"/>
+            <SolidColorBrush x:Key="WarningAmber"      Color="#FFB74D"/>
+
+            <!-- Legacy aliases (keep code-behind references working) -->
+            <SolidColorBrush x:Key="PrimaryDark"       Color="#A8794E"/>
+            <SolidColorBrush x:Key="Primary"           Color="#C9956A"/>
+            <SolidColorBrush x:Key="PrimaryLight"      Color="#DDB48E"/>
+            <SolidColorBrush x:Key="PrimaryGhost"      Color="#1A1A2E"/>
+            <SolidColorBrush x:Key="AccentGold"        Color="#C9956A"/>
+            <SolidColorBrush x:Key="SurfaceWhite"      Color="#0D1F3C"/>
+            <SolidColorBrush x:Key="SurfaceGrey"       Color="#0A1628"/>
+            <SolidColorBrush x:Key="BorderLight"       Color="#1E3050"/>
 
             <!-- ═══════════════════════════════════════════
                  GLOBAL FONT OVERRIDES  (Arabic-first)
             ═══════════════════════════════════════════ -->
             <Style TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
             </Style>
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-                <Setter Property="FontFamily"     Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily"     Value="Noto Kufi Arabic, Segoe UI"/>
                 <Setter Property="FlowDirection"  Value="RightToLeft"/>
+                <Setter Property="Foreground"     Value="{StaticResource TextPrimary}"/>
+                <Setter Property="Background"     Value="#0A1628"/>
+                <Setter Property="CaretBrush"     Value="{StaticResource EmeraldGlow}"/>
             </Style>
             <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
             </Style>
             <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                <Setter Property="FontFamily"    Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily"    Value="Noto Kufi Arabic, Segoe UI"/>
                 <Setter Property="FlowDirection" Value="RightToLeft"/>
+                <Setter Property="Foreground"    Value="{StaticResource TextPrimary}"/>
+                <Setter Property="Background"    Value="#0A1628"/>
             </Style>
             <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
             </Style>
-            <!-- CORRECT - bases on MaterialDesign style, keeps all MD styling -->
             <Style TargetType="TabItem" BasedOn="{StaticResource MaterialDesignTabItem}">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+                <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
             </Style>
             <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
-                <Setter Property="FontFamily"    Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily"    Value="Noto Kufi Arabic, Segoe UI"/>
                 <Setter Property="FlowDirection" Value="RightToLeft"/>
+                <Setter Property="Background"    Value="Transparent"/>
+                <Setter Property="Foreground"    Value="{StaticResource TextPrimary}"/>
             </Style>
             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
             </Style>
             <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
             </Style>
             <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
             </Style>
             <Style TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
-                <Setter Property="FontFamily"    Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily"    Value="Noto Kufi Arabic, Segoe UI"/>
                 <Setter Property="FlowDirection" Value="RightToLeft"/>
+                <Setter Property="Foreground"    Value="{StaticResource TextPrimary}"/>
+                <Setter Property="Background"    Value="#0A1628"/>
+                <Setter Property="CaretBrush"    Value="{StaticResource EmeraldGlow}"/>
             </Style>
             <Style TargetType="Window">
-                <Setter Property="FontFamily" Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
+                <Setter Property="Background" Value="{StaticResource MidnightBase}"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            </Style>
+            <Style TargetType="Page">
+                <Setter Property="FontFamily" Value="Noto Kufi Arabic, Segoe UI"/>
             </Style>
 
             <!-- ═══════════════════════════════════════════
-                 DATA GRID  —  global base
+                 DATA GRID — global base (dark glassmorphism)
             ═══════════════════════════════════════════ -->
             <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
-                <Setter Property="FontFamily"                Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily"                Value="Noto Kufi Arabic, Segoe UI"/>
                 <Setter Property="FlowDirection"             Value="RightToLeft"/>
-                <Setter Property="Background"                Value="{StaticResource SurfaceWhite}"/>
-                <Setter Property="BorderBrush"               Value="{StaticResource BorderLight}"/>
+                <Setter Property="Background"                Value="#0A1628"/>
+                <Setter Property="Foreground"                Value="{StaticResource TextPrimary}"/>
+                <Setter Property="BorderBrush"               Value="#1E3050"/>
                 <Setter Property="BorderThickness"           Value="1"/>
-                <Setter Property="RowBackground"             Value="{StaticResource SurfaceWhite}"/>
-                <Setter Property="AlternatingRowBackground"  Value="#f9fbfa"/>
+                <Setter Property="RowBackground"             Value="#0A1628"/>
+                <Setter Property="AlternatingRowBackground"  Value="#0D1F3C"/>
                 <Setter Property="GridLinesVisibility"       Value="Horizontal"/>
-                <Setter Property="HorizontalGridLinesBrush"  Value="#eaeff0"/>
+                <Setter Property="HorizontalGridLinesBrush"  Value="#1A2A40"/>
                 <Setter Property="SelectionMode"             Value="Single"/>
                 <Setter Property="CanUserAddRows"            Value="False"/>
                 <Setter Property="CanUserDeleteRows"         Value="False"/>
                 <Setter Property="AutoGenerateColumns"       Value="False"/>
-                <Setter Property="ColumnHeaderHeight"        Value="42"/>
-                <Setter Property="RowHeight"                 Value="38"/>
+                <Setter Property="ColumnHeaderHeight"        Value="44"/>
+                <Setter Property="RowHeight"                 Value="40"/>
             </Style>
 
             <!-- ── Column Header ── -->
             <Style TargetType="DataGridColumnHeader"
                    BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="FontFamily"               Value="Amiri, Segoe UI"/>
+                <Setter Property="FontFamily"               Value="Noto Kufi Arabic, Segoe UI"/>
                 <Setter Property="FontSize"                 Value="13"/>
                 <Setter Property="FontWeight"               Value="SemiBold"/>
-                <Setter Property="Foreground"               Value="{StaticResource Primary}"/>
-                <Setter Property="Background"               Value="{StaticResource SurfaceGrey}"/>
-                <Setter Property="BorderBrush"              Value="{StaticResource BorderLight}"/>
+                <Setter Property="Foreground"               Value="{StaticResource RoseGold}"/>
+                <Setter Property="Background"               Value="#0D1F3C"/>
+                <Setter Property="BorderBrush"              Value="{StaticResource RoseGoldDark}"/>
                 <Setter Property="BorderThickness"          Value="0,0,0,2"/>
                 <Setter Property="Padding"                  Value="14,0,14,0"/>
-                <Setter Property="MinHeight"                Value="42"/>
+                <Setter Property="MinHeight"                Value="44"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
                 <Setter Property="FlowDirection"            Value="RightToLeft"/>
                 <Setter Property="Cursor"                   Value="Hand"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{StaticResource PrimaryGhost}"/>
-                        <Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
+                        <Setter Property="Background" Value="#162844"/>
+                        <Setter Property="Foreground" Value="{StaticResource RoseGoldLight}"/>
                     </Trigger>
                     <Trigger Property="SortDirection" Value="Ascending">
-                        <Setter Property="Background" Value="{StaticResource PrimaryGhost}"/>
+                        <Setter Property="Background" Value="#162844"/>
                     </Trigger>
                     <Trigger Property="SortDirection" Value="Descending">
-                        <Setter Property="Background" Value="{StaticResource PrimaryGhost}"/>
+                        <Setter Property="Background" Value="#162844"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -126,13 +180,14 @@
             <Style TargetType="DataGridRow"
                    BasedOn="{StaticResource {x:Type DataGridRow}}">
                 <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Foreground"      Value="{StaticResource TextPrimary}"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#f0faf6"/>
+                        <Setter Property="Background" Value="#162844"/>
                     </Trigger>
                     <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Background" Value="#d4efe7"/>
-                        <Setter Property="Foreground" Value="#0d7b2b"/>
+                        <Setter Property="Background" Value="#1A3A2A"/>
+                        <Setter Property="Foreground" Value="{StaticResource EmeraldGlow}"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -144,10 +199,11 @@
                 <Setter Property="Padding"                  Value="14,0"/>
                 <Setter Property="VerticalAlignment"        Value="Center"/>
                 <Setter Property="HorizontalAlignment"      Value="Stretch"/>
+                <Setter Property="Foreground"               Value="{StaticResource TextPrimary}"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="DataGridCell">
-                            <Border Padding="14,8"
+                            <Border Padding="14,9"
                                     Background="{TemplateBinding Background}"
                                     BorderThickness="0">
                                 <ContentPresenter VerticalAlignment="Center"
@@ -158,9 +214,9 @@
                 </Setter>
                 <Style.Triggers>
                     <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Background"      Value="Transparent"/>
                         <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Foreground" Value="#0d7b2b"/>
+                        <Setter Property="Foreground"      Value="{StaticResource EmeraldGlow}"/>
                     </Trigger>
                     <Trigger Property="IsFocused" Value="True">
                         <Setter Property="BorderThickness" Value="0"/>
@@ -168,10 +224,15 @@
                 </Style.Triggers>
             </Style>
 
-            <!-- ── Row Header (hide the left gutter) ── -->
+            <!-- ── Row Header (hide) ── -->
             <Style TargetType="DataGridRowHeader">
-                <Setter Property="Width" Value="0"/>
+                <Setter Property="Width"      Value="0"/>
                 <Setter Property="Visibility" Value="Collapsed"/>
+            </Style>
+
+            <!-- ── ScrollBar (subtle dark) ── -->
+            <Style TargetType="ScrollBar">
+                <Setter Property="Background" Value="#0A1628"/>
             </Style>
 
         </ResourceDictionary>
