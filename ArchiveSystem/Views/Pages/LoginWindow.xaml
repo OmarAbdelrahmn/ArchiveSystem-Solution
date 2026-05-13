@@ -167,11 +167,11 @@
             <Border CornerRadius="20" Margin="32,32,32,32" ClipToBounds="True">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#042B1A" Offset="0"/>
-                        <GradientStop Color="#0A4D2E" Offset="0.30"/>
-                        <GradientStop Color="#0D6B45" Offset="0.60"/>
-                        <GradientStop Color="#0A3D2A" Offset="0.80"/>
-                        <GradientStop Color="#041E12" Offset="1"/>
+                        <GradientStop Color="#021526" Offset="0"/>
+                        <GradientStop Color="#03346E" Offset="0.30"/>
+                        <GradientStop Color="#0A6E6E" Offset="0.55"/>
+                        <GradientStop Color="#044B7F" Offset="0.80"/>
+                        <GradientStop Color="#021526" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
 
@@ -232,19 +232,19 @@
 
                         <!-- App logo — centred, larger, with gold glow -->
                         <Image Source="pack://application:,,,/Assets/main.png"
-                               Height="250"
+                               Height="210"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,15"
                                RenderOptions.BitmapScalingMode="HighQuality">
                             <Image.Effect>
                                 <DropShadowEffect BlurRadius="40" ShadowDepth="0"
-                                                  Color="#D4AF37" Opacity="0.35"/>
+                                                  Color="#D4AF37" Opacity="0.95"/>
                             </Image.Effect>
                         </Image>
 
                         <!-- Title -->
-                        <TextBlock Text="وثاق"
-                                   FontSize="52" FontWeight="Bold"
+                        <TextBlock Text="مركز الوثائق و المعلومات"
+                                   FontSize="33" FontWeight="Bold"
                                    HorizontalAlignment="Center"
                                    TextAlignment="Center">
                             <TextBlock.Foreground>
@@ -300,12 +300,12 @@
                                 <SolidColorBrush Color="#D4AF37" Opacity="0.30"/>
                             </Border.BorderBrush>
                             <Border.BorderThickness>1</Border.BorderThickness>
-                            <StackPanel HorizontalAlignment="Right">
+                            <StackPanel HorizontalAlignment="Left">
                                 <TextBlock x:Name="LastBackupTimeText" Text="--:--"
-                                           FontSize="24" FontWeight="Bold" Foreground="White"/>
+                                           FontSize="20" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="آخر نسخة احتياطية"
                                            FontSize="12" Foreground="#7EC8A0"
-                                           HorizontalAlignment="Right" Margin="0,2,0,0"/>
+                                           HorizontalAlignment="Left" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
 
@@ -322,12 +322,12 @@
                                 <SolidColorBrush Color="#D4AF37" Opacity="0.30"/>
                             </Border.BorderBrush>
                             <Border.BorderThickness>1</Border.BorderThickness>
-                            <StackPanel HorizontalAlignment="Right">
+                            <StackPanel HorizontalAlignment="Left">
                                 <TextBlock x:Name="TotalFilesText" Text="0"
-                                           FontSize="24" FontWeight="Bold" Foreground="White"/>
+                                           FontSize="20" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="ملف داخل النظام"
                                            FontSize="12" Foreground="#7EC8A0"
-                                           HorizontalAlignment="Right" Margin="0,2,0,0"/>
+                                           HorizontalAlignment="Left" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
 
@@ -344,16 +344,16 @@
                                 <SolidColorBrush Color="#D4AF37" Opacity="0.40"/>
                             </Border.BorderBrush>
                             <Border.BorderThickness>1</Border.BorderThickness>
-                            <StackPanel HorizontalAlignment="Right">
+                            <StackPanel HorizontalAlignment="Left">
                                 <TextBlock x:Name="TotalFoldersText" Text="0"
-                                           FontSize="24" FontWeight="Bold">
+                                           FontSize="20" FontWeight="Bold">
                                     <TextBlock.Foreground>
                                         <SolidColorBrush Color="#D4AF37"/>
                                     </TextBlock.Foreground>
                                 </TextBlock>
                                 <TextBlock Text="دوسية مستوردة"
                                            FontSize="12" Foreground="#7EC8A0"
-                                           HorizontalAlignment="Right" Margin="0,2,0,0"/>
+                                           HorizontalAlignment="Left" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
 
