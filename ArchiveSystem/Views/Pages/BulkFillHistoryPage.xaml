@@ -112,6 +112,7 @@
                   x:Name="HistoryGrid"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
+                  Background="Transparent"
                   CanUserAddRows="False"
                   SelectionMode="Single"
                   Style="{StaticResource MaterialDesignDataGrid}"
