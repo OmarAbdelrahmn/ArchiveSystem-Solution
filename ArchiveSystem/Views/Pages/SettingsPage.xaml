@@ -202,8 +202,9 @@
                                   Background="Transparent"
                                   Foreground="{StaticResource TextSecondary}"
                                   MouseDoubleClick="FieldsGrid_DoubleClick">
+                            <!-- ✅ FIX: BasedOn added so global style foreground/background is inherited -->
                             <DataGrid.RowStyle>
-                                <Style TargetType="DataGridRow">
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsActive}" Value="False">
                                             <Setter Property="Opacity" Value="0.45"/>
@@ -355,8 +356,9 @@
                                   materialDesign:DataGridAssist.CellPadding="10 7 10 7"
                                   Background="Transparent"
                                   Foreground="{StaticResource TextSecondary}">
+                            <!-- ✅ FIX: BasedOn added so global style foreground/background is inherited -->
                             <DataGrid.RowStyle>
-                                <Style TargetType="DataGridRow">
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsActive}" Value="False">
                                             <Setter Property="Opacity" Value="0.45"/>
@@ -567,8 +569,9 @@
                                       Background="Transparent"
                                       Foreground="{StaticResource TextSecondary}"
                                       MaxHeight="340">
+                                <!-- ✅ FIX: BasedOn added so global style foreground/background is inherited -->
                                 <DataGrid.RowStyle>
-                                    <Style TargetType="DataGridRow">
+                                    <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Status}" Value="Failed">
                                                 <Setter Property="Background">
@@ -763,8 +766,6 @@
                                           Margin="0,0,0,0" FontSize="13"/>
                             </StackPanel>
                         </Border>
-
-                        
 
                         <!-- Font scale group -->
                         <Border CornerRadius="8" Padding="20" BorderThickness="1"

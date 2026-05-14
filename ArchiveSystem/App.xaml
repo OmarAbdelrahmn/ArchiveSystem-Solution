@@ -217,20 +217,30 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-
+            
             <!-- ── Row ── -->
             <Style TargetType="DataGridRow"
-                   BasedOn="{StaticResource {x:Type DataGridRow}}">
+       BasedOn="{StaticResource {x:Type DataGridRow}}">
                 <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Background"      Value="#0A1628"/>
                 <Setter Property="Foreground"      Value="{StaticResource TextPrimary}"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="Background" Value="#162844"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
                     </Trigger>
                     <Trigger Property="IsSelected" Value="True">
                         <Setter Property="Background" Value="#1A3A2A"/>
                         <Setter Property="Foreground" Value="{StaticResource EmeraldGlow}"/>
                     </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsSelected"  Value="True"/>
+                            <Condition Property="IsMouseOver" Value="True"/>
+                        </MultiTrigger.Conditions>
+                        <Setter Property="Background" Value="#1A3A2A"/>
+                        <Setter Property="Foreground" Value="{StaticResource EmeraldGlow}"/>
+                    </MultiTrigger>
                 </Style.Triggers>
             </Style>
 
@@ -249,7 +259,8 @@
                                     Background="{TemplateBinding Background}"
                                     BorderThickness="0">
                                 <ContentPresenter VerticalAlignment="Center"
-                                                  HorizontalAlignment="Left"/>
+                                      HorizontalAlignment="Left"
+                                      TextElement.Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridRow}}"/>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>

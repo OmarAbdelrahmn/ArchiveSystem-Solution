@@ -426,16 +426,127 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddRole_Click(object sender, RoutedEventArgs e)
         {
-            string? input = InputDialog.Show(
-                "أدخل اسم الدور الجديد:",
-                "إضافة دور",
-                owner: Window.GetWindow(this));
+            var win = new Window
+            {
+                Title = "إضافة دور",
+                Width = 420,
+                Height = 230,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = new SolidColorBrush(Color.FromRgb(10, 22, 40))  // #0A1628
+            };
 
-            if (string.IsNullOrWhiteSpace(input)) return;
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // header
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // body
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // footer
 
-            var err = _roleService.CreateRole(input, null);
-            if (err != null) ShowMsg(err);
-            else LoadRoles();
+            // ── Header ──────────────────────────────────────────────────────────
+            var header = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(13, 31, 60)),   // #0D1F3C
+                Padding = new Thickness(20, 14, 20, 14),
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(30, 48, 80))   // #1E3050
+            };
+            header.Child = new TextBlock
+            {
+                Text = "إضافة دور جديد",
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A")), // RoseGold
+                HorizontalAlignment = HorizontalAlignment.Right
+            };
+            Grid.SetRow(header, 0);
+            root.Children.Add(header);
+
+            // ── Body ─────────────────────────────────────────────────────────────
+            var body = new StackPanel { Margin = new Thickness(20, 16, 20, 8) };
+
+            var nameBox = new TextBox { Height = 50, Margin = new Thickness(0, 0, 0, 6) };
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(nameBox, "اسم الدور *");
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(nameBox,
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A5A7A")));
+            nameBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+
+            var errText = new TextBlock
+            {
+                FontSize = 11,
+                Visibility = Visibility.Collapsed,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF5252")) // DangerRed
+            };
+
+            body.Children.Add(nameBox);
+            body.Children.Add(errText);
+            Grid.SetRow(body, 1);
+            root.Children.Add(body);
+
+            // ── Footer ────────────────────────────────────────────────────────────
+            var footer = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(13, 31, 60)),   // #0D1F3C
+                Padding = new Thickness(20, 12, 20, 12),
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(30, 48, 80))   // #1E3050
+            };
+
+            var btnRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+
+            var saveBtn = new Button { Content = "موافق", Width = 100, Height = 36 };
+            saveBtn.Style = (Style)FindResource("MaterialDesignRaisedButton");
+            saveBtn.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1adf8a")); // EmeraldMid
+            saveBtn.Foreground = Brushes.White;
+
+            var cancelBtn = new Button
+            {
+                Content = "إلغاء",
+                Width = 80,
+                Height = 36,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+            cancelBtn.Style = (Style)FindResource("MaterialDesignOutlinedButton");
+            cancelBtn.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8A9BB8")); // TextSecondary
+            cancelBtn.Click += (_, _) => win.Close();
+
+            saveBtn.Click += (_, _) =>
+            {
+                if (string.IsNullOrWhiteSpace(nameBox.Text))
+                {
+                    errText.Text = "يرجى إدخال اسم الدور.";
+                    errText.Visibility = Visibility.Visible;
+                    return;
+                }
+                var err = _roleService.CreateRole(nameBox.Text.Trim(), null);
+                if (err != null)
+                {
+                    errText.Text = err;
+                    errText.Visibility = Visibility.Visible;
+                    return;
+                }
+                win.DialogResult = true;
+                win.Close();
+            };
+
+            nameBox.KeyDown += (_, ke) =>
+            {
+                if (ke.Key == Key.Enter) saveBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                if (ke.Key == Key.Escape) win.Close();
+            };
+
+            btnRow.Children.Add(saveBtn);
+            btnRow.Children.Add(cancelBtn);
+            footer.Child = btnRow;
+            Grid.SetRow(footer, 2);
+            root.Children.Add(footer);
+
+            win.Content = root;
+            if (win.ShowDialog() == true) LoadRoles();
         }
 
         private void EditLocation_Click(object sender, RoutedEventArgs e)
