@@ -19,8 +19,6 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="420" MinWidth="380" MaxWidth="520"/>
         </Grid.ColumnDefinitions>
-
-        <!-- ══ LOGIN CARD (glassmorphism) ══ -->
         <Grid Grid.Column="1">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -29,42 +27,51 @@
                 </LinearGradientBrush>
             </Grid.Background>
 
-            <!-- Subtle rose gold right edge glow -->
-            <Border HorizontalAlignment="Left" Width="1"
-                    VerticalAlignment="Stretch">
+            <!-- Subtle rose gold left edge glow -->
+            <Border HorizontalAlignment="Left" Width="1" VerticalAlignment="Stretch">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="Transparent"  Offset="0"/>
-                        <GradientStop Color="#C9956A"      Offset="0.4"/>
-                        <GradientStop Color="#C9956A"      Offset="0.6"/>
-                        <GradientStop Color="Transparent"  Offset="1"/>
+                        <GradientStop Color="Transparent" Offset="0"/>
+                        <GradientStop Color="#C9956A"     Offset="0.4"/>
+                        <GradientStop Color="#C9956A"     Offset="0.6"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
 
-            <Border VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Width="340"
-                    CornerRadius="20"
-                    Padding="36,40,36,28">
-                <!-- Glassmorphism background -->
-                <Border.Background>
-                    <SolidColorBrush Color="#0D1F3C" Opacity="0.90"/>
-                </Border.Background>
-                <Border.BorderBrush>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#C9956A40" Offset="0"/>
-                        <GradientStop Color="#1AFFFFFF" Offset="0.5"/>
-                        <GradientStop Color="#C9956A20" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.BorderBrush>
-                <Border.BorderThickness>1</Border.BorderThickness>
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="60" ShadowDepth="0"
-                                      Color="#C9956A" Opacity="0.08"/>
-                </Border.Effect>
+            <!-- Logo + Card stacked vertically, centered -->
+            <StackPanel VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Width="340">
 
-                <StackPanel>
+                <Image Source="pack://application:,,,/Assets/pgd-logo.png"
+                   Height="100"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,24"
+                   RenderOptions.BitmapScalingMode="HighQuality"/>      
+
+                <!-- Login Card -->
+                <Border CornerRadius="20"
+                Padding="36,40,36,28">
+                    <Border.Background>
+                        <SolidColorBrush Color="#0D1F3C" Opacity="0.90"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#C9956A40" Offset="0"/>
+                            <GradientStop Color="#1AFFFFFF" Offset="0.5"/>
+                            <GradientStop Color="#C9956A20" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>1</Border.BorderThickness>
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="60" ShadowDepth="0"
+                                  Color="#C9956A" Opacity="0.08"/>
+                    </Border.Effect>
+
+
+
+                    <StackPanel>
 
                     <!-- Rose gold accent line top -->
                     <Border Height="2" Width="80" HorizontalAlignment="Right"
@@ -219,8 +226,10 @@
                         </StackPanel>
                     </Border>
 
-                </StackPanel>
-            </Border>
+
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </Grid>
 
         <!-- ══ HERO PANEL — deep midnight + emerald + rose gold ══ -->
@@ -304,21 +313,14 @@
                             </Image.Effect>
                         </Image>
 
-                        <!-- Title — white to rose gold gradient -->
                         <TextBlock Text="مركز الوثائق و المحفوظات"
-                                   FontSize="32" FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   TextAlignment="Center">
-                            <TextBlock.Foreground>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#E8EDF5" Offset="0"/>
-                                    <GradientStop Color="#DDB48E" Offset="0.6"/>
-                                    <GradientStop Color="#C9956A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </TextBlock.Foreground>
+                               FontSize="32" FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               Foreground="{StaticResource RoseGold}">      
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="30" ShadowDepth="0"
-                                                  Color="#000" Opacity="0.40"/>
+                          Color="#000" Opacity="0.40"/>
                             </TextBlock.Effect>
                         </TextBlock>
 
@@ -336,7 +338,7 @@
                         </Border>
 
                         <TextBlock Text="بحث سريع، إدخال ذكي، تقارير، وتتبع كامل لمكان كل دوسية."
-                                   FontSize="14" Foreground="#4A5A7A"
+                                   FontSize="14" Foreground="#B8A898"
                                    TextWrapping="Wrap" MaxWidth="460"
                                    LineHeight="26" TextAlignment="Center"
                                    HorizontalAlignment="Center"/>
