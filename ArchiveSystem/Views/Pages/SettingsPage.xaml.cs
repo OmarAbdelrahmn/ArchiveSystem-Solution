@@ -56,50 +56,50 @@ namespace ArchiveSystem.Views.Pages
             ("#37474F", "رمادي أردوازي"),
         };
 
-        private void BuildColorSwatches(string activeHex)
-        {
-            ColorSwatchPanel.Children.Clear();
+        //private void BuildColorSwatches(string activeHex)
+        //{
+        //    ColorSwatchPanel.Children.Clear();
 
-            foreach (var (hex, label) in ThemePresets)
-            {
-                var color = (Color)ColorConverter.ConvertFromString(hex);
-                bool isActive = string.Equals(hex, activeHex,
-                    StringComparison.OrdinalIgnoreCase);
+        //    foreach (var (hex, label) in ThemePresets)
+        //    {
+        //        var color = (Color)ColorConverter.ConvertFromString(hex);
+        //        bool isActive = string.Equals(hex, activeHex,
+        //            StringComparison.OrdinalIgnoreCase);
 
-                var swatch = new Border
-                {
-                    Width = 36,
-                    Height = 36,
-                    CornerRadius = new CornerRadius(18),
-                    Background = new SolidColorBrush(Color.FromRgb(10, 22, 40)),  // #0A1628 — was WhiteSmoke
-                                                                                  Margin = new Thickness(0, 0, 10, 8),
-                    Cursor = System.Windows.Input.Cursors.Hand,
-                    ToolTip = label,
-                    BorderThickness = new Thickness(isActive ? 3 : 0),
-                    BorderBrush = Brushes.White,
-                    Effect = isActive
-                        ? (System.Windows.Media.Effects.Effect)
-                          new System.Windows.Media.Effects.DropShadowEffect
-                          {
-                              Color = color,
-                              BlurRadius = 10,
-                              Opacity = 0.7,
-                              ShadowDepth = 0
-                          }
-                        : null
-                };
+        //        var swatch = new Border
+        //        {
+        //            Width = 36,
+        //            Height = 36,
+        //            CornerRadius = new CornerRadius(18),
+        //            Background = new SolidColorBrush(Color.FromRgb(10, 22, 40)),  // #0A1628 — was WhiteSmoke
+        //                                                                          Margin = new Thickness(0, 0, 10, 8),
+        //            Cursor = System.Windows.Input.Cursors.Hand,
+        //            ToolTip = label,
+        //            BorderThickness = new Thickness(isActive ? 3 : 0),
+        //            BorderBrush = Brushes.White,
+        //            Effect = isActive
+        //                ? (System.Windows.Media.Effects.Effect)
+        //                  new System.Windows.Media.Effects.DropShadowEffect
+        //                  {
+        //                      Color = color,
+        //                      BlurRadius = 10,
+        //                      Opacity = 0.7,
+        //                      ShadowDepth = 0
+        //                  }
+        //                : null
+        //        };
 
-                string capturedHex = hex;
-                swatch.MouseLeftButtonUp += (_, _) =>
-                {
-                    _selectedThemeColor = capturedHex;
-                    SelectedColorText.Text = $"اللون المختار: {capturedHex}  ({label})";
-                    BuildColorSwatches(capturedHex);   // refresh ring
-                };
+        //        string capturedHex = hex;
+        //        swatch.MouseLeftButtonUp += (_, _) =>
+        //        {
+        //            _selectedThemeColor = capturedHex;
+        //            SelectedColorText.Text = $"اللون المختار: {capturedHex}  ({label})";
+        //            BuildColorSwatches(capturedHex);   // refresh ring
+        //        };
 
-                ColorSwatchPanel.Children.Add(swatch);
-            }
-        }
+        //        ColorSwatchPanel.Children.Add(swatch);
+        //    }
+        //}
 
         /// <summary>Applies a hex color to the running MaterialDesign theme palette.</summary>
         private static void ApplyThemeColor(string hex)
@@ -568,18 +568,18 @@ namespace ArchiveSystem.Views.Pages
             else LoadCustomFields();
         }
 
-        private void ApplyCustomHex_Click(object sender, RoutedEventArgs e)
-        {
-            string hex = CustomHexBox.Text.Trim();
-            if (!System.Text.RegularExpressions.Regex.IsMatch(hex, @"^#[0-9A-Fa-f]{6}$"))
-            {
-                ShowMsg("صيغة اللون غير صحيحة. مثال: #1a7a60");
-                return;
-            }
-            _selectedThemeColor = hex;
-            SelectedColorText.Text = $"اللون المختار: {hex}";
-            BuildColorSwatches(hex);
-        }
+        //private void ApplyCustomHex_Click(object sender, RoutedEventArgs e)
+        //{
+        //    string hex = CustomHexBox.Text.Trim();
+        //    if (!System.Text.RegularExpressions.Regex.IsMatch(hex, @"^#[0-9A-Fa-f]{6}$"))
+        //    {
+        //        ShowMsg("صيغة اللون غير صحيحة. مثال: #1a7a60");
+        //        return;
+        //    }
+        //    _selectedThemeColor = hex;
+        //    SelectedColorText.Text = $"اللون المختار: {hex}";
+        //    BuildColorSwatches(hex);
+        //}
 
         // ═════════════════════════════════════════════════════════════════════
         // ARCHIVE STRUCTURE (LOCATIONS) TAB
@@ -800,8 +800,8 @@ namespace ArchiveSystem.Views.Pages
                 if (DensityCombo.SelectedItem == null) DensityCombo.SelectedIndex = 0;
 
                 _selectedThemeColor = GetSetting(map, SettingKeys.ThemeColor, "#178567");
-                BuildColorSwatches(_selectedThemeColor);
-                SelectedColorText.Text = $"اللون الحالي: {_selectedThemeColor}";
+                //BuildColorSwatches(_selectedThemeColor);
+                //SelectedColorText.Text = $"اللون الحالي: {_selectedThemeColor}";
 
             }
             catch (Exception ex)

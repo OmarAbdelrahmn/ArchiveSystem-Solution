@@ -764,50 +764,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Theme Color group -->
-                        <Border CornerRadius="8" Padding="20" BorderThickness="1"
-                                Margin="0,0,0,16">
-                            <Border.Background>
-                                <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
-                            </Border.BorderBrush>
-                            <StackPanel>
-                                <TextBlock Text="🎨  لون النظام"
-                                           FontSize="14" FontWeight="Bold"
-                                           Foreground="{StaticResource RoseGold}" Margin="0,0,0,14"/>
-
-                                <TextBlock Text="اختر اللون الرئيسي لواجهة النظام"
-                                           FontSize="12" Foreground="#4A5A7A" Margin="0,0,0,10"/>
-
-                                <WrapPanel x:Name="ColorSwatchPanel" Margin="0,0,0,4"/>
-
-                                <TextBlock x:Name="SelectedColorText"
-                                           FontSize="11" Foreground="#4A5A7A"
-                                           Margin="0,8,0,0"/>
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="أو أدخل لوناً مخصصاً:"
-                                               FontSize="12" Foreground="#4A5A7A"
-                                               VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <TextBox Grid.Column="1" x:Name="CustomHexBox"
-                                             Style="{StaticResource DarkOutlinedTextBox}"
-                                             materialDesign:HintAssist.Hint="#RRGGBB"
-                                             materialDesign:HintAssist.Foreground="#4A5A7A"
-                                             Height="49" MaxLength="7"/>
-                                    <Button Grid.Column="2" Content="تطبيق"
-                                            Style="{StaticResource MaterialDesignOutlinedButton}"
-                                            Foreground="{StaticResource TextSecondary}"
-                                            Height="36" Width="70" Margin="8,0,0,0"
-                                            Click="ApplyCustomHex_Click"/>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
+                        
 
                         <!-- Font scale group -->
                         <Border CornerRadius="8" Padding="20" BorderThickness="1"

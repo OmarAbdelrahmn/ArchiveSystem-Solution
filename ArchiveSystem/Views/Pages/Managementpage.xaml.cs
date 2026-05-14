@@ -4,6 +4,7 @@ using ArchiveSystem.Core.Services;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -13,6 +14,85 @@ namespace ArchiveSystem.Views.Pages
         private Management? _selectedManagement;
         private System.Windows.Threading.DispatcherTimer? _debounce;
 
+        // ── THEME HELPERS ─────────────────────────────────────────────────────
+
+        private static readonly Color MidnightBase = (Color)ColorConverter.ConvertFromString("#0A1628");
+        private static readonly Color NavyPanel = (Color)ColorConverter.ConvertFromString("#0D1F3C");
+        private static readonly Color BorderColor = (Color)ColorConverter.ConvertFromString("#1E3050");
+        private static readonly Color EmeraldMid = (Color)ColorConverter.ConvertFromString("#1a7a60");
+        private static readonly Color RoseGold = (Color)ColorConverter.ConvertFromString("#C9966E");
+        private static readonly Color DangerRed = (Color)ColorConverter.ConvertFromString("#C62828");
+        private static readonly Color TextSecondary = (Color)ColorConverter.ConvertFromString("#8A9BB5");
+        private static readonly Color SubText = (Color)ColorConverter.ConvertFromString("#4A5A7A");
+
+        private static SolidColorBrush Brush(Color c, double opacity = 1)
+            => new SolidColorBrush(c) { Opacity = opacity };
+
+        private static SolidColorBrush Brush(string hex, double opacity = 1)
+            => Brush((Color)ColorConverter.ConvertFromString(hex), opacity);
+
+        /// <summary>Returns a themed Window shell with dark navy background and border.</summary>
+        private Window MakeThemedWindow(string title, double width, double height)
+        {
+            return new Window
+            {
+                Title = title,
+                Width = width,
+                Height = height,
+                MinWidth = width * 0.8,
+                ResizeMode = ResizeMode.CanResizeWithGrip,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = Brush(MidnightBase),
+                BorderBrush = Brush(BorderColor, 0.80),
+                BorderThickness = new Thickness(1),
+                FontFamily = new FontFamily("Noto Kufi Arabic, Segoe UI"),
+            };
+        }
+
+        /// <summary>Themed header strip inside a popup.</summary>
+        private Border MakeDialogHeader(string title, string? subtitle = null)
+        {
+            var panel = new StackPanel { Margin = new Thickness(20, 14, 20, 14) };
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = title,
+                FontSize = 17,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brush(RoseGold),
+            });
+
+            if (!string.IsNullOrWhiteSpace(subtitle))
+                panel.Children.Add(new TextBlock
+                {
+                    Text = subtitle,
+                    FontSize = 11,
+                    Foreground = Brush(SubText),
+                    Margin = new Thickness(0, 3, 0, 0),
+                });
+
+            return new Border
+            {
+                Background = Brush(NavyPanel, 0.90),
+                BorderBrush = Brush(BorderColor, 0.80),
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Child = panel,
+            };
+        }
+
+        /// <summary>Thin separator line between header and content.</summary>
+        private static Border MakeSeparator()
+            => new Border
+            {
+                Height = 1,
+                Background = Brush((Color)ColorConverter.ConvertFromString("#1E3050"), 0.60),
+                Margin = new Thickness(0),
+            };
+
+        // ── INIT ──────────────────────────────────────────────────────────────
+
         public ManagementPage()
         {
             InitializeComponent();
@@ -20,8 +100,6 @@ namespace ArchiveSystem.Views.Pages
             MonthCombo.SelectedIndex = 0;
             Loaded += (s, e) => Initialize();
         }
-
-        // ── INIT ──────────────────────────────────────────────────────────────
 
         private void Initialize()
         {
@@ -101,16 +179,10 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddRootManagement_Click(object sender, RoutedEventArgs e)
         {
-            string? name = InputDialog.Show(
-                "أدخل اسم الإدارة الجديدة:",
-                "إضافة إدارة",
-                owner: Window.GetWindow(this));
+            string? name = ShowInputDialog("أدخل اسم الإدارة الجديدة:", "إضافة إدارة");
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            string? desc = InputDialog.Show(
-                "وصف الإدارة (اختياري)",
-                "وصف الإدارة",
-                owner: Window.GetWindow(this));
+            string? desc = ShowInputDialog("وصف الإدارة (اختياري)", "وصف الإدارة");
 
             var err = _service.CreateManagement(name, null, desc);
             if (err != null) { ShowError(err); return; }
@@ -122,10 +194,9 @@ namespace ArchiveSystem.Views.Pages
         {
             if (_selectedManagement == null) return;
 
-            string? name = InputDialog.Show(
+            string? name = ShowInputDialog(
                 $"أدخل اسم الشعبة أو القسم تحت '{_selectedManagement.Name}':",
-                "إضافة شعبة أو قسم",
-                owner: Window.GetWindow(this));
+                "إضافة شعبة أو قسم");
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var err = _service.CreateManagement(name, _selectedManagement.ManagementId, null);
@@ -138,18 +209,12 @@ namespace ArchiveSystem.Views.Pages
         {
             if (_selectedManagement == null) return;
 
-            string? name = InputDialog.Show(
-                "تعديل اسم الإدارة:",
-                "تعديل الإدارة",
-                defaultValue: _selectedManagement.Name,
-                owner: Window.GetWindow(this));
+            string? name = ShowInputDialog("تعديل اسم الإدارة:", "تعديل الإدارة",
+                defaultValue: _selectedManagement.Name);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            string? desc = InputDialog.Show(
-                "وصف الإدارة (اختياري)",
-                "وصف الإدارة",
-                defaultValue: _selectedManagement.Description ?? "",
-                owner: Window.GetWindow(this));
+            string? desc = ShowInputDialog("وصف الإدارة (اختياري)", "وصف الإدارة",
+                defaultValue: _selectedManagement.Description ?? "");
 
             var err = _service.UpdateManagement(_selectedManagement.ManagementId, name, desc);
             if (err != null) { ShowError(err); return; }
@@ -177,10 +242,9 @@ namespace ArchiveSystem.Views.Pages
         {
             if (DossiersGrid.SelectedItem is not ManagementDossier dossier) return;
 
-            string? reason = InputDialog.Show(
+            string? reason = ShowInputDialog(
                 $"أدخل سبب حذف الدوسية رقم {dossier.DossierNumber}:",
-                "حذف الدوسية",
-                owner: Window.GetWindow(this));
+                "حذف الدوسية");
 
             if (string.IsNullOrWhiteSpace(reason))
             {
@@ -205,64 +269,72 @@ namespace ArchiveSystem.Views.Pages
 
         private void ShowTypesDialog(Management management)
         {
-            // Simple inline dialog using a Window
-            var win = new Window
+            var win = MakeThemedWindow($"أنواع دوسيات — {management.Name}", 420, 480);
+
+            // ── Root layout ──────────────────────────────────────────────────
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });          // header
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });          // add row
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // list
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });          // footer
+
+            // Header
+            Grid.SetRow(MakeDialogHeader("🏷️ أنواع الدوسيات", management.Name), 0);
+            root.Children.Add(MakeDialogHeader("🏷️ أنواع الدوسيات", management.Name));
+
+            // ── Add-type row ─────────────────────────────────────────────────
+            var addBorder = new Border
             {
-                Title = $"أنواع دوسيات — {management.Name}",
-                Width = 400,
-                Height = 450,
-                ResizeMode = ResizeMode.NoResize,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = Window.GetWindow(this),
-                FlowDirection = FlowDirection.RightToLeft,
-                Background = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(10, 22, 40))  // #0A1628
+                Background = Brush(NavyPanel, 0.60),
+                BorderBrush = Brush(BorderColor, 0.60),
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Padding = new Thickness(16, 10, 16, 10),
             };
+            Grid.SetRow(addBorder, 1);
 
-            var grid = new Grid();
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.Margin = new Thickness(16);
-
-            // Add row
             var addGrid = new Grid();
             addGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             addGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            var newTypeBox = new TextBox
-            {
-                Margin = new Thickness(0, 0, 8, 12),
-                Height = 50
-            };
+            var newTypeBox = new TextBox { Height = 44, VerticalContentAlignment = VerticalAlignment.Center };
             MaterialDesignThemes.Wpf.HintAssist.SetHint(newTypeBox, "اسم النوع الجديد");
             newTypeBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+            newTypeBox.Foreground = Brush(TextSecondary);
             Grid.SetColumn(newTypeBox, 0);
 
             var addBtn = new Button
             {
                 Content = "➕ إضافة",
                 Height = 40,
-                Width = 90,
-                Margin = new Thickness(0, 0, 0, 12)
+                Width = 100,
+                Margin = new Thickness(10, 0, 0, 0),
+                Style = (Style)FindResource("MaterialDesignRaisedButton"),
+                Background = Brush(EmeraldMid),
+                Foreground = Brushes.White,
             };
-            addBtn.Style = (Style)FindResource("MaterialDesignRaisedButton");
-            addBtn.Background = (System.Windows.Media.Brush)
-                new System.Windows.Media.BrushConverter().ConvertFromString("#1a7a60")!;
-            addBtn.Foreground = System.Windows.Media.Brushes.White;
             Grid.SetColumn(addBtn, 1);
 
             addGrid.Children.Add(newTypeBox);
             addGrid.Children.Add(addBtn);
-            Grid.SetRow(addGrid, 0);
+            addBorder.Child = addGrid;
+            root.Children.Add(addBorder);
 
-            // Types list
+            // ── Types list ───────────────────────────────────────────────────
+            var listBorder = new Border
+            {
+                Background = Brush(NavyPanel, 0.40),
+                Padding = new Thickness(10, 6, 10, 6),
+            };
+            Grid.SetRow(listBorder, 2);
+
             var typesListBox = new ListBox
             {
-                BorderThickness = new Thickness(1),
-                Background = System.Windows.Media.Brushes.White
+                BorderThickness = new Thickness(0),
+                Background = Brushes.Transparent,
+                Foreground = Brush(TextSecondary),
             };
-            Grid.SetRow(typesListBox, 1);
+            listBorder.Child = typesListBox;
+            root.Children.Add(listBorder);
 
             void RefreshTypes()
             {
@@ -270,29 +342,38 @@ namespace ArchiveSystem.Views.Pages
                 typesListBox.Items.Clear();
                 foreach (var t in types)
                 {
-                    var itemGrid = new Grid();
-                    itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                    itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    // Row border with subtle hover feel
+                    var rowBorder = new Border
+                    {
+                        CornerRadius = new CornerRadius(4),
+                        Background = Brush(NavyPanel, 0.70),
+                        BorderBrush = Brush(BorderColor, 0.50),
+                        BorderThickness = new Thickness(1),
+                        Margin = new Thickness(0, 3, 0, 3),
+                        Padding = new Thickness(12, 6, 6, 6),
+                    };
+
+                    var rowGrid = new Grid();
+                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
                     var label = new TextBlock
                     {
                         Text = t.TypeName,
                         FontSize = 13,
+                        Foreground = Brush(TextSecondary),
                         VerticalAlignment = VerticalAlignment.Center,
-                        Margin = new Thickness(8, 4, 0, 4)
                     };
 
                     var deleteBtn = new Button
                     {
                         Content = "✕",
                         Style = (Style)FindResource("MaterialDesignFlatButton"),
-                        Foreground = new System.Windows.Media.SolidColorBrush(
-                            (System.Windows.Media.Color)System.Windows.Media.ColorConverter
-                                .ConvertFromString("#C62828")),
+                        Foreground = Brush(DangerRed),
                         Height = 28,
                         Width = 32,
                         Padding = new Thickness(0),
-                        Tag = t.TypeId
+                        Tag = t.TypeId,
                     };
 
                     int capturedTypeId = t.TypeId;
@@ -308,14 +389,18 @@ namespace ArchiveSystem.Views.Pages
                         LoadDossiers();
                     };
 
+                    Grid.SetColumn(label, 0);
                     Grid.SetColumn(deleteBtn, 1);
-                    itemGrid.Children.Add(label);
-                    itemGrid.Children.Add(deleteBtn);
+                    rowGrid.Children.Add(label);
+                    rowGrid.Children.Add(deleteBtn);
+                    rowBorder.Child = rowGrid;
 
                     typesListBox.Items.Add(new ListBoxItem
                     {
-                        Content = itemGrid,
-                        HorizontalContentAlignment = HorizontalAlignment.Stretch
+                        Content = rowBorder,
+                        HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                        Background = Brushes.Transparent,
+                        Padding = new Thickness(0),
                     });
                 }
             }
@@ -337,23 +422,31 @@ namespace ArchiveSystem.Views.Pages
                 LoadTypeFilter();
             };
 
+            // ── Footer ───────────────────────────────────────────────────────
+            var footerBorder = new Border
+            {
+                Background = Brush(NavyPanel, 0.90),
+                BorderBrush = Brush(BorderColor, 0.80),
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                Padding = new Thickness(16, 10, 16, 10),
+            };
+            Grid.SetRow(footerBorder, 3);
+
             var closeBtn = new Button
             {
                 Content = "إغلاق",
                 Height = 36,
-                Width = 100,
-                Margin = new Thickness(0, 12, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Left
+                Width = 110,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Style = (Style)FindResource("MaterialDesignOutlinedButton"),
+                Foreground = Brush(TextSecondary),
+                BorderBrush = Brush(BorderColor),
             };
-            closeBtn.Style = (Style)FindResource("MaterialDesignOutlinedButton");
             closeBtn.Click += (_, _) => win.Close();
-            Grid.SetRow(closeBtn, 2);
+            footerBorder.Child = closeBtn;
+            root.Children.Add(footerBorder);
 
-            grid.Children.Add(addGrid);
-            grid.Children.Add(typesListBox);
-            grid.Children.Add(closeBtn);
-
-            win.Content = grid;
+            win.Content = root;
             win.ShowDialog();
         }
 
@@ -424,9 +517,9 @@ namespace ArchiveSystem.Views.Pages
                 ? "لا توجد دوسيات تطابق شروط الفرز."
                 : $"{dossiers.Count} دوسية";
 
-            // ── Refresh sidebar count WITHOUT triggering SelectionChanged ──
+            // Refresh sidebar count WITHOUT triggering SelectionChanged
             int selectedId = _selectedManagement.ManagementId;
-            ManagementsList.SelectionChanged -= ManagementsList_SelectionChanged; // detach
+            ManagementsList.SelectionChanged -= ManagementsList_SelectionChanged;
             var all = _service.GetAllManagements();
             ManagementsList.ItemsSource = all;
             foreach (Management mg in ManagementsList.Items)
@@ -434,19 +527,19 @@ namespace ArchiveSystem.Views.Pages
                 if (mg.ManagementId == selectedId)
                 {
                     ManagementsList.SelectedItem = mg;
-                    _selectedManagement = mg; // update reference
+                    _selectedManagement = mg;
                     break;
                 }
             }
-            ManagementsList.SelectionChanged += ManagementsList_SelectionChanged; // reattach
+            ManagementsList.SelectionChanged += ManagementsList_SelectionChanged;
         }
-
 
         private void DossiersGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             bool hasSelection = DossiersGrid.SelectedItem is ManagementDossier;
-            EditDossierBtn.IsEnabled = hasSelection && PermissionHelper.Can(Permissions.ManageManagements);
-            DeleteDossierBtn.IsEnabled = hasSelection && PermissionHelper.Can(Permissions.ManageManagements);
+            bool canManage = PermissionHelper.Can(Permissions.ManageManagements);
+            EditDossierBtn.IsEnabled = hasSelection && canManage;
+            DeleteDossierBtn.IsEnabled = hasSelection && canManage;
         }
 
         private void DossiersGrid_DoubleClick(object sender, MouseButtonEventArgs e)
@@ -476,46 +569,42 @@ namespace ArchiveSystem.Views.Pages
             var types = _service.GetDossierTypes(_selectedManagement.ManagementId);
             bool isEdit = existing != null;
 
-            var win = new Window
-            {
-                Title = isEdit ? "تعديل دوسية" : "إضافة دوسية جديدة",
-                Width = 440,
-                Height = 420,
-                ResizeMode = ResizeMode.CanResizeWithGrip,          // ← allow resize
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = Window.GetWindow(this),
-                FlowDirection = FlowDirection.RightToLeft,
-                Background = System.Windows.Media.Brushes.WhiteSmoke
-            };
+            var win = MakeThemedWindow(
+                isEdit ? "تعديل دوسية" : "إضافة دوسية جديدة",
+                460, 500);
 
-            var panel = new StackPanel { Margin = new Thickness(24) };
+            // ── Root layout ──────────────────────────────────────────────────
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });           // header
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // form
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });           // footer
 
-            // ... all existing panel.Children.Add(...) code stays exactly the same ...
-            panel.Children.Add(new TextBlock
-            {
-                Text = isEdit ? "تعديل بيانات الدوسية" : "إضافة دوسية جديدة",
-                FontSize = 17,
-                FontWeight = FontWeights.Bold,
-                Foreground = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter
-                        .ConvertFromString("#1a7a60")),
-                Margin = new Thickness(0, 0, 0, 20)
-            });
+            // Header
+            var header = MakeDialogHeader(
+                isEdit ? "✏️ تعديل بيانات الدوسية" : "➕ إضافة دوسية جديدة",
+                _selectedManagement.Name);
+            Grid.SetRow(header, 0);
+            root.Children.Add(header);
 
-            var numBox = MakeTextBox("رقم الدوسية *");
+            // ── Form (scrollable) ────────────────────────────────────────────
+            var form = new StackPanel { Margin = new Thickness(20, 16, 20, 8) };
+
+            // Dossier number
+            var numBox = MakeThemedTextBox("رقم الدوسية *");
             if (isEdit) numBox.Text = existing!.DossierNumber.ToString();
-            panel.Children.Add(numBox);
+            form.Children.Add(numBox);
 
+            // Month / Year row
             var dateGrid = new Grid { Margin = new Thickness(0, 0, 0, 14) };
             dateGrid.ColumnDefinitions.Add(new ColumnDefinition());
             dateGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
             dateGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-            var monthBox = MakeTextBox("الشهر (1-12) *");
+            var monthBox = MakeThemedTextBox("الشهر (1-12) *");
             monthBox.Margin = new Thickness(0);
             if (isEdit) monthBox.Text = existing!.HijriMonth.ToString();
 
-            var yearBox = MakeTextBox("السنة الهجرية *");
+            var yearBox = MakeThemedTextBox("السنة الهجرية *");
             yearBox.Margin = new Thickness(0);
             if (isEdit) yearBox.Text = existing!.HijriYear.ToString();
 
@@ -523,68 +612,92 @@ namespace ArchiveSystem.Views.Pages
             Grid.SetColumn(yearBox, 2);
             dateGrid.Children.Add(monthBox);
             dateGrid.Children.Add(yearBox);
-            panel.Children.Add(dateGrid);
+            form.Children.Add(dateGrid);
 
+            // Type combo
             var typeCombo = new ComboBox { Margin = new Thickness(0, 0, 0, 14) };
             MaterialDesignThemes.Wpf.HintAssist.SetHint(typeCombo, "(النوع (اختياري");
             typeCombo.Style = (Style)FindResource("MaterialDesignOutlinedComboBox");
+            typeCombo.Foreground = Brush(TextSecondary);
+            typeCombo.DisplayMemberPath = "TypeName";
             typeCombo.Items.Add(new ComboBoxItem { Content = "-- بدون نوع --", Tag = null });
             foreach (var t in types)
                 typeCombo.Items.Add(t);
             typeCombo.SelectedIndex = 0;
-            typeCombo.DisplayMemberPath = "TypeName";
 
             if (isEdit && existing!.TypeId.HasValue)
             {
                 foreach (var item in typeCombo.Items)
-                {
                     if (item is ManagementDossierType mdt && mdt.TypeId == existing.TypeId)
                     { typeCombo.SelectedItem = item; break; }
-                }
             }
-            panel.Children.Add(typeCombo);
+            form.Children.Add(typeCombo);
 
-            var notesBox = MakeTextBox("(ملاحظات (اختياري");
+            // Notes
+            var notesBox = MakeThemedTextBox("(ملاحظات (اختياري");
             notesBox.AcceptsReturn = true;
-            notesBox.Height = 80;
+            notesBox.Height = 90;
             notesBox.TextWrapping = TextWrapping.Wrap;
             notesBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             if (isEdit) notesBox.Text = existing!.Notes ?? string.Empty;
-            panel.Children.Add(notesBox);
+            form.Children.Add(notesBox);
 
+            // Error block
             var errorBlock = new TextBlock
             {
-                Foreground = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter
-                        .ConvertFromString("#C62828")),
+                Foreground = Brush(DangerRed),
                 FontSize = 12,
                 Visibility = Visibility.Collapsed,
-                Margin = new Thickness(0, 6, 0, 0),
-                TextWrapping = TextWrapping.Wrap
+                Margin = new Thickness(0, 4, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
             };
-            panel.Children.Add(errorBlock);
+            form.Children.Add(errorBlock);
 
-            var btnPanel = new StackPanel
+            var scrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Content = form,
+            };
+            Grid.SetRow(scrollViewer, 1);
+            root.Children.Add(scrollViewer);
+
+            // ── Footer ───────────────────────────────────────────────────────
+            var footerBorder = new Border
+            {
+                Background = Brush(NavyPanel, 0.90),
+                BorderBrush = Brush(BorderColor, 0.80),
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                Padding = new Thickness(20, 12, 20, 12),
+            };
+            Grid.SetRow(footerBorder, 2);
+
+            var btnRow = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                Margin = new Thickness(0, 14, 0, 0)
+                FlowDirection = FlowDirection.RightToLeft,
             };
 
             var saveBtn = new Button
             {
-                Content = "حفظ",
-                Width = 100,
-                Height = 36,
-                Margin = new Thickness(0, 0, 10, 0)
+                Content = "💾 حفظ",
+                Width = 110,
+                Height = 38,
+                Margin = new Thickness(0, 0, 10, 0),
+                Style = (Style)FindResource("MaterialDesignRaisedButton"),
+                Background = Brush(EmeraldMid),
+                Foreground = Brushes.White,
             };
-            saveBtn.Style = (Style)FindResource("MaterialDesignRaisedButton");
-            saveBtn.Background = new System.Windows.Media.SolidColorBrush(
-                (System.Windows.Media.Color)System.Windows.Media.ColorConverter
-                    .ConvertFromString("#1a7a60"));
-            saveBtn.Foreground = System.Windows.Media.Brushes.White;
 
-            var cancelBtn = new Button { Content = "إلغاء", Width = 100, Height = 36 };
-            cancelBtn.Style = (Style)FindResource("MaterialDesignOutlinedButton");
+            var cancelBtn = new Button
+            {
+                Content = "إلغاء",
+                Width = 100,
+                Height = 38,
+                Style = (Style)FindResource("MaterialDesignOutlinedButton"),
+                Foreground = Brush(TextSecondary),
+                BorderBrush = Brush(BorderColor),
+            };
             cancelBtn.Click += (_, _) => win.Close();
 
             saveBtn.Click += (_, _) =>
@@ -605,10 +718,8 @@ namespace ArchiveSystem.Views.Pages
 
                 string? err;
                 if (isEdit)
-                {
                     err = _service.UpdateDossier(existing!.ManagementDossierId,
-                        dNum, hMonth, hYear, selectedTypeId, notes);
-                }
+                              dNum, hMonth, hYear, selectedTypeId, notes);
                 else
                 {
                     var (createErr, _) = _service.CreateDossier(
@@ -624,39 +735,156 @@ namespace ArchiveSystem.Views.Pages
                 LoadYearFilter();
             };
 
-            btnPanel.Children.Add(saveBtn);
-            btnPanel.Children.Add(cancelBtn);
-            panel.Children.Add(btnPanel);
+            btnRow.Children.Add(saveBtn);
+            btnRow.Children.Add(cancelBtn);
+            footerBorder.Child = btnRow;
+            root.Children.Add(footerBorder);
 
-            // ── Wrap panel in a Grid with ScrollViewer ────────────────────────────
-            var outerGrid = new Grid();
-            outerGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            outerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-            var scrollViewer = new ScrollViewer
-            {
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                Content = panel
-            };
-            Grid.SetRow(scrollViewer, 0);
-            outerGrid.Children.Add(scrollViewer);
-
-            win.Content = outerGrid;
+            win.Content = root;
             win.ShowDialog();
         }
 
-
-
         // ── HELPERS ───────────────────────────────────────────────────────────
 
-        private TextBox MakeTextBox(string hint)
+        /// <summary>
+        /// Themed replacement for InputDialog.Show().
+        /// Returns the entered text, or null if cancelled.
+        /// </summary>
+        private string? ShowInputDialog(string prompt, string title, string defaultValue = "")
         {
-            var tb = new TextBox { Margin = new Thickness(0, 0, 0, 14) };
+            string? result = null;
+
+            var win = MakeThemedWindow(title, 420, 320);
+            win.ResizeMode = ResizeMode.NoResize;
+
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // header
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // body
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // footer
+
+            // Header
+            var header = MakeDialogHeader(title);
+            Grid.SetRow(header, 0);
+            root.Children.Add(header);
+
+            // Body
+            var bodyBorder = new Border
+            {
+                Background = Brush(NavyPanel, 0.50),
+                Padding = new Thickness(20, 16, 20, 12),
+            };
+            Grid.SetRow(bodyBorder, 1);
+
+            var body = new StackPanel();
+
+            body.Children.Add(new TextBlock
+            {
+                Text = prompt,
+                FontSize = 13,
+                Foreground = Brush(TextSecondary),
+                Margin = new Thickness(0, 0, 0, 10),
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+            var inputBox = new TextBox
+            {
+                Text = defaultValue,
+                Height = 44,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Foreground = Brush(TextSecondary),
+                CaretBrush = Brush(EmeraldMid),
+            };
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(inputBox, prompt);
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(inputBox, Brush(SubText));
+            inputBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+            // Select all text on focus for easy replacement
+            inputBox.GotFocus += (_, _) => inputBox.SelectAll();
+            body.Children.Add(inputBox);
+
+            bodyBorder.Child = body;
+            root.Children.Add(bodyBorder);
+
+            // Footer
+            var footerBorder = new Border
+            {
+                Background = Brush(NavyPanel, 0.90),
+                BorderBrush = Brush(BorderColor, 0.80),
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                Padding = new Thickness(20, 10, 20, 10),
+            };
+            Grid.SetRow(footerBorder, 2);
+
+            var btnRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                FlowDirection = FlowDirection.RightToLeft,
+            };
+
+            var okBtn = new Button
+            {
+                Content = "موافق",
+                Width = 100,
+                Height = 36,
+                Margin = new Thickness(0, 0, 10, 0),
+                Style = (Style)FindResource("MaterialDesignRaisedButton"),
+                Background = Brush(EmeraldMid),
+                Foreground = Brushes.White,
+                IsDefault = true,
+            };
+            okBtn.Click += (_, _) =>
+            {
+                result = inputBox.Text.Trim();
+                win.Close();
+            };
+
+            var cancelBtn = new Button
+            {
+                Content = "إلغاء",
+                Width = 90,
+                Height = 36,
+                Style = (Style)FindResource("MaterialDesignOutlinedButton"),
+                Foreground = Brush(TextSecondary),
+                BorderBrush = Brush(BorderColor),
+                IsCancel = true,
+            };
+            cancelBtn.Click += (_, _) => win.Close();
+
+            btnRow.Children.Add(okBtn);
+            btnRow.Children.Add(cancelBtn);
+            footerBorder.Child = btnRow;
+            root.Children.Add(footerBorder);
+
+            win.Content = root;
+
+            // Focus the input after the window loads
+            win.Loaded += (_, _) =>
+            {
+                inputBox.Focus();
+                if (!string.IsNullOrEmpty(defaultValue))
+                    inputBox.SelectAll();
+            };
+
+            win.ShowDialog();
+            return string.IsNullOrWhiteSpace(result) ? null : result;
+        }
+
+        /// <summary>Outlined TextBox styled for the dark theme.</summary>
+        private TextBox MakeThemedTextBox(string hint)
+        {
+            var tb = new TextBox
+            {
+                Margin = new Thickness(0, 0, 0, 14),
+                Foreground = Brush(TextSecondary),
+                CaretBrush = Brush(EmeraldMid),
+            };
             MaterialDesignThemes.Wpf.HintAssist.SetHint(tb, hint);
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(tb, Brush(SubText));
             tb.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
             return tb;
         }
+
+        // Keep the original helper name so nothing else breaks
+        private TextBox MakeTextBox(string hint) => MakeThemedTextBox(hint);
 
         private void ShowError(string msg) =>
             MessageBox.Show(msg, "خطأ", MessageBoxButton.OK, MessageBoxImage.Warning);
