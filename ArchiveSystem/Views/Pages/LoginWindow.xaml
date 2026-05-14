@@ -44,12 +44,6 @@
                 HorizontalAlignment="Center"
                 Width="340">
 
-                <Image Source="pack://application:,,,/Assets/pgd-logo.png"
-                   Height="100"
-                   HorizontalAlignment="Center"
-                   Margin="0,0,0,24"
-                   RenderOptions.BitmapScalingMode="HighQuality"/>      
-
                 <!-- Login Card -->
                 <Border CornerRadius="20"
                 Padding="36,40,36,28">
@@ -246,6 +240,15 @@
             <Border CornerRadius="0,20,20,0" Margin="32,32,0,32" ClipToBounds="True"
                     Background="Transparent">
                 <Grid>
+
+                    <!-- Place this right after the opening <Grid> inside the hero Border, before the Ellipses -->
+                    <Image Source="pack://application:,,,/Assets/pgd-logo.png"
+                       Height="100"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Top"
+                       Margin="0,48,48,0"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Panel.ZIndex="10"/>
 
                     <!-- Emerald ambient top-right -->
                     <Ellipse Width="600" Height="600"
