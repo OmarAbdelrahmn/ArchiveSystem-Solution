@@ -200,7 +200,7 @@ namespace ArchiveSystem.Views.Pages
             DetailCabinet.Text = cabinet;
             DetailShelf.Text = shelf;
 
-            ResultsContainer.Visibility = Visibility.Visible;
+            ResultsContainer.Visibility = Visibility.Collapsed;  // ← hide the table
             ResultDetailCard.Visibility = Visibility.Visible;
             EmptySearchState.Visibility = Visibility.Collapsed;
         }
@@ -222,12 +222,15 @@ namespace ArchiveSystem.Views.Pages
             catch { }
             return "غير مدخلة";
         }
-
         private void HideDetailCard()
         {
             ResultDetailCard.Visibility = Visibility.Collapsed;
             QuickPrintBtn.Visibility = Visibility.Collapsed;
             QuickCardBtn.Visibility = Visibility.Collapsed;
+
+            // Restore the table if there are results
+            if (ResultsGrid.Items.Count > 0)
+                ResultsContainer.Visibility = Visibility.Visible;
         }
 
         private void ClearDetailCard()

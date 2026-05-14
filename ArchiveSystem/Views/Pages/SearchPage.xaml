@@ -185,7 +185,7 @@
                     </Grid>
                 </Border>
 
-                <!-- Results DataGrid -->
+                <!-- ── Results DataGrid (multiple results) ── -->
                 <Border Grid.Row="1"
                         x:Name="ResultsContainer"
                         CornerRadius="10"
@@ -224,30 +224,11 @@
                     </DataGrid>
                 </Border>
 
-                <!-- Detail card -->
+                <!-- ── Detail card (single result) ── -->
                 <Border Grid.Row="1"
                         x:Name="ResultDetailCard"
                         Visibility="Collapsed">
                     <StackPanel>
-                        <Border CornerRadius="10" BorderThickness="1"
-                                Margin="0,0,0,12" MaxHeight="260">
-                            <Border.Background>
-                                <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
-                            </Border.BorderBrush>
-                            <DataGrid x:Name="ResultsGridCompact"
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True"
-                                      CanUserAddRows="False"
-                                      SelectionMode="Single"
-                                      BorderThickness="0"
-                                      Background="Transparent"
-                                      Style="{StaticResource MaterialDesignDataGrid}"
-                                      materialDesign:DataGridAssist.CellPadding="10 6 10 6"
-                                      Visibility="Collapsed"/>
-                        </Border>
 
                         <!-- Found card — glassmorphism -->
                         <Border CornerRadius="12" BorderThickness="1" Padding="0">
@@ -267,6 +248,7 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
+                                <!-- Card header -->
                                 <Border Grid.Row="0"
                                         CornerRadius="12,12,0,0"
                                         Padding="18,12">
@@ -306,12 +288,13 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Info grid -->
-                                <UniformGrid Grid.Row="1" Columns="3"
+                                <!-- ══ FIX: 5 info boxes in a single row (Columns="5") ══ -->
+                                <UniformGrid Grid.Row="1" Columns="5"
                                              Margin="16,14,16,14">
 
+                                    <!-- الشهر -->
                                     <Border CornerRadius="8" Padding="14,10"
-                                            Margin="0,0,8,8">
+                                            Margin="0,0,8,0">
                                         <Border.Background>
                                             <SolidColorBrush Color="#162844" Opacity="0.80"/>
                                         </Border.Background>
@@ -324,8 +307,9 @@
                                         </StackPanel>
                                     </Border>
 
+                                    <!-- الدوسية -->
                                     <Border CornerRadius="8" Padding="14,10"
-                                            Margin="0,0,8,8">
+                                            Margin="0,0,8,0">
                                         <Border.Background>
                                             <SolidColorBrush Color="#162844" Opacity="0.80"/>
                                         </Border.Background>
@@ -338,8 +322,9 @@
                                         </StackPanel>
                                     </Border>
 
+                                    <!-- الممر -->
                                     <Border CornerRadius="8" Padding="14,10"
-                                            Margin="0,0,0,8">
+                                            Margin="0,0,8,0">
                                         <Border.Background>
                                             <SolidColorBrush Color="#162844" Opacity="0.80"/>
                                         </Border.Background>
@@ -352,6 +337,7 @@
                                         </StackPanel>
                                     </Border>
 
+                                    <!-- الكبينة -->
                                     <Border CornerRadius="8" Padding="14,10"
                                             Margin="0,0,8,0">
                                         <Border.Background>
@@ -366,8 +352,9 @@
                                         </StackPanel>
                                     </Border>
 
+                                    <!-- الرف -->
                                     <Border CornerRadius="8" Padding="14,10"
-                                            Margin="0,0,8,0">
+                                            Margin="0,0,0,0">
                                         <Border.Background>
                                             <SolidColorBrush Color="#162844" Opacity="0.80"/>
                                         </Border.Background>

@@ -56,51 +56,6 @@ namespace ArchiveSystem.Views.Pages
             ("#37474F", "رمادي أردوازي"),
         };
 
-        //private void BuildColorSwatches(string activeHex)
-        //{
-        //    ColorSwatchPanel.Children.Clear();
-
-        //    foreach (var (hex, label) in ThemePresets)
-        //    {
-        //        var color = (Color)ColorConverter.ConvertFromString(hex);
-        //        bool isActive = string.Equals(hex, activeHex,
-        //            StringComparison.OrdinalIgnoreCase);
-
-        //        var swatch = new Border
-        //        {
-        //            Width = 36,
-        //            Height = 36,
-        //            CornerRadius = new CornerRadius(18),
-        //            Background = new SolidColorBrush(Color.FromRgb(10, 22, 40)),  // #0A1628 — was WhiteSmoke
-        //                                                                          Margin = new Thickness(0, 0, 10, 8),
-        //            Cursor = System.Windows.Input.Cursors.Hand,
-        //            ToolTip = label,
-        //            BorderThickness = new Thickness(isActive ? 3 : 0),
-        //            BorderBrush = Brushes.White,
-        //            Effect = isActive
-        //                ? (System.Windows.Media.Effects.Effect)
-        //                  new System.Windows.Media.Effects.DropShadowEffect
-        //                  {
-        //                      Color = color,
-        //                      BlurRadius = 10,
-        //                      Opacity = 0.7,
-        //                      ShadowDepth = 0
-        //                  }
-        //                : null
-        //        };
-
-        //        string capturedHex = hex;
-        //        swatch.MouseLeftButtonUp += (_, _) =>
-        //        {
-        //            _selectedThemeColor = capturedHex;
-        //            SelectedColorText.Text = $"اللون المختار: {capturedHex}  ({label})";
-        //            BuildColorSwatches(capturedHex);   // refresh ring
-        //        };
-
-        //        ColorSwatchPanel.Children.Add(swatch);
-        //    }
-        //}
-
         /// <summary>Applies a hex color to the running MaterialDesign theme palette.</summary>
         private static void ApplyThemeColor(string hex)
         {
@@ -114,6 +69,103 @@ namespace ArchiveSystem.Views.Pages
                 helper.SetTheme(theme);
             }
             catch { /* ignore invalid hex */ }
+        }
+
+        // ── Shared helper: builds the standard dark dialog window shell ───────────
+        private Window MakeDialogWindow(string title, int width, int height)
+        {
+            return new Window
+            {
+                Title = title,
+                Width = width,
+                Height = height,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = new SolidColorBrush(Color.FromRgb(10, 22, 40))  // #0A1628
+            };
+        }
+
+        // ── Shared helper: builds the standard dark header bar ────────────────────
+        private static Border MakeDialogHeader(string titleText)
+        {
+            var header = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(13, 31, 60)),  // #0D1F3C
+                Padding = new Thickness(20, 14, 20, 14),
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(30, 48, 80))   // #1E3050
+            };
+            header.Child = new TextBlock
+            {
+                Text = titleText,
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#C9956A")),          // RoseGold
+                HorizontalAlignment = HorizontalAlignment.Right
+            };
+            return header;
+        }
+
+        // ── Shared helper: builds the standard dark footer bar ────────────────────
+        private static (Border footer, StackPanel btnRow) MakeDialogFooter()
+        {
+            var footer = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(13, 31, 60)),  // #0D1F3C
+                Padding = new Thickness(20, 12, 20, 12),
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(30, 48, 80))   // #1E3050
+            };
+            var btnRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            footer.Child = btnRow;
+            return (footer, btnRow);
+        }
+
+        // ── Shared helper: standard green confirm button ───────────────────────────
+        private Button MakeSaveButton(string label, int width = 100, int height = 36)
+        {
+            var btn = new Button { Content = label, Width = width, Height = height };
+            btn.Style = (Style)FindResource("MaterialDesignRaisedButton");
+            btn.Background = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString("#1adf8a"));              // EmeraldMid
+            btn.Foreground = Brushes.White;
+            return btn;
+        }
+
+        // ── Shared helper: standard outlined cancel button ────────────────────────
+        private Button MakeCancelButton(string label = "إلغاء", int width = 80, int height = 36)
+        {
+            var btn = new Button
+            {
+                Content = label,
+                Width = width,
+                Height = height,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+            btn.Style = (Style)FindResource("MaterialDesignOutlinedButton");
+            btn.Foreground = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString("#8A9BB8"));              // TextSecondary
+            return btn;
+        }
+
+        // ── Shared helper: standard red error TextBlock ───────────────────────────
+        private static TextBlock MakeErrorText()
+        {
+            return new TextBlock
+            {
+                FontSize = 11,
+                Visibility = Visibility.Collapsed,
+                Margin = new Thickness(0, 4, 0, 0),
+                Foreground = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#FF5252"))           // DangerRed
+            };
         }
 
         public SettingsPage()
@@ -139,7 +191,7 @@ namespace ArchiveSystem.Views.Pages
             LoadCustomFields();
             LoadLocations();
             LoadBackupHistory();
-            PopulateShortcutCombos(); // ← add this line here
+            PopulateShortcutCombos();
             LoadAppSettings();
         }
 
@@ -169,10 +221,10 @@ namespace ArchiveSystem.Views.Pages
             PermissionHelper.Apply(RestoreBackupBtn, Permissions.RestoreBackup, hideInstead: true);
             PermissionHelper.Apply(CleanBackupsBtn, Permissions.CreateBackup, hideInstead: true);
 
-            // App settings tab — SaveSettingsBtn permission
+            // App settings tab
             PermissionHelper.Apply(SaveSettingsBtn, Permissions.ManageSettings, hideInstead: true);
 
-            // Field definition buttons — full schema access required
+            // Field definition buttons (duplicated intentionally for clarity)
             PermissionHelper.Apply(AddFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
             PermissionHelper.Apply(EditFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
             PermissionHelper.Apply(ToggleFieldBtn, Permissions.ManageCustomFields, hideInstead: true);
@@ -210,18 +262,13 @@ namespace ArchiveSystem.Views.Pages
 
             if (string.IsNullOrWhiteSpace(folder))
             {
-                // Fall back to the default backup folder if none selected
                 folder = _backupService.GetDefaultBackupFolder();
                 UsersBackupPathBox.Text = folder;
             }
 
             var (err, path) = _backupService.CreateUsersBackup(folder);
 
-            if (err != null)
-            {
-                ShowBackupMsg(err, success: false);
-                return;
-            }
+            if (err != null) { ShowBackupMsg(err, success: false); return; }
 
             ShowBackupMsg(
                 $"✅ تم إنشاء نسخة المستخدمين بنجاح:\n{System.IO.Path.GetFileName(path)}",
@@ -229,20 +276,19 @@ namespace ArchiveSystem.Views.Pages
 
             LoadBackupHistory();
         }
+
         private void PopulateShortcutCombos()
         {
             var keys = new List<string>
-    {
-        "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"
-    };
+            {
+                "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"
+            };
 
             SaveKeyCombo.ItemsSource = null;
             ClearKeyCombo.ItemsSource = null;
-
             SaveKeyCombo.ItemsSource = keys;
             ClearKeyCombo.ItemsSource = keys;
 
-            // Set defaults so something is always selected
             SaveKeyCombo.SelectedItem = "F5";
             ClearKeyCombo.SelectedItem = "F6";
         }
@@ -251,11 +297,7 @@ namespace ArchiveSystem.Views.Pages
         {
             foreach (var item in combo.Items)
             {
-                if (item?.ToString() == tag)
-                {
-                    combo.SelectedItem = item;
-                    return;
-                }
+                if (item?.ToString() == tag) { combo.SelectedItem = item; return; }
             }
             if (combo.Items.Count > 0) combo.SelectedIndex = 0;
         }
@@ -274,9 +316,7 @@ namespace ArchiveSystem.Views.Pages
 
             if (!string.IsNullOrWhiteSpace(BackupPathBox.Text)
                 && System.IO.Directory.Exists(BackupPathBox.Text.Trim()))
-            {
                 dlg.InitialDirectory = BackupPathBox.Text.Trim();
-            }
 
             if (dlg.ShowDialog() == true)
             {
@@ -304,65 +344,39 @@ namespace ArchiveSystem.Views.Pages
             if (UsersGrid.SelectedItem is not User user)
             { ShowMsg("يرجى اختيار مستخدم أولاً."); return; }
 
-            var win = new Window
-            {
-                Title = "تغيير كلمة المرور",
-                Width = 360,
-                Height = 280,
-                ResizeMode = ResizeMode.NoResize,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = Window.GetWindow(this),
-                FlowDirection = FlowDirection.RightToLeft,
-                Background = new SolidColorBrush(Color.FromRgb(10, 22, 40))  // #0A1628
-            };
+            var win = MakeDialogWindow("تغيير كلمة المرور", width: 420, height: 260);
 
-            var panel = new StackPanel { Margin = new Thickness(20) };
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                      // header
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // body
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                      // footer
 
-            panel.Children.Add(new TextBlock
-            {
-                Text = $"كلمة المرور الجديدة لـ: {user.FullName}",
-                FontSize = 13,
-                Margin = new Thickness(0, 0, 0, 12),
-                Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("#00E676")),  // EmeraldGlow
-                FontWeight = FontWeights.SemiBold
-            });
+            // ── Header ───────────────────────────────────────────────────────
+            var header = MakeDialogHeader($"تغيير كلمة المرور — {user.FullName}");
+            Grid.SetRow(header, 0);
+            root.Children.Add(header);
 
-            var pwBox = new PasswordBox { Margin = new Thickness(0, 0, 0, 8), Height = 50 };
-            MaterialDesignThemes.Wpf.HintAssist.SetHint(pwBox, "أدخل كلمة المرور الجديدة (6 أحرف+)");
+            // ── Body ──────────────────────────────────────────────────────────
+            var body = new StackPanel { Margin = new Thickness(20, 16, 20, 8) };
+
+            var pwBox = new PasswordBox { Height = 50, Margin = new Thickness(0, 0, 0, 6) };
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(pwBox, "كلمة المرور الجديدة (6 أحرف على الأقل)");
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(pwBox,
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A5A7A")));
             pwBox.Style = (Style)FindResource("MaterialDesignOutlinedPasswordBox");
 
-            var errText = new TextBlock
-            {
-                Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("#C9956A")),  // RoseGold
-                FontSize = 11,
-                Visibility = Visibility.Collapsed,
-                Margin = new Thickness(0, 0, 0, 6)
-            };
+            var errText = MakeErrorText();
 
-            var btnPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 8, 0, 0)
-            };
+            body.Children.Add(pwBox);
+            body.Children.Add(errText);
+            Grid.SetRow(body, 1);
+            root.Children.Add(body);
 
-            var saveBtn = new Button { Content = "حفظ", Width = 90, Height = 34 };
-            saveBtn.Style = (Style)FindResource("MaterialDesignRaisedButton");
-            saveBtn.Background = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#00E676"));  // EmeraldGlow
-            saveBtn.Foreground = new SolidColorBrush(
-                Color.FromRgb(5, 13, 26));                            // #050D1A — dark text on bright button
+            // ── Footer ────────────────────────────────────────────────────────
+            var (footer, btnRow) = MakeDialogFooter();
 
-            var cancelBtn = new Button
-            {
-                Content = "إلغاء",
-                Width = 80,
-                Height = 34,
-                Margin = new Thickness(8, 0, 0, 0)
-            };
-            cancelBtn.Style = (Style)FindResource("MaterialDesignOutlinedButton");
+            var saveBtn = MakeSaveButton("حفظ", width: 100);
+            var cancelBtn = MakeCancelButton();
             cancelBtn.Click += (_, _) => win.Close();
 
             saveBtn.Click += (_, _) =>
@@ -387,18 +401,19 @@ namespace ArchiveSystem.Views.Pages
             pwBox.KeyDown += (_, ke) =>
             {
                 if (ke.Key == Key.Enter) saveBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                if (ke.Key == Key.Escape) win.Close();
             };
 
-            btnPanel.Children.Add(saveBtn);
-            btnPanel.Children.Add(cancelBtn);
-            panel.Children.Add(pwBox);
-            panel.Children.Add(errText);
-            panel.Children.Add(btnPanel);
-            win.Content = panel;
+            btnRow.Children.Add(saveBtn);
+            btnRow.Children.Add(cancelBtn);
+            Grid.SetRow(footer, 2);
+            root.Children.Add(footer);
 
+            win.Content = root;
             if (win.ShowDialog() == true)
                 ShowMsg("✅ تم تغيير كلمة المرور بنجاح.");
         }
+
         private void ToggleActive_Click(object sender, RoutedEventArgs e)
         {
             if (UsersGrid.SelectedItem is not User user)
@@ -426,43 +441,19 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddRole_Click(object sender, RoutedEventArgs e)
         {
-            var win = new Window
-            {
-                Title = "إضافة دور",
-                Width = 420,
-                Height = 230,
-                ResizeMode = ResizeMode.NoResize,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = Window.GetWindow(this),
-                FlowDirection = FlowDirection.RightToLeft,
-                Background = new SolidColorBrush(Color.FromRgb(10, 22, 40))  // #0A1628
-            };
+            var win = MakeDialogWindow("إضافة دور", width: 420, height: 230);
 
             var root = new Grid();
-            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // header
-            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // body
-            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // footer
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            // ── Header ──────────────────────────────────────────────────────────
-            var header = new Border
-            {
-                Background = new SolidColorBrush(Color.FromRgb(13, 31, 60)),   // #0D1F3C
-                Padding = new Thickness(20, 14, 20, 14),
-                BorderThickness = new Thickness(0, 0, 0, 1),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(30, 48, 80))   // #1E3050
-            };
-            header.Child = new TextBlock
-            {
-                Text = "إضافة دور جديد",
-                FontSize = 16,
-                FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A")), // RoseGold
-                HorizontalAlignment = HorizontalAlignment.Right
-            };
+            // ── Header ───────────────────────────────────────────────────────
+            var header = MakeDialogHeader("إضافة دور جديد");
             Grid.SetRow(header, 0);
             root.Children.Add(header);
 
-            // ── Body ─────────────────────────────────────────────────────────────
+            // ── Body ──────────────────────────────────────────────────────────
             var body = new StackPanel { Margin = new Thickness(20, 16, 20, 8) };
 
             var nameBox = new TextBox { Height = 50, Margin = new Thickness(0, 0, 0, 6) };
@@ -471,47 +462,18 @@ namespace ArchiveSystem.Views.Pages
                 new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A5A7A")));
             nameBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
 
-            var errText = new TextBlock
-            {
-                FontSize = 11,
-                Visibility = Visibility.Collapsed,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF5252")) // DangerRed
-            };
+            var errText = MakeErrorText();
 
             body.Children.Add(nameBox);
             body.Children.Add(errText);
             Grid.SetRow(body, 1);
             root.Children.Add(body);
 
-            // ── Footer ────────────────────────────────────────────────────────────
-            var footer = new Border
-            {
-                Background = new SolidColorBrush(Color.FromRgb(13, 31, 60)),   // #0D1F3C
-                Padding = new Thickness(20, 12, 20, 12),
-                BorderThickness = new Thickness(0, 1, 0, 0),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(30, 48, 80))   // #1E3050
-            };
+            // ── Footer ────────────────────────────────────────────────────────
+            var (footer, btnRow) = MakeDialogFooter();
 
-            var btnRow = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Left
-            };
-
-            var saveBtn = new Button { Content = "موافق", Width = 100, Height = 36 };
-            saveBtn.Style = (Style)FindResource("MaterialDesignRaisedButton");
-            saveBtn.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1adf8a")); // EmeraldMid
-            saveBtn.Foreground = Brushes.White;
-
-            var cancelBtn = new Button
-            {
-                Content = "إلغاء",
-                Width = 80,
-                Height = 36,
-                Margin = new Thickness(10, 0, 0, 0)
-            };
-            cancelBtn.Style = (Style)FindResource("MaterialDesignOutlinedButton");
-            cancelBtn.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8A9BB8")); // TextSecondary
+            var saveBtn = MakeSaveButton("موافق");
+            var cancelBtn = MakeCancelButton();
             cancelBtn.Click += (_, _) => win.Close();
 
             saveBtn.Click += (_, _) =>
@@ -541,39 +503,12 @@ namespace ArchiveSystem.Views.Pages
 
             btnRow.Children.Add(saveBtn);
             btnRow.Children.Add(cancelBtn);
-            footer.Child = btnRow;
             Grid.SetRow(footer, 2);
             root.Children.Add(footer);
 
             win.Content = root;
             if (win.ShowDialog() == true) LoadRoles();
         }
-
-        private void EditLocation_Click(object sender, RoutedEventArgs e)
-        {
-            if (LocationsGrid.SelectedItem is not LocationService.LocationOccupancy loc)
-            { ShowMsg("يرجى اختيار موقع أولاً."); return; }
-
-            string? newLabel = InputDialog.Show(
-                "أدخل التسمية الجديدة (اتركها فارغة لحذفها):",
-                "تعديل التسمية",
-                defaultValue: loc.Label ?? "",
-                owner: Window.GetWindow(this));
-
-            // null means cancelled — empty string means intentionally clearing the label
-            if (newLabel == null) return;
-
-            var err = _locationService.UpdateLocation(
-                loc.LocationId,
-                string.IsNullOrWhiteSpace(newLabel) ? null : newLabel.Trim(),
-                loc.Capacity,
-                loc.IsActive);
-
-            if (err != null) ShowMsg(err);
-            else LoadLocations();
-        }
-
-
 
         private void EditRole_Click(object sender, RoutedEventArgs e)
         {
@@ -679,22 +614,10 @@ namespace ArchiveSystem.Views.Pages
             else LoadCustomFields();
         }
 
-        //private void ApplyCustomHex_Click(object sender, RoutedEventArgs e)
-        //{
-        //    string hex = CustomHexBox.Text.Trim();
-        //    if (!System.Text.RegularExpressions.Regex.IsMatch(hex, @"^#[0-9A-Fa-f]{6}$"))
-        //    {
-        //        ShowMsg("صيغة اللون غير صحيحة. مثال: #1a7a60");
-        //        return;
-        //    }
-        //    _selectedThemeColor = hex;
-        //    SelectedColorText.Text = $"اللون المختار: {hex}";
-        //    BuildColorSwatches(hex);
-        //}
-
         // ═════════════════════════════════════════════════════════════════════
         // ARCHIVE STRUCTURE (LOCATIONS) TAB
         // ═════════════════════════════════════════════════════════════════════
+
         private void LoadLocations()
             => LocationsGrid.ItemsSource = _locationService.GetOccupancy();
 
@@ -724,6 +647,85 @@ namespace ArchiveSystem.Views.Pages
             LoadLocations();
         }
 
+        private void EditLocation_Click(object sender, RoutedEventArgs e)
+        {
+            if (LocationsGrid.SelectedItem is not LocationService.LocationOccupancy loc)
+            { ShowMsg("يرجى اختيار موقع أولاً."); return; }
+
+            var win = MakeDialogWindow("تعديل الموقع", width: 420, height: 230);
+
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            // ── Header ───────────────────────────────────────────────────────
+            var header = MakeDialogHeader($"تعديل التسمية — {loc.Display}");
+            Grid.SetRow(header, 0);
+            root.Children.Add(header);
+
+            // ── Body ──────────────────────────────────────────────────────────
+            var body = new StackPanel { Margin = new Thickness(20, 16, 20, 8) };
+
+            var labelBox = new TextBox
+            {
+                Height = 50,
+                Text = loc.Label ?? "",
+                Margin = new Thickness(0, 0, 0, 6)
+            };
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(labelBox,
+                "التسمية (اتركها فارغة لحذفها)");
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(labelBox,
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A5A7A")));
+            labelBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+
+            var errText = MakeErrorText();
+
+            body.Children.Add(labelBox);
+            body.Children.Add(errText);
+            Grid.SetRow(body, 1);
+            root.Children.Add(body);
+
+            // ── Footer ────────────────────────────────────────────────────────
+            var (footer, btnRow) = MakeDialogFooter();
+
+            var saveBtn = MakeSaveButton("حفظ");
+            var cancelBtn = MakeCancelButton();
+            cancelBtn.Click += (_, _) => win.Close();
+
+            saveBtn.Click += (_, _) =>
+            {
+                // empty string is valid — means clear the label
+                string? newLabel = string.IsNullOrWhiteSpace(labelBox.Text)
+                    ? null : labelBox.Text.Trim();
+
+                var err = _locationService.UpdateLocation(
+                    loc.LocationId, newLabel, loc.Capacity, loc.IsActive);
+
+                if (err != null)
+                {
+                    errText.Text = err;
+                    errText.Visibility = Visibility.Visible;
+                    return;
+                }
+                win.DialogResult = true;
+                win.Close();
+            };
+
+            labelBox.KeyDown += (_, ke) =>
+            {
+                if (ke.Key == Key.Enter) saveBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                if (ke.Key == Key.Escape) win.Close();
+            };
+
+            btnRow.Children.Add(saveBtn);
+            btnRow.Children.Add(cancelBtn);
+            Grid.SetRow(footer, 2);
+            root.Children.Add(footer);
+
+            win.Content = root;
+            if (win.ShowDialog() == true) LoadLocations();
+        }
 
         private void ToggleLocation_Click(object sender, RoutedEventArgs e)
         {
@@ -799,11 +801,7 @@ namespace ArchiveSystem.Views.Pages
             if (confirm != MessageBoxResult.Yes) return;
 
             var err = _backupService.RestoreBackup(dlg.FileName);
-            if (err != null)
-            {
-                ShowBackupMsg(err, success: false);
-                return;
-            }
+            if (err != null) { ShowBackupMsg(err, success: false); return; }
 
             MessageBox.Show(
                 "✅ تمت الاستعادة بنجاح.\n\nيرجى إعادة تشغيل التطبيق لتحميل البيانات الجديدة.",
@@ -833,10 +831,10 @@ namespace ArchiveSystem.Views.Pages
         {
             BackupMsgText.Text = msg;
             BackupMsgBorder.Background = new SolidColorBrush(
-                Color.FromArgb(204, 13, 31, 60));                                    // #0D1F3C 80%
+                Color.FromArgb(204, 13, 31, 60));                                     // #0D1F3C 80%
             BackupMsgBorder.BorderBrush = success
-                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))   // EmeraldGlow
-                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A"));  // RoseGold
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))  // EmeraldGlow
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A")); // RoseGold
             BackupMsgBorder.BorderThickness = new Thickness(1);
             BackupMsgText.Foreground = success
                 ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))
@@ -885,24 +883,18 @@ namespace ArchiveSystem.Views.Pages
 
                 BackupTimeBox.Text = GetSetting(map, SettingKeys.BackupTime, "02:00");
 
-                string saveKey = GetSetting(map, SettingKeys.EntrySaveKey, "F5");
-                string clearKey = GetSetting(map, SettingKeys.EntryClearKey, "F6");
-
-                SaveKeyCombo.SelectedItem = saveKey;
-                ClearKeyCombo.SelectedItem = clearKey;
+                SaveKeyCombo.SelectedItem = GetSetting(map, SettingKeys.EntrySaveKey, "F5");
+                ClearKeyCombo.SelectedItem = GetSetting(map, SettingKeys.EntryClearKey, "F6");
 
                 // Font scale
                 foreach (ComboBoxItem item in FontScaleCombo.Items)
                 {
                     if (item.Tag?.ToString() == GetSetting(map, SettingKeys.FontScale, FontScaleManager.KeyNormal))
-                    {
-                        FontScaleCombo.SelectedItem = item;
-                        break;
-                    }
+                    { FontScaleCombo.SelectedItem = item; break; }
                 }
-                if (FontScaleCombo.SelectedItem == null)
-                    FontScaleCombo.SelectedIndex = 0;
+                if (FontScaleCombo.SelectedItem == null) FontScaleCombo.SelectedIndex = 0;
 
+                // Density
                 foreach (ComboBoxItem item in DensityCombo.Items)
                 {
                     if (item.Tag?.ToString() == GetSetting(map, SettingKeys.Density, "Comfortable"))
@@ -911,9 +903,6 @@ namespace ArchiveSystem.Views.Pages
                 if (DensityCombo.SelectedItem == null) DensityCombo.SelectedIndex = 0;
 
                 _selectedThemeColor = GetSetting(map, SettingKeys.ThemeColor, "#178567");
-                //BuildColorSwatches(_selectedThemeColor);
-                //SelectedColorText.Text = $"اللون الحالي: {_selectedThemeColor}";
-
             }
             catch (Exception ex)
             {
@@ -924,8 +913,7 @@ namespace ArchiveSystem.Views.Pages
         private static void ApplyDensity(string density)
         {
             double padding = density == "Compact" ? 4 : 8;
-            // Apply via a global style override — simplest approach is ResourceDictionary merge
-            // For now, store and read on next launch (no runtime re-render needed)
+            // stored and applied on next launch
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -944,15 +932,15 @@ namespace ArchiveSystem.Views.Pages
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
                 using var conn = App.Database.CreateConnection();
 
-                // ── Read the current (old) settings BEFORE any writes ─────────
+                // Read current settings before any writes
                 var oldRows = Dapper.SqlMapper.Query<AppSetting>(conn,
                     "SELECT SettingKey, SettingValue FROM AppSettings").AsList();
                 var oldMap = oldRows.ToDictionary(r => r.SettingKey, r => r.SettingValue);
 
-                // ── Build the new settings map (mirrors what we are about to save)
-                string fontScaleKey = (FontScaleCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)
-                                          ?.Tag?.ToString()
-                                      ?? FontScaleManager.KeyNormal;
+                string fontScaleKey =
+                    (FontScaleCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)
+                        ?.Tag?.ToString()
+                    ?? FontScaleManager.KeyNormal;
 
                 var newMap = new Dictionary<string, string>
                 {
@@ -973,39 +961,28 @@ namespace ArchiveSystem.Views.Pages
                     [SettingKeys.EntryClearKey] = ClearKeyCombo.SelectedItem?.ToString() ?? "F6",
                 };
 
-                // ── Compute diff: only keys whose value actually changed ────────
                 var changedKeys = newMap.Keys
                     .Where(k => !oldMap.TryGetValue(k, out var ov) || ov != newMap[k])
                     .ToList();
 
-                // ── Persist all settings ───────────────────────────────────────
                 foreach (var (key, value) in newMap)
                     SaveSetting(conn, key, value, now, userId);
 
-                // ── Apply live changes ─────────────────────────────────────────
                 ApplyThemeColor(_selectedThemeColor);
                 App.FontScaleSetting = fontScaleKey;
                 FontScaleManager.ReApplyToMainWindow(FontScaleManager.ToMultiplier(fontScaleKey));
 
-                // ── Build JSON snapshots of the changed keys only ──────────────
-                string? oldJson = null;
-                string? newJson = null;
-
+                string? oldJson = null, newJson = null;
                 if (changedKeys.Count > 0)
                 {
                     var oldSnapshot = changedKeys.ToDictionary(
-                        k => k,
-                        k => oldMap.TryGetValue(k, out var v) ? v : null);
-
-                    var newSnapshot = changedKeys.ToDictionary(
-                        k => k,
-                        k => newMap[k]);
+                        k => k, k => oldMap.TryGetValue(k, out var v) ? v : null);
+                    var newSnapshot = changedKeys.ToDictionary(k => k, k => newMap[k]);
 
                     oldJson = System.Text.Json.JsonSerializer.Serialize(oldSnapshot);
                     newJson = System.Text.Json.JsonSerializer.Serialize(newSnapshot);
                 }
 
-                // ── Audit ──────────────────────────────────────────────────────
                 conn.Execute(@"
                     INSERT INTO AuditLog
                         (UserId, ActionType, Description, OldValueJson, NewValueJson, CreatedAt)
@@ -1031,25 +1008,11 @@ namespace ArchiveSystem.Views.Pages
             }
         }
 
-
-        //private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var dialog = new System.Windows.Forms.FolderBrowserDialog
-        //    {
-        //        Description = "اختر مجلد حفظ النسخ الاحتياطية",
-        //        UseDescriptionForTitle = true,
-        //        SelectedPath = BackupPathBox.Text.Trim()
-        //    };
-
-        //    if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        //        BackupPathBox.Text = dialog.SelectedPath;
-        //}
-
         private void ShowSettingsMsg(string msg, bool success)
         {
             SettingsMsgText.Text = msg;
             SettingsMsgBorder.Background = new SolidColorBrush(
-                Color.FromArgb(204, 13, 31, 60));                                    // #0D1F3C 80%
+                Color.FromArgb(204, 13, 31, 60));
             SettingsMsgBorder.BorderBrush = success
                 ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))
                 : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A"));
@@ -1084,9 +1047,9 @@ namespace ArchiveSystem.Views.Pages
                 INSERT INTO AppSettings (SettingKey, SettingValue, UpdatedAt, UpdatedByUserId)
                 VALUES (@Key, @Value, @Now, @UserId)
                 ON CONFLICT(SettingKey)
-                DO UPDATE SET SettingValue = @Value,
-                              UpdatedAt = @Now,
-                              UpdatedByUserId = @UserId",
+                DO UPDATE SET SettingValue     = @Value,
+                              UpdatedAt        = @Now,
+                              UpdatedByUserId  = @UserId",
                 new { Key = key, Value = value, Now = now, UserId = userId });
         }
 
