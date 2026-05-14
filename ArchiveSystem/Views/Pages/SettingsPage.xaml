@@ -276,27 +276,27 @@
                                 <TextBox Grid.Column="0" x:Name="LocHallwayBox"
                                          materialDesign:HintAssist.Hint="ممر *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          Height="49" PreviewTextInput="NumberOnly"/>
                                 <TextBox Grid.Column="2" x:Name="LocCabinetBox"
                                          materialDesign:HintAssist.Hint="كبينة *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          Height="49" PreviewTextInput="NumberOnly"/>
                                 <TextBox Grid.Column="4" x:Name="LocShelfBox"
                                          materialDesign:HintAssist.Hint="رف *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          Height="49" PreviewTextInput="NumberOnly"/>
                                 <TextBox Grid.Column="6" x:Name="LocLabelBox"
                                          materialDesign:HintAssist.Hint="تسمية (اختياري)"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          Height="49"/>
                                 <TextBox Grid.Column="8" x:Name="LocCapacityBox"
                                          materialDesign:HintAssist.Hint="السعة (اختياري)"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          Height="49" PreviewTextInput="NumberOnly"/>
                                 <Button Grid.Column="10"
                                         Content="➕ إضافة"
@@ -503,7 +503,7 @@
                                 <TextBox x:Name="UsersBackupPathBox"
                                          materialDesign:HintAssist.Hint="مجلد الحفظ (اختياري)"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          Width="240" Height="49"
                                          Margin="0,0,8,0"
                                          IsReadOnly="True"
@@ -669,7 +669,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox Grid.Column="0"
                                              x:Name="BackupPathBox"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource DarkOutlinedTextBox}"
                                              materialDesign:HintAssist.Hint="مسار مجلد النسخ الاحتياطية"
                                              materialDesign:HintAssist.Foreground="#4A5A7A"
                                              Height="50" Margin="0,0,8,0"/>
@@ -684,7 +684,7 @@
                                 <TextBlock Text="مدة الاحتفاظ بالنسخ (بالأيام)"
                                            FontSize="12" Foreground="#4A5A7A" Margin="0,0,0,4"/>
                                 <TextBox x:Name="RetentionDaysBox"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          materialDesign:HintAssist.Hint="عدد الأيام (مثال: 365)"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
                                          Height="50" Width="200"
@@ -694,7 +694,7 @@
                                 <TextBlock Text="وقت النسخ الاحتياطي اليومي التلقائي"
                                            FontSize="12" Foreground="#4A5A7A" Margin="0,14,0,4"/>
                                 <TextBox x:Name="BackupTimeBox"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          materialDesign:HintAssist.Hint="مثال: 02:00"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
                                          Height="50" Width="200"
@@ -796,7 +796,7 @@
                                                FontSize="12" Foreground="#4A5A7A"
                                                VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBox Grid.Column="1" x:Name="CustomHexBox"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource DarkOutlinedTextBox}"
                                              materialDesign:HintAssist.Hint="#RRGGBB"
                                              materialDesign:HintAssist.Foreground="#4A5A7A"
                                              Height="49" MaxLength="7"/>

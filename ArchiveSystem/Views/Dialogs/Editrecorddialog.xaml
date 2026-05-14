@@ -45,27 +45,27 @@
                 <TextBox x:Name="SequenceBox"
                          materialDesign:HintAssist.Hint="رقم التسلسل"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          IsReadOnly="True" Opacity="0.5"
                          Margin="20,0,20,14"/>
 
                 <TextBox x:Name="PersonNameBox"
                          materialDesign:HintAssist.Hint="اسم السجين *"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          Margin="20,0,20,14"/>
 
                 <TextBox x:Name="PrisonerNumberBox"
                          materialDesign:HintAssist.Hint="رقم السجين (10 أرقام) *"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          MaxLength="10"
                          Margin="20,0,20,14"/>
 
                 <TextBox x:Name="NotesBox"
                          materialDesign:HintAssist.Hint="ملاحظات (اختياري)"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          AcceptsReturn="True"
                          Height="70"
                          TextWrapping="Wrap"

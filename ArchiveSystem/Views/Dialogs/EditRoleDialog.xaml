@@ -48,7 +48,7 @@
                  x:Name="RoleNameBox"
                  materialDesign:HintAssist.Hint="اسم الدور *"
                  materialDesign:HintAssist.Foreground="#4A5A7A"
-                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 Style="{StaticResource DarkOutlinedTextBox}"
                  Margin="0,0,0,16"/>
 
         <Grid Grid.Row="3" Margin="0,0,0,12">

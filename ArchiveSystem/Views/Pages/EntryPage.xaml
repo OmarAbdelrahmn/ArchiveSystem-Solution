@@ -77,7 +77,7 @@
                                          x:Name="DossierNumberBox"
                                          materialDesign:HintAssist.Hint="رقم الدوسية *"
                                          materialDesign:HintAssist.Foreground="#3A9A95"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          PreviewTextInput="NumberOnly_PreviewTextInput"
                                          TextChanged="DossierNumberBox_TextChanged"/>
 
@@ -105,21 +105,21 @@
                                          x:Name="HijriMonthBox"
                                          materialDesign:HintAssist.Hint="الشهر الهجري (1-12) *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          PreviewTextInput="NumberOnly_PreviewTextInput"/>
 
                                 <TextBox Grid.Column="2"
                                          x:Name="HijriYearBox"
                                          materialDesign:HintAssist.Hint="السنة الهجرية *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          PreviewTextInput="NumberOnly_PreviewTextInput"/>
                             </Grid>
 
                             <TextBox x:Name="ExpectedCountBox"
                                      materialDesign:HintAssist.Hint="عدد الملفات المتوقع (اختياري)"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      Margin="0,0,0,14"
                                      PreviewTextInput="NumberOnly_PreviewTextInput"/>
 
@@ -140,19 +140,19 @@
                                 <TextBox Grid.Column="0" x:Name="HallwayBox"
                                          materialDesign:HintAssist.Hint="ممر *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          PreviewTextInput="NumberOnly_PreviewTextInput"/>
 
                                 <TextBox Grid.Column="2" x:Name="CabinetBox"
                                          materialDesign:HintAssist.Hint="كبينة *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          PreviewTextInput="NumberOnly_PreviewTextInput"/>
 
                                 <TextBox Grid.Column="4" x:Name="ShelfBox"
                                          materialDesign:HintAssist.Hint="رف *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          PreviewTextInput="NumberOnly_PreviewTextInput"/>
                             </Grid>
 
@@ -194,7 +194,7 @@
                                          x:Name="SequenceBox"
                                          materialDesign:HintAssist.Hint="رقم التسلسل *"
                                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Style="{StaticResource DarkOutlinedTextBox}"
                                          PreviewTextInput="NumberOnly_PreviewTextInput"/>
 
                                 <Button Grid.Column="1"
@@ -209,13 +209,13 @@
                             <TextBox x:Name="PersonNameBox"
                                      materialDesign:HintAssist.Hint="اسم السجين *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      Margin="0,0,0,14"/>
 
                             <TextBox x:Name="PrisonerNumberBox"
                                      materialDesign:HintAssist.Hint="رقم السجين (10 أرقام) *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      MaxLength="10"
                                      Margin="0,0,0,14"
                                      PreviewTextInput="NumberOnly_PreviewTextInput"/>
@@ -223,7 +223,7 @@
                             <TextBox x:Name="NotesBox"
                                      materialDesign:HintAssist.Hint="ملاحظات (اختياري)"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      AcceptsReturn="True"
                                      Height="80"
                                      TextWrapping="Wrap"

@@ -68,7 +68,7 @@
                  x:Name="DossierNumberBox"
                  materialDesign:HintAssist.Hint="رقم الدوسية *"
                  materialDesign:HintAssist.Foreground="#4A5A7A"
-                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 Style="{StaticResource DarkOutlinedTextBox}"
                  Margin="0,0,0,14"/>
 
         <!-- Hijri Month + Year -->
@@ -83,13 +83,13 @@
                      x:Name="HijriMonthBox"
                      materialDesign:HintAssist.Hint="الشهر الهجري (1-12) *"
                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                     Style="{StaticResource DarkOutlinedTextBox}"/>
 
             <TextBox Grid.Column="2"
                      x:Name="HijriYearBox"
                      materialDesign:HintAssist.Hint="السنة الهجرية *"
                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                     Style="{StaticResource DarkOutlinedTextBox}"/>
         </Grid>
 
         <!-- Expected Count -->
@@ -97,7 +97,7 @@
                  x:Name="ExpectedCountBox"
                  materialDesign:HintAssist.Hint="عدد الملفات المتوقع (اختياري)"
                  materialDesign:HintAssist.Foreground="#4A5A7A"
-                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 Style="{StaticResource DarkOutlinedTextBox}"
                  Margin="0,0,0,4"/>
 
         <!-- Hint text -->

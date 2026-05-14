@@ -73,7 +73,7 @@
                                      IsReadOnly="True"
                                      materialDesign:HintAssist.Hint="اختر ملف Excel (xlsx.)..."
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      Margin="0,0,10,0"/>
 
                             <Button Grid.Column="1"

@@ -226,15 +226,15 @@ namespace ArchiveSystem.Views.Pages
 
             var border = new Border
             {
-                Background = Brushes.White,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0xCC, 0xCC, 0xCC)),
+                Background = new SolidColorBrush(Color.FromArgb(242, 13, 31, 60)),  // #0D1F3C ~95%
+                BorderBrush = new SolidColorBrush(Color.FromRgb(30, 48, 80)),        // #1E3050
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(0, 0, 4, 4),
+                CornerRadius = new CornerRadius(0, 0, 8, 8),
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
-                    BlurRadius = 8,
-                    Opacity = 0.18,
-                    ShadowDepth = 3,
+                    BlurRadius = 12,
+                    Opacity = 0.40,
+                    ShadowDepth = 4,
                     Direction = 270
                 },
                 Child = listBox
@@ -367,7 +367,7 @@ namespace ArchiveSystem.Views.Pages
                         {
                             Text = hint,
                             FontSize = 12,
-                            Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66)),
+                            Foreground = new SolidColorBrush(Color.FromRgb(74, 90, 122)),  // #4A5A7A TextMuted
                             Margin = new Thickness(0, 0, 0, 4)
                         });
                         var checkWrap = new WrapPanel { Orientation = Orientation.Horizontal };

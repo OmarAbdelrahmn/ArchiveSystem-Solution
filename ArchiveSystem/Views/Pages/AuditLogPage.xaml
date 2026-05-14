@@ -85,21 +85,21 @@
                 <TextBox x:Name="SearchBox"
                          materialDesign:HintAssist.Hint="بحث في الوصف..."
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          Width="220" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 
                 <TextBox x:Name="DateFromBox"
                          materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd)"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          Width="180" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 
                 <TextBox x:Name="DateToBox"
                          materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd)"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          Width="180" Height="50" Margin="0,0,10,6"
                          TextChanged="Filter_Changed"/>
 

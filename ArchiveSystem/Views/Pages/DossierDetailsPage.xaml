@@ -323,7 +323,7 @@
                                              x:Name="MoveHallwayBox"
                                              materialDesign:HintAssist.Hint="ممر جديد *"
                                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource DarkOutlinedTextBox}"
                                              Height="50"
                                              PreviewTextInput="NumberOnly"/>
 
@@ -331,7 +331,7 @@
                                              x:Name="MoveCabinetBox"
                                              materialDesign:HintAssist.Hint="كبينة *"
                                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource DarkOutlinedTextBox}"
                                              Height="50"
                                              PreviewTextInput="NumberOnly"/>
 
@@ -339,7 +339,7 @@
                                              x:Name="MoveShelfBox"
                                              materialDesign:HintAssist.Hint="رف *"
                                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource DarkOutlinedTextBox}"
                                              Height="50"
                                              PreviewTextInput="NumberOnly"/>
 
@@ -347,7 +347,7 @@
                                              x:Name="MoveReasonBox"
                                              materialDesign:HintAssist.Hint="سبب النقل (اختياري)"
                                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource DarkOutlinedTextBox}"
                                              Height="50"/>
 
                                     <Button x:Name="RegisterMoveBtn"

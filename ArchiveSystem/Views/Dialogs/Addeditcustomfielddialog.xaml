@@ -52,7 +52,7 @@
                 <TextBox x:Name="ArabicLabelBox"
                          materialDesign:HintAssist.Hint="التسمية العربية *"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          Margin="0,0,0,14"/>
 
                 <!-- Field type -->
@@ -76,7 +76,7 @@
                     <TextBox x:Name="SuggestionLimitBox"
                              materialDesign:HintAssist.Hint="حد الاقتراحات (0 = بلا حد)"
                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource DarkOutlinedTextBox}"
                              PreviewTextInput="NumberOnly"/>
                 </StackPanel>
 
@@ -97,7 +97,7 @@
                                  x:Name="NewOptionBox"
                                  materialDesign:HintAssist.Hint="قيمة جديدة"
                                  materialDesign:HintAssist.Foreground="#4A5A7A"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource DarkOutlinedTextBox}"
                                  Height="40" Margin="0,0,8,0"/>
                         <Button Grid.Column="1"
                                 Content="➕ إضافة"
@@ -171,7 +171,7 @@
                 <TextBox x:Name="SortOrderBox"
                          materialDesign:HintAssist.Hint="ترتيب العرض (0 = أول)"
                          materialDesign:HintAssist.Foreground="#4A5A7A"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource DarkOutlinedTextBox}"
                          Margin="0,0,0,16"
                          PreviewTextInput="NumberOnly"/>
 

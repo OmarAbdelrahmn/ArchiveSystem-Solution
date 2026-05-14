@@ -54,13 +54,13 @@ namespace ArchiveSystem.Views.Pages
 
 
             SummaryCards.Children.Clear();
-            SummaryCards.Children.Add(MakeCard("إجمالي الدوسيات", s.TotalDossiers.ToString("N0"), "#1a7a60", "📁"));
-            SummaryCards.Children.Add(MakeCard("إجمالي السجلات", s.TotalRecords.ToString("N0"), "#1565C0", "👤"));
-            SummaryCards.Children.Add(MakeCard("مُضاف اليوم", s.RecordsToday.ToString("N0"), "#6A1B9A", "📅"));
-            SummaryCards.Children.Add(MakeCard("مُضاف هذا الشهر", s.RecordsThisMonth.ToString("N0"), "#E65100", "📆"));
+            SummaryCards.Children.Add(MakeCard("إجمالي الدوسيات", s.TotalDossiers.ToString("N0"), "#00E676", "📁"));  // EmeraldGlow
+            SummaryCards.Children.Add(MakeCard("إجمالي السجلات", s.TotalRecords.ToString("N0"), "#00BCD4", "👤"));  // cyan
+            SummaryCards.Children.Add(MakeCard("مُضاف اليوم", s.RecordsToday.ToString("N0"), "#C9956A", "📅"));  // RoseGold
+            SummaryCards.Children.Add(MakeCard("مُضاف هذا الشهر", s.RecordsThisMonth.ToString("N0"), "#1ADF8A", "📆")); // EmeraldGlow variant
             // after existing 4 cards:
             double avg = _service.GetAverageDailyEntries();
-            SummaryCards.Children.Add(MakeCard("متوسط الإدخال اليومي", avg.ToString("F1"), "#00695C", "📈"));
+            SummaryCards.Children.Add(MakeCard("متوسط الإدخال اليومي", avg.ToString("F1"), "#C9956A", "📈"));  // RoseGold
         }
 
         private static Border MakeCard(string label, string value, string hexColor, string icon)
@@ -69,20 +69,21 @@ namespace ArchiveSystem.Views.Pages
 
             var card = new Border
             {
-                Background = Brushes.White,
+                Background = new SolidColorBrush(Color.FromArgb(204, 13, 31, 60)),  // #0D1F3C 80%
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(20),
                 Margin = new Thickness(0, 0, 14, 0),
-                Effect = new System.Windows.Media.Effects.DropShadowEffect
-                {
-                    BlurRadius = 6,
-                    Opacity = 0.08,
-                    ShadowDepth = 2
-                }
+                BorderBrush = new SolidColorBrush(Color.FromArgb(40, color.R, color.G, color.B)),
+                BorderThickness = new Thickness(1)
             };
 
             var sp = new StackPanel();
-            sp.Children.Add(new TextBlock { Text = icon, FontSize = 26, Margin = new Thickness(0, 0, 0, 6) });
+            sp.Children.Add(new TextBlock
+            {
+                Text = icon,
+                FontSize = 26,
+                Margin = new Thickness(0, 0, 0, 6)
+            });
             sp.Children.Add(new TextBlock
             {
                 Text = value,
@@ -94,7 +95,7 @@ namespace ArchiveSystem.Views.Pages
             {
                 Text = label,
                 FontSize = 12,
-                Foreground = Brushes.Gray,
+                Foreground = new SolidColorBrush(Color.FromRgb(74, 90, 122)),  // #4A5A7A
                 Margin = new Thickness(0, 4, 0, 0)
             });
 

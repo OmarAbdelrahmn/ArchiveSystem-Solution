@@ -215,7 +215,8 @@ namespace ArchiveSystem.Views.Pages
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = Window.GetWindow(this),
                 FlowDirection = FlowDirection.RightToLeft,
-                Background = System.Windows.Media.Brushes.WhiteSmoke
+                Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(10, 22, 40))  // #0A1628
             };
 
             var grid = new Grid();

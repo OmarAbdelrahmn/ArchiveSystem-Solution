@@ -71,8 +71,8 @@ namespace ArchiveSystem.Views.Pages
                     Width = 36,
                     Height = 36,
                     CornerRadius = new CornerRadius(18),
-                    Background = new SolidColorBrush(color),
-                    Margin = new Thickness(0, 0, 10, 8),
+                    Background = new SolidColorBrush(Color.FromRgb(10, 22, 40)),  // #0A1628 — was WhiteSmoke
+                                                                                  Margin = new Thickness(0, 0, 10, 8),
                     Cursor = System.Windows.Input.Cursors.Hand,
                     ToolTip = label,
                     BorderThickness = new Thickness(isActive ? 3 : 0),
@@ -304,7 +304,6 @@ namespace ArchiveSystem.Views.Pages
             if (UsersGrid.SelectedItem is not User user)
             { ShowMsg("يرجى اختيار مستخدم أولاً."); return; }
 
-            // Build a simple WPF password dialog — InputBox from VB crashes WPF on .NET 6+
             var win = new Window
             {
                 Title = "تغيير كلمة المرور",
@@ -314,7 +313,7 @@ namespace ArchiveSystem.Views.Pages
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = Window.GetWindow(this),
                 FlowDirection = FlowDirection.RightToLeft,
-                Background = System.Windows.Media.Brushes.WhiteSmoke
+                Background = new SolidColorBrush(Color.FromRgb(10, 22, 40))  // #0A1628
             };
 
             var panel = new StackPanel { Margin = new Thickness(20) };
@@ -324,9 +323,8 @@ namespace ArchiveSystem.Views.Pages
                 Text = $"كلمة المرور الجديدة لـ: {user.FullName}",
                 FontSize = 13,
                 Margin = new Thickness(0, 0, 0, 12),
-                Foreground = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter
-                        .ConvertFromString("#1a7a60")),
+                Foreground = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#00E676")),  // EmeraldGlow
                 FontWeight = FontWeights.SemiBold
             });
 
@@ -336,7 +334,8 @@ namespace ArchiveSystem.Views.Pages
 
             var errText = new TextBlock
             {
-                Foreground = System.Windows.Media.Brushes.Red,
+                Foreground = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#C9956A")),  // RoseGold
                 FontSize = 11,
                 Visibility = Visibility.Collapsed,
                 Margin = new Thickness(0, 0, 0, 6)
@@ -351,10 +350,10 @@ namespace ArchiveSystem.Views.Pages
 
             var saveBtn = new Button { Content = "حفظ", Width = 90, Height = 34 };
             saveBtn.Style = (Style)FindResource("MaterialDesignRaisedButton");
-            saveBtn.Background = new System.Windows.Media.SolidColorBrush(
-                (System.Windows.Media.Color)System.Windows.Media.ColorConverter
-                    .ConvertFromString("#1a7a60"));
-            saveBtn.Foreground = System.Windows.Media.Brushes.White;
+            saveBtn.Background = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString("#00E676"));  // EmeraldGlow
+            saveBtn.Foreground = new SolidColorBrush(
+                Color.FromRgb(5, 13, 26));                            // #050D1A — dark text on bright button
 
             var cancelBtn = new Button
             {
@@ -385,7 +384,10 @@ namespace ArchiveSystem.Views.Pages
                 win.Close();
             };
 
-            pwBox.KeyDown += (_, ke) => { if (ke.Key == Key.Enter) saveBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); };
+            pwBox.KeyDown += (_, ke) =>
+            {
+                if (ke.Key == Key.Enter) saveBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            };
 
             btnPanel.Children.Add(saveBtn);
             btnPanel.Children.Add(cancelBtn);
@@ -719,16 +721,15 @@ namespace ArchiveSystem.Views.Pages
         private void ShowBackupMsg(string msg, bool success)
         {
             BackupMsgText.Text = msg;
-            BackupMsgBorder.Background = success
-                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E8F5E9"))
-                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFEBEE"));
+            BackupMsgBorder.Background = new SolidColorBrush(
+                Color.FromArgb(204, 13, 31, 60));                                    // #0D1F3C 80%
             BackupMsgBorder.BorderBrush = success
-                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A5D6A7"))
-                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF9A9A"));
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))   // EmeraldGlow
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A"));  // RoseGold
             BackupMsgBorder.BorderThickness = new Thickness(1);
             BackupMsgText.Foreground = success
-                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"))
-                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C62828"));
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A"));
             BackupMsgBorder.Visibility = Visibility.Visible;
         }
 
@@ -918,7 +919,7 @@ namespace ArchiveSystem.Views.Pages
                 ShowSettingsMsg($"خطأ أثناء الحفظ: {ex.Message}", success: false);
             }
         }
-      
+
 
         //private void BrowseBackupPath_Click(object sender, RoutedEventArgs e)
         //{
@@ -936,16 +937,15 @@ namespace ArchiveSystem.Views.Pages
         private void ShowSettingsMsg(string msg, bool success)
         {
             SettingsMsgText.Text = msg;
-            SettingsMsgBorder.Background = success
-                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E8F5E9"))
-                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFEBEE"));
+            SettingsMsgBorder.Background = new SolidColorBrush(
+                Color.FromArgb(204, 13, 31, 60));                                    // #0D1F3C 80%
             SettingsMsgBorder.BorderBrush = success
-                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A5D6A7"))
-                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF9A9A"));
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A"));
             SettingsMsgBorder.BorderThickness = new Thickness(1);
             SettingsMsgText.Foreground = success
-                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"))
-                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C62828"));
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00E676"))
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9956A"));
             SettingsMsgBorder.Visibility = Visibility.Visible;
         }
 

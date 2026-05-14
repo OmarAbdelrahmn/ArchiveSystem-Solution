@@ -107,7 +107,7 @@
                         <TextBox x:Name="NewSuggestionBox"
                                  materialDesign:HintAssist.Hint="قيمة اقتراح جديدة"
                                  materialDesign:HintAssist.Foreground="#4A5A7A"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource DarkOutlinedTextBox}"
                                  Width="220"
                                  Margin="121,0,10,-6"
                                  IsEnabled="False" Grid.ColumnSpan="2"/>

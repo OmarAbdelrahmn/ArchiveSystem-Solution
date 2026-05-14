@@ -46,11 +46,11 @@ namespace ArchiveSystem.Views.Pages
                 _recordService.GetDashboardStats();
 
             StatsPanel.Children.Clear();
-            StatsPanel.Children.Add(MakeStatCard("الدوسيات", totalDossiers.ToString("N0"), "#1a7a60"));
-            StatsPanel.Children.Add(MakeStatCard("الملفات", totalRecords.ToString("N0"), "#1565C0"));
-            StatsPanel.Children.Add(MakeStatCard("مدخل اليوم", recordsToday.ToString("N0"), "#6A1B9A"));
-            StatsPanel.Children.Add(MakeStatCard("هذا الشهر", recordsThisMonth.ToString("N0"), "#E65100"));
-            StatsPanel.Children.Add(MakeStatCard("الجنسيات", nationalityCount.ToString("N0"), "#00695C"));
+            StatsPanel.Children.Add(MakeStatCard("الدوسيات", totalDossiers.ToString("N0"), "#00E676"));  // EmeraldGlow
+            StatsPanel.Children.Add(MakeStatCard("الملفات", totalRecords.ToString("N0"), "#00BCD4"));  // cyan
+            StatsPanel.Children.Add(MakeStatCard("مدخل اليوم", recordsToday.ToString("N0"), "#C9956A"));  // RoseGold
+            StatsPanel.Children.Add(MakeStatCard("هذا الشهر", recordsThisMonth.ToString("N0"), "#1ADF8A"));  // EmeraldGlow variant
+            StatsPanel.Children.Add(MakeStatCard("الجنسيات", nationalityCount.ToString("N0"), "#C9956A"));  // RoseGold
         }
 
         private static Border MakeStatCard(string label, string value, string hexColor)
@@ -59,7 +59,7 @@ namespace ArchiveSystem.Views.Pages
 
             var card = new Border
             {
-                Background = new SolidColorBrush(Color.FromRgb(250, 250, 250)),
+                Background = new SolidColorBrush(Color.FromArgb(204, 13, 31, 60)),   // #0D1F3C 80%
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(16, 10, 16, 10),
                 Margin = new Thickness(0, 0, 10, 0),
@@ -79,14 +79,13 @@ namespace ArchiveSystem.Views.Pages
             {
                 Text = label,
                 FontSize = 11,
-                Foreground = new SolidColorBrush(Color.FromRgb(156, 163, 175)),
+                Foreground = new SolidColorBrush(Color.FromRgb(74, 90, 122)),   // #4A5A7A
                 Margin = new Thickness(0, 2, 0, 0)
             });
 
             card.Child = sp;
             return card;
         }
-
         // ── RECENT DOSSIERS ───────────────────────────────────────────────────
 
         private void LoadRecentDossiers()

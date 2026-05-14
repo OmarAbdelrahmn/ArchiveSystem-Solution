@@ -75,7 +75,7 @@
                                      x:Name="DossierFaceNumberBox"
                                      materialDesign:HintAssist.Hint="رقم الدوسية *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly" Margin="0,0,0,-10"/>
 
                             <Button x:Name="DossierFacePreviewBtn"
@@ -161,7 +161,7 @@
                                      x:Name="BatchFromBox"
                                      materialDesign:HintAssist.Hint="من رقم الدوسية *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly"
                                      TextChanged="BatchRange_Changed"/>
 
@@ -175,7 +175,7 @@
                                      x:Name="BatchToBox"
                                      materialDesign:HintAssist.Hint="إلى رقم الدوسية *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly"
                                      TextChanged="BatchRange_Changed"/>
 
@@ -326,14 +326,14 @@
                                      x:Name="MonthlyMonthBox"
                                      materialDesign:HintAssist.Hint="الشهر (1-12) *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly" Grid.ColumnSpan="2" Margin="0,0,10,-10"/>
 
                             <TextBox Grid.Column="2"
                                      x:Name="MonthlyYearBox"
                                      materialDesign:HintAssist.Hint="السنة الهجرية *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly" Margin="0,0,0,-10"/>
 
                             <Button x:Name="MonthlyPreviewBtn"
@@ -407,14 +407,14 @@
                                      x:Name="WeeklyFromBox"
                                      materialDesign:HintAssist.Hint="من تاريخ (yyyy-MM-dd) *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      Height="53" Grid.ColumnSpan="2" Margin="0,0,10,0" VerticalAlignment="Top"/>
 
                             <TextBox Grid.Column="2"
                                      x:Name="WeeklyToBox"
                                      materialDesign:HintAssist.Hint="إلى تاريخ (yyyy-MM-dd) *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,4,0,0"/>
+                                     Style="{StaticResource DarkOutlinedTextBox}" Margin="0,4,0,0"/>
 
                             <Button x:Name="WeeklyPreviewBtn"
                                     Grid.Column="4"
@@ -485,7 +485,7 @@
                                      x:Name="YearlyYearBox"
                                      materialDesign:HintAssist.Hint="السنة الهجرية *"
                                      materialDesign:HintAssist.Foreground="#4A5A7A"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource DarkOutlinedTextBox}"
                                      PreviewTextInput="NumberOnly" Margin="0,0,0,-9"/>
 
                             <Button x:Name="YearlyPreviewBtn"

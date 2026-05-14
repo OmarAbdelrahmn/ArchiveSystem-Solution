@@ -328,7 +328,7 @@
                         <TextBox x:Name="DossierNumBox"
                                  materialDesign:HintAssist.Hint="رقم الدوسية"
                                  materialDesign:HintAssist.Foreground="#4A5A7A"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource DarkOutlinedTextBox}"
                                  Width="130" Height="50" Margin="0,0,8,0"
                                  TextChanged="Filter_Changed"/>
 

@@ -107,21 +107,21 @@
                     <TextBox x:Name="NameBox"
                              materialDesign:HintAssist.Hint="الاسم"
                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource DarkOutlinedTextBox}"
                              Width="160" Height="50" Margin="0,0,10,6"
                              TextChanged="Filter_Changed"/>
 
                     <TextBox x:Name="PNumBox"
                              materialDesign:HintAssist.Hint="رقم السجين"
                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource DarkOutlinedTextBox}"
                              Width="140" Height="50" Margin="0,0,10,6"
                              TextChanged="Filter_Changed"/>
 
                     <TextBox x:Name="DossierNumBox"
                              materialDesign:HintAssist.Hint="رقم الدوسية"
                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource DarkOutlinedTextBox}"
                              Width="130" Height="50" Margin="0,0,10,6"
                              PreviewTextInput="NumberOnly"
                              TextChanged="Filter_Changed"/>
@@ -157,7 +157,7 @@
                     <TextBox x:Name="HallwayBox"
                              materialDesign:HintAssist.Hint="ممر"
                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource DarkOutlinedTextBox}"
                              Width="80" Height="50" Margin="0,0,10,6"
                              PreviewTextInput="NumberOnly"
                              TextChanged="Filter_Changed"/>
@@ -165,7 +165,7 @@
                     <TextBox x:Name="CabinetBox"
                              materialDesign:HintAssist.Hint="كبينة"
                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource DarkOutlinedTextBox}"
                              Width="80" Height="50" Margin="0,0,10,6"
                              PreviewTextInput="NumberOnly"
                              TextChanged="Filter_Changed"/>
@@ -173,7 +173,7 @@
                     <TextBox x:Name="ShelfBox"
                              materialDesign:HintAssist.Hint="رف"
                              materialDesign:HintAssist.Foreground="#4A5A7A"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource DarkOutlinedTextBox}"
                              Width="80" Height="50" Margin="0,0,10,6"
                              PreviewTextInput="NumberOnly"
                              TextChanged="Filter_Changed"/>
