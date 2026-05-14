@@ -243,10 +243,10 @@
 
                     <!-- Place this right after the opening <Grid> inside the hero Border, before the Ellipses -->
                     <Image Source="pack://application:,,,/Assets/pgd-logo.png"
-                       Height="100"
+                       Height="120"
                        HorizontalAlignment="Right"
                        VerticalAlignment="Top"
-                       Margin="0,48,48,0"
+                       Margin="0,20,30,0"
                        RenderOptions.BitmapScalingMode="HighQuality"
                        Panel.ZIndex="10"/>
 
