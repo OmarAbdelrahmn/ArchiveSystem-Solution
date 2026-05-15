@@ -762,7 +762,6 @@ namespace ArchiveSystem.Views.Pages
             ErrorBorder.Visibility = Visibility.Visible;
             SuccessBorder.Visibility = Visibility.Collapsed;
         }
-        hMakeOutlinedTextBox
         private void ShowSuccess(string msg)
         {
             SuccessText.Text = msg;

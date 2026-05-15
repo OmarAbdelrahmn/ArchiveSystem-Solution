@@ -337,6 +337,24 @@ Foreground="{StaticResource MediumAquamarine}"
                 </Setter>
             </Style>
 
+            <Style x:Key="SuggestionChipStyle" TargetType="Button">
+                <Setter Property="Background" Value="#0A1628"/>
+                <Setter Property="Foreground" Value="#5DCAA5"/>
+                <Setter Property="BorderBrush" Value="#1E3050"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="15"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Template" Value="{StaticResource MaterialDesignRaisedButton}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#0F2640"/>
+                        <Setter Property="BorderBrush" Value="#5DCAA5"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
         </ResourceDictionary>
+        
+        
     </Application.Resources>
 </Application>

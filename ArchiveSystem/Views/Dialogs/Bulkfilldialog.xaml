@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="تعبئة جماعية"
-        Height="360" Width="440"
+        Height="460" Width="440"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
@@ -77,33 +77,94 @@
         <!-- Suggestions list -->
         <Border Grid.Row="5"
                 x:Name="SuggestionsBorder"
-                CornerRadius="6"
-                MaxHeight="90"
-                Margin="0,4,0,0"
+                CornerRadius="8"
+                Padding="8"
+                Margin="0,6,0,0"
                 Visibility="Collapsed">
             <Border.Background>
-                <SolidColorBrush Color="#0D1F3C" Opacity="0.80"/>
+                <SolidColorBrush Color="#0D1F3C" Opacity="0.90"/>
             </Border.Background>
             <Border.BorderBrush>
                 <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
             </Border.BorderBrush>
             <Border.BorderThickness>1</Border.BorderThickness>
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl x:Name="SuggestionsList"
-                              Margin="4">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Content="{Binding}"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="{StaticResource EmeraldMid}"
-                                    HorizontalContentAlignment="Right"
-                                    Height="30" Padding="8,0"
-                                    Tag="{Binding}"
-                                    Click="Suggestion_Click"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+
+            <StackPanel>
+                <TextBlock Text="اقتراحات سابقة"
+                           FontSize="11"
+                           Foreground="{StaticResource TextSecondary}"
+                           Margin="2,0,2,6"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="80">
+                    <ItemsControl x:Name="SuggestionsList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Tag="{Binding}"
+                                        Click="Suggestion_Click"
+                                        Cursor="Hand"
+                                        Margin="3"
+                                        Padding="10,4"
+                                        Height="28"
+                                        Foreground="{StaticResource DarkSeaGreen}"
+                                        FontSize="12">
+                                    <Button.Content>
+                                        <TextBlock Text="{Binding}" TextAlignment="Center"/>
+                                    </Button.Content>
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="#1A3A2A"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="BorderBrush">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="#2E6B44" Opacity="0.7"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                CornerRadius="14"
+                                                                Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Center"
+                                                                              VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background">
+                                                                    <Setter.Value>
+                                                                        <SolidColorBrush Color="#2A5A3A"/>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Trigger>
+                                                            <Trigger Property="IsPressed" Value="True">
+                                                                <Setter Property="Background">
+                                                                    <Setter.Value>
+                                                                        <SolidColorBrush Color="#3A7A4A"/>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
         </Border>
 
         <!-- Buttons -->
