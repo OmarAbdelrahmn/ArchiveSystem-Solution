@@ -179,8 +179,8 @@
                             Click="LoginButton_Click">
                         <Button.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#00BCD4" Offset="0"/>
-                                <GradientStop Color="#00E676" Offset="1"/>
+                                    <GradientStop Color="#8FBC8B" Offset="0"/>
+                                    <GradientStop Color="#8FBC8B" Offset="1"/>
                             </LinearGradientBrush>
                         </Button.Background>
                         <Button.Style>

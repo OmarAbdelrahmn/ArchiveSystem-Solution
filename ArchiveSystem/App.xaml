@@ -41,6 +41,7 @@
             <SolidColorBrush x:Key="EmeraldGhost"      Color="#0A2A1E"/>
             <SolidColorBrush x:Key="EmeraldDark"       Color="#00C853"/>
             <SolidColorBrush x:Key="MediumAquamarine"  Color="#66CDAA"/>
+            <SolidColorBrush x:Key="DarkSeaGreen"      Color="#8FBC8B"/>
             <!-- add this -->
 
             <!-- Glassmorphism surfaces -->
