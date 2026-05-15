@@ -296,7 +296,7 @@ namespace ArchiveSystem.Views.Pages
             addGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             addGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            var newTypeBox = new TextBox { Height = 44, VerticalContentAlignment = VerticalAlignment.Center };
+            var newTypeBox = new TextBox { Height = 50, VerticalContentAlignment = VerticalAlignment.Center };
             MaterialDesignThemes.Wpf.HintAssist.SetHint(newTypeBox, "اسم النوع الجديد");
             newTypeBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
             newTypeBox.Foreground = Brush(TextSecondary);
