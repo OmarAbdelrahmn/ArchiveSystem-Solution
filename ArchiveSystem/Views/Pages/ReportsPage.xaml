@@ -98,7 +98,7 @@
                                     Grid.Column="6"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintDossierFaceDirect_Click"/>
                         </Grid>
@@ -138,7 +138,7 @@
                                 </Border.BorderBrush>
                                 <TextBlock Text="جديد"
                                            FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource EmeraldMid}"/>
+                                           Foreground="{StaticResource DarkSeaGreen}"/>
                             </Border>
                         </StackPanel>
 
@@ -195,7 +195,7 @@
                                 <StackPanel>
                                     <TextBlock x:Name="BatchCountText"
                                                FontSize="12" FontWeight="SemiBold"
-                                               Foreground="{StaticResource EmeraldMid}"
+                                               Foreground="{StaticResource DarkSeaGreen}"
                                                HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="BatchRecordsText"
                                                FontSize="11" Foreground="#4A5A7A"
@@ -274,7 +274,7 @@
                                     Grid.Column="6"
                                     Content="🖨️ طباعة مجموعة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="44" Width="160"
                                     Click="PrintBatchDossierFaceDirect_Click"/>
                         </Grid>
@@ -356,7 +356,7 @@
                                     Grid.Column="8"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintMonthlyDirect_Click"/>
                         </Grid>
@@ -436,7 +436,7 @@
                                     Grid.Column="8"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintWeeklyDirect_Click"/>
                         </Grid>
@@ -508,7 +508,7 @@
                                     Grid.Column="6"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintYearlyDirect_Click"/>
                         </Grid>
@@ -593,7 +593,7 @@
                                     </Border.BorderBrush>
                                     <TextBlock x:Name="DQRecordsText"
                                                FontSize="12" FontWeight="SemiBold"
-                                               Foreground="{StaticResource EmeraldMid}"/>
+                                               Foreground="{StaticResource DarkSeaGreen}"/>
                                 </Border>
                             </StackPanel>
                         </Border>
@@ -634,7 +634,7 @@
                                     Grid.Column="6"
                                     Content="🖨️ طباعة مباشرة"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="44" Width="150"
                                     Click="PrintDataQualityDirect_Click"/>
                         </Grid>

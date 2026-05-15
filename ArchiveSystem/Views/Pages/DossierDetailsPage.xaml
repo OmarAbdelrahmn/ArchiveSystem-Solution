@@ -217,7 +217,7 @@
                                         <Button x:Name="AddRecordBtn"
                                                 Content="➕ إضافة سجل"
                                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                                Background="{StaticResource EmeraldMid}" Foreground="White"
+                                                Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                                 Height="32" Margin="0,0,8,0"
                                                 Click="AddRecord_Click"/>
                                         <Button x:Name="DeleteRecordBtn"

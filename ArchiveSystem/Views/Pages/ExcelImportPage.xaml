@@ -88,7 +88,7 @@
                                     x:Name="StageButton"
                                     Content="⚡ معالجة الملف"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="44" Width="155"
                                     Click="StageFile_Click"/>
                         </Grid>
@@ -144,7 +144,7 @@
                                     x:Name="ApproveButton"
                                     Content="✅ اعتماد الاستيراد"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="40" Width="170"
                                     Margin="0,0,10,0"
                                     Click="Approve_Click"/>
@@ -172,7 +172,7 @@
                                 <StackPanel>
                                     <TextBlock x:Name="SumSheets"
                                                FontSize="26" FontWeight="Bold"
-                                               Foreground="{StaticResource EmeraldMid}"/>
+                                               Foreground="{StaticResource DarkSeaGreen}"/>
                                     <TextBlock Text="شيت"
                                                FontSize="11" Foreground="#4A5A7A"
                                                Margin="0,2,0,0"/>
@@ -190,7 +190,7 @@
                                 <StackPanel>
                                     <TextBlock x:Name="SumDossiers"
                                                FontSize="26" FontWeight="Bold"
-                                               Foreground="{StaticResource EmeraldMid}"/>
+                                               Foreground="{StaticResource DarkSeaGreen}"/>
                                     <TextBlock Text="دوسية"
                                                FontSize="11" Foreground="#4A5A7A"
                                                Margin="0,2,0,0"/>
@@ -303,7 +303,7 @@
                                 <SolidColorBrush Color="#00E676" Opacity="0.25"/>
                             </Border.BorderBrush>
                             <TextBlock Text="✅ لا توجد تحذيرات حارجة — يمكن اعتماد الاستيراد مباشرة."
-                                       Foreground="{StaticResource EmeraldMid}" FontSize="12"/>
+                                       Foreground="{StaticResource DarkSeaGreen}" FontSize="12"/>
                         </Border>
 
                     </StackPanel>
@@ -358,7 +358,7 @@
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Status}" Value="Rejected">
                                                                     <Setter Property="Content"    Value="↩ استعادة"/>
-                                                                    <Setter Property="Foreground" Value="{StaticResource EmeraldMid}"/>
+                                                                    <Setter Property="Foreground" Value="{StaticResource DarkSeaGreen}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -421,7 +421,7 @@
                                             x:Name="ResolveAllBtn"
                                             Content="✔ حل جميع التحذيرات"
                                             Style="{StaticResource MaterialDesignOutlinedButton}"
-                                            Foreground="{StaticResource EmeraldMid}"
+                                            Foreground="{StaticResource DarkSeaGreen}"
                                             Height="32"
                                             Click="ResolveAllWarnings_Click"/>
                                 </Grid>
@@ -485,7 +485,7 @@
                                                             <Style TargetType="Button"
                                                                    BasedOn="{StaticResource MaterialDesignFlatButton}">
                                                                 <Setter Property="Content"    Value="✔ حل"/>
-                                                                <Setter Property="Foreground" Value="{StaticResource EmeraldMid}"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource DarkSeaGreen}"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsResolved}" Value="True">
                                                                         <Setter Property="Content"   Value="✔ مُحلول"/>

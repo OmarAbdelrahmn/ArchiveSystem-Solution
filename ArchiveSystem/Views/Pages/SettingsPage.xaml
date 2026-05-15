@@ -47,7 +47,7 @@
                         <Button x:Name="AddUserBtn"
                                 Content="➕ إضافة مستخدم"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="{StaticResource EmeraldMid}" Foreground="White"
+                                Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                 Height="36" Click="AddUser_Click"/>
                         <Button x:Name="ChangePasswordBtn"
                                 Content="🔑 تغيير كلمة المرور"
@@ -106,7 +106,7 @@
                         <Button x:Name="AddRoleBtn"
                                 Content="➕ إضافة دور"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="{StaticResource EmeraldMid}" Foreground="White"
+                                Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                 Height="36" Click="AddRole_Click"/>
                         <Button x:Name="EditRoleBtn"
                                 Content="✏️ تعديل الدور والصلاحيات"
@@ -167,7 +167,7 @@
                             <Button x:Name="AddFieldBtn"
                                     Content="➕ إضافة حقل"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource EmeraldMid}" Foreground="White"
+                                    Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                     Height="36" Click="AddField_Click"/>
                             <Button x:Name="EditFieldBtn"
                                     Content="✏️ تعديل"
@@ -302,7 +302,7 @@
                                 <Button Grid.Column="10"
                                         Content="➕ إضافة"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Background="{StaticResource EmeraldMid}" Foreground="White"
+                                        Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                         Height="49" Width="90"
                                         Click="AddLocation_Click"/>
                             </Grid>
@@ -417,7 +417,7 @@
                                 <Button x:Name="CreateBackupBtn"
                                         Content="إنشاء نسخة الآن"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Background="{StaticResource EmeraldMid}" Foreground="White"
+                                        Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                         Height="36" HorizontalAlignment="Stretch"
                                         Click="CreateBackup_Click"/>
                             </StackPanel>
@@ -522,7 +522,7 @@
                                 <Button x:Name="CreateUsersBackupBtn"
                                         Content="نسخ المستخدمين"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Background="{StaticResource EmeraldMid}" Foreground="White"
+                                        Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                         Height="40" Width="148"
                                         Click="CreateUsersBackup_Click"/>
                             </StackPanel>
@@ -644,7 +644,7 @@
                                     </Border.BorderBrush>
                                     <TextBlock x:Name="AppVersionLabel"
                                                FontSize="16" FontWeight="Bold"
-                                               Foreground="{StaticResource EmeraldMid}"/>
+                                               Foreground="{StaticResource DarkSeaGreen}"/>
                                 </Border>
                             </Grid>
                         </Border>
@@ -886,7 +886,7 @@
                         <Button x:Name="SaveSettingsBtn"
                                 Content="💾  حفظ الإعدادات"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="{StaticResource EmeraldMid}" Foreground="White"
+                                Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                 FontSize="14" Height="44" Width="180"
                                 HorizontalAlignment="Left"
                                 Click="SaveSettings_Click"/>

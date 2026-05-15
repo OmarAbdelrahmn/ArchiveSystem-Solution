@@ -789,7 +789,7 @@ namespace ArchiveSystem.Views.Pages
             var inputBox = new TextBox
             {
                 Text = defaultValue,
-                Height = 44,
+                Height = 50,
                 VerticalContentAlignment = VerticalAlignment.Center,
                 Foreground = Brush(TextSecondary),
                 CaretBrush = Brush(EmeraldMid),

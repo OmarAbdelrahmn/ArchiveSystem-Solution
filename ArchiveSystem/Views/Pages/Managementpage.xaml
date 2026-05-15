@@ -40,7 +40,7 @@
                         Grid.Column="1"
                         Content="➕ إدارة جديدة"
                         Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="{StaticResource EmeraldMid}" Foreground="White"
+                        Background="{StaticResource DarkSeaGreen}" Foreground="White"
                         Height="36" Margin="0,0,8,0"
                         Click="AddRootManagement_Click"/>
 
@@ -129,7 +129,7 @@
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name, Mode=OneWay}"
                                                            FontSize="13" FontWeight="Bold"
-                                                           Foreground="{StaticResource EmeraldMid}"/>
+                                                           Foreground="{StaticResource DarkSeaGreen}"/>
                                                 <TextBlock FontSize="10" Foreground="#4A5A7A" Margin="0,1,0,0">
                                                     <Run Text="{Binding DossierCount, Mode=OneWay}"/>
                                                     <Run Text=" دوسية"/>
@@ -278,7 +278,7 @@
                                 Grid.Column="0"
                                 Content="➕ إضافة دوسية"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="{StaticResource EmeraldMid}" Foreground="White"
+                                Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                 Height="34" Margin="0,0,8,0"
                                 IsEnabled="False"
                                 Click="AddDossier_Click"/>
@@ -390,7 +390,7 @@
                     </Border.BorderBrush>
                     <TextBlock x:Name="ResultCountText"
                                FontSize="12" FontWeight="SemiBold"
-                               Foreground="{StaticResource EmeraldMid}"
+                               Foreground="{StaticResource DarkSeaGreen}"
                                VerticalAlignment="Center"/>
                 </Border>
 

@@ -116,7 +116,7 @@
                                 x:Name="AddSuggestionBtn"
                                 Content="➕ إضافة"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
-                                Background="{StaticResource EmeraldMid}" Foreground="White"
+                                Background="{StaticResource DarkSeaGreen}" Foreground="White"
                                 Height="40" Width="100"
                                 IsEnabled="False"
                                 Click="AddSuggestion_Click"/>

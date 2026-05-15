@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ArchiveSystem.Views.Pages
 {
@@ -147,45 +148,209 @@ namespace ArchiveSystem.Views.Pages
                 return;
             }
 
-            string? targetNumberStr = InputDialog.Show(
-                $"أدخل رقم الدوسية التي تريد نقل سجل '{row.PersonName}' إليها:\n\n" +
-                $"ملاحظة: سيتم الاحتفاظ بجميع بيانات الحقول المخصصة.",
-                "نقل السجل إلى دوسية أخرى",
-                owner: Window.GetWindow(this));
+            // ── Theme helpers (mirrors ManagementPage) ────────────────────────────
+            static SolidColorBrush B(string hex, double opacity = 1) =>
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)) { Opacity = opacity };
 
-            if (string.IsNullOrWhiteSpace(targetNumberStr)) return;
+            var MidnightBase = B("#0A1628");
+            var NavyPanel = B("#0D1F3C");
+            var BorderColor = B("#1E3050", 0.80);
+            var EmeraldMid = B("#1a7a60");
+            var RoseGold = B("#C9966E");
+            var DangerRed = B("#C62828");
+            var TextSecondary = B("#8A9BB5");
+            var SubText = B("#4A5A7A");
 
-            if (!int.TryParse(targetNumberStr, out int targetNumber) || targetNumber <= 0)
+            // ── Window ────────────────────────────────────────────────────────────
+            var win = new Window
             {
-                MessageBox.Show("رقم الدوسية غير صحيح.", "خطأ",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+                Title = "نقل السجل إلى دوسية أخرى",
+                Width = 440,
+                Height = 360,
+                MinWidth = 360,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = MidnightBase,
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(1),
+                FontFamily = new FontFamily("Noto Kufi Arabic, Segoe UI"),
+            };
 
-            var confirm = MessageBox.Show(
-                $"هل تريد نقل سجل '{row.PersonName}' ({row.PrisonerNumber})\n" +
-                $"من الدوسية الحالية إلى الدوسية رقم {targetNumber}؟\n\n" +
-                $"جميع البيانات والحقول المخصصة ستُنقل معه.",
-                "تأكيد النقل",
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
+            // ── Root grid ─────────────────────────────────────────────────────────
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // header
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });   // body
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // footer
 
-            if (confirm != MessageBoxResult.Yes) return;
-
-            var err = _recordService.MoveRecord(row.RecordId, targetNumber);
-
-            if (err != null)
+            // ── Header ────────────────────────────────────────────────────────────
+            var headerPanel = new StackPanel { Margin = new Thickness(20, 14, 20, 14) };
+            headerPanel.Children.Add(new TextBlock
             {
-                MessageBox.Show(err, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                Text = "↕️ نقل السجل إلى دوسية أخرى",
+                FontSize = 17,
+                FontWeight = FontWeights.Bold,
+                Foreground = RoseGold,
+            });
+            headerPanel.Children.Add(new TextBlock
+            {
+                Text = $"{row.PersonName}  —  {row.PrisonerNumber}",
+                FontSize = 11,
+                Foreground = SubText,
+                Margin = new Thickness(0, 3, 0, 0),
+            });
 
-            MessageBox.Show(
-                $"✅ تم نقل سجل '{row.PersonName}' إلى الدوسية رقم {targetNumber} بنجاح.",
-                "تم النقل", MessageBoxButton.OK, MessageBoxImage.Information);
+            var header = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D1F3C")) { Opacity = 0.90 },
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Child = headerPanel,
+            };
+            Grid.SetRow(header, 0);
+            root.Children.Add(header);
 
-            LoadRecords();
+            // ── Body ──────────────────────────────────────────────────────────────
+            var bodyBorder = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D1F3C")) { Opacity = 0.50 },
+                Padding = new Thickness(24, 18, 24, 12),
+            };
+            Grid.SetRow(bodyBorder, 1);
+
+            var body = new StackPanel { Margin = new Thickness(0) };
+
+            body.Children.Add(new TextBlock
+            {
+                Text = "أدخل رقم الدوسية المستهدفة:",
+                FontSize = 13,
+                Foreground = TextSecondary,
+                Margin = new Thickness(0, 0, 0, 10),
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+            var targetBox = new TextBox
+            {
+                Height = 50,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Foreground = TextSecondary,
+                CaretBrush = EmeraldMid,
+            };
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(targetBox, "رقم الدوسية");
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(targetBox, SubText);
+            targetBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+            targetBox.GotFocus += (_, _) => targetBox.SelectAll();
+            body.Children.Add(targetBox);
+
+            body.Children.Add(new TextBlock
+            {
+                Text = "ملاحظة: سيتم الاحتفاظ بجميع بيانات الحقول المخصصة.",
+                FontSize = 11,
+                Foreground = SubText,
+                Margin = new Thickness(0, 10, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+            var errorBlock = new TextBlock
+            {
+                Foreground = DangerRed,
+                FontSize = 12,
+                Visibility = Visibility.Collapsed,
+                Margin = new Thickness(0, 8, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+            };
+            body.Children.Add(errorBlock);
+
+            bodyBorder.Child = body;
+            root.Children.Add(bodyBorder);
+
+            // ── Footer ────────────────────────────────────────────────────────────
+            var footerBorder = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D1F3C")) { Opacity = 0.90 },
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                Padding = new Thickness(20, 12, 20, 12),
+            };
+            Grid.SetRow(footerBorder, 2);
+
+            var btnRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                FlowDirection = FlowDirection.RightToLeft,
+            };
+
+            var confirmBtn = new Button
+            {
+                Content = "↕️ نقل",
+                Width = 110,
+                Height = 38,
+                Margin = new Thickness(0, 0, 10, 0),
+                Style = (Style)FindResource("MaterialDesignRaisedButton"),
+                Background = EmeraldMid,
+                Foreground = Brushes.White,
+                IsDefault = true,
+            };
+
+            var cancelBtn = new Button
+            {
+                Content = "إلغاء",
+                Width = 100,
+                Height = 38,
+                Style = (Style)FindResource("MaterialDesignOutlinedButton"),
+                Foreground = TextSecondary,
+                BorderBrush = BorderColor,
+                IsCancel = true,
+            };
+            cancelBtn.Click += (_, _) => win.Close();
+
+            confirmBtn.Click += (_, _) =>
+            {
+                errorBlock.Visibility = Visibility.Collapsed;
+
+                if (!int.TryParse(targetBox.Text, out int targetNumber) || targetNumber <= 0)
+                {
+                    errorBlock.Text = "رقم الدوسية غير صحيح.";
+                    errorBlock.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                var confirm = MessageBox.Show(
+                    $"هل تريد نقل سجل '{row.PersonName}' ({row.PrisonerNumber})\n" +
+                    $"من الدوسية الحالية إلى الدوسية رقم {targetNumber}؟\n\n" +
+                    $"جميع البيانات والحقول المخصصة ستُنقل معه.",
+                    "تأكيد النقل",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (confirm != MessageBoxResult.Yes) return;
+
+                var err = _recordService.MoveRecord(row.RecordId, targetNumber);
+                if (err != null)
+                {
+                    errorBlock.Text = err;
+                    errorBlock.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                win.Close();
+
+                MessageBox.Show(
+                    $"✅ تم نقل سجل '{row.PersonName}' إلى الدوسية رقم {targetNumber} بنجاح.",
+                    "تم النقل", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                LoadRecords();
+            };
+
+            btnRow.Children.Add(confirmBtn);
+            btnRow.Children.Add(cancelBtn);
+            footerBorder.Child = btnRow;
+            root.Children.Add(footerBorder);
+
+            win.Content = root;
+            win.Loaded += (_, _) => { targetBox.Focus(); };
+            win.ShowDialog();
         }
-
         private void DeleteDossier_Click(object sender, RoutedEventArgs e)
         {
             if (_dossier == null) return;
