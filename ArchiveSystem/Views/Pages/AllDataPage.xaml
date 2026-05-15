@@ -240,6 +240,7 @@
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   CanUserAddRows="False"
+                                    Background="Transparent"
                   SelectionMode="Extended"
                   Style="{StaticResource MaterialDesignDataGrid}"
                   materialDesign:DataGridAssist.CellPadding="10 7 10 7"

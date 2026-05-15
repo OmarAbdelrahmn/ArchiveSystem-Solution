@@ -87,88 +87,88 @@
 
                             <Button x:Name="NavSearchButton"
                                     Content="🔍   البحث"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavSearch_Click"/>
 
                             <Button x:Name="NavEntryButton"
                                     Content="➕   إدخال بيانات"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavEntry_Click"/>
 
                             <Button x:Name="NavAllDataButton"
                                     Content="📋   كل البيانات"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavAllData_Click"/>
 
                             <Button x:Name="NavStatsButton"
                                     Content="📊   الإحصائيات"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavStats_Click"/>
 
                             <Button x:Name="NavImportButton"
                                     Content="📥   استيراد Excel"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavImport_Click"/>
 
                             <Button x:Name="NavManagementButton"
                                     Content="🏢   الإدارات"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavManagement_Click"/>
 
                             <Button x:Name="NavReportsButton"
                                     Content="🖨️   التقارير"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavReports_Click"/>
 
                             <Button x:Name="NavSuggestionsButton"
                                     Content="💡   الاقتراحات"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavSuggestions_Click"/>
 
                             <Button x:Name="NavAuditLogButton"
                                     Content="📜   سجل الاحداث"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavAuditLog_Click"/>
 
                             <Button x:Name="NavBulkHistoryButton"
                                     Content="📝   التعبئة الجماعية"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavBulkHistory_Click"/>
 
                             <Button x:Name="NavSettingsButton"
                                     Content="⚙️   الإعدادات"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="#8A9BB8" FontSize="13"
+                                    Style="{StaticResource SidebarNavButton}"
+                                    Foreground="#69F0AE" FontSize="13"
                                     HorizontalContentAlignment="Left"
                                     Height="44" Margin="0,2"
                                     Click="NavSettings_Click"/>
@@ -206,7 +206,7 @@
                                            HorizontalAlignment="Center"
                                            Margin="0,3,0,8"/>
                                 <Button Content="🚪  تسجيل الخروج"
-                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                        Style="{StaticResource SidebarNavButton}"
                                         Foreground="#FF5252"
                                         FontSize="12"
                                         Height="32"

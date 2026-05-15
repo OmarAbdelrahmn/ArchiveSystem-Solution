@@ -40,6 +40,8 @@
             <SolidColorBrush x:Key="EmeraldSoft"       Color="#00BCD4"/>
             <SolidColorBrush x:Key="EmeraldGhost"      Color="#0A2A1E"/>
             <SolidColorBrush x:Key="EmeraldDark"       Color="#00C853"/>
+            <SolidColorBrush x:Key="MediumAquamarine"  Color="#66CDAA"/>
+            <!-- add this -->
 
             <!-- Glassmorphism surfaces -->
             <SolidColorBrush x:Key="GlassWhite"        Color="#1AFFFFFF"/>
@@ -313,6 +315,25 @@
                         <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
                     </Trigger>
                 </Style.Triggers>
+            </Style>
+            <Style x:Key="SidebarNavButton"
+       TargetType="Button"
+       BasedOn="{StaticResource MaterialDesignFlatButton}">
+                <Setter Property="Foreground"             Value="{StaticResource EmeraldGlow}"/>
+                <Setter Property="TextElement.Foreground" Value="{StaticResource EmeraldGlow}"/>
+                <Setter Property="materialDesign:RippleAssist.Feedback" Value="{StaticResource EmeraldGlow}"/>
+
+                <!-- This is the fix — bypasses MD3's internal text brush entirely -->
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}"
+Foreground="{StaticResource MediumAquamarine}"
+                                       FontFamily="{StaticResource AmiriFont}"
+                           FontSize="13"/>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
         </ResourceDictionary>
