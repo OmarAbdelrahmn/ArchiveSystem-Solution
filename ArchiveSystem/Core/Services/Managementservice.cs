@@ -15,24 +15,31 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<Management>(@"
-                SELECT
-                    m.ManagementId,
-                    m.Name,
-                    m.ParentManagementId,
-                    m.Description,
-                    m.IsActive,
-                    m.CreatedAt,
-                    m.UpdatedAt,
-                    p.Name AS ParentName,
-                    COUNT(md.ManagementDossierId) AS DossierCount
-                FROM Managements m
-                LEFT JOIN Managements p ON p.ManagementId = m.ParentManagementId
-                LEFT JOIN ManagementDossiers md
-                    ON md.ManagementId = m.ManagementId AND md.DeletedAt IS NULL
-                GROUP BY m.ManagementId
-                ORDER BY COALESCE(m.ParentManagementId, m.ManagementId),
-                         m.ParentManagementId IS NULL DESC,
-                         m.Name").AsList();
+        SELECT
+            m.ManagementId,
+            m.Name,
+            m.ParentManagementId,
+            m.Description,
+            m.IsActive,
+            m.CreatedAt,
+            m.UpdatedAt,
+            p.Name AS ParentName,
+            COUNT(md.ManagementDossierId) AS DossierCount
+        FROM Managements m
+        LEFT JOIN Managements p ON p.ManagementId = m.ParentManagementId
+        LEFT JOIN ManagementDossiers md
+            ON md.ManagementId = m.ManagementId AND md.DeletedAt IS NULL
+        WHERE m.IsActive = 1
+        AND (m.ParentManagementId IS NULL
+             OR EXISTS (
+                 SELECT 1 FROM Managements p2
+                 WHERE p2.ManagementId = m.ParentManagementId
+                 AND p2.IsActive = 1
+             ))
+        GROUP BY m.ManagementId
+        ORDER BY COALESCE(m.ParentManagementId, m.ManagementId),
+                 m.ParentManagementId IS NULL DESC,
+                 m.Name").AsList();
         }
 
         /// <summary>Returns only top-level managements (no parent).</summary>

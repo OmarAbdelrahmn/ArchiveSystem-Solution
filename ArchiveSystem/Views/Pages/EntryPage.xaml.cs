@@ -296,8 +296,8 @@ namespace ArchiveSystem.Views.Pages
         private void AttachPopupToPage(Popup popup)
         {
             // The Page content is a Grid; we can add the Popup directly.
-            if (Content is Grid root)
-                root.Children.Add(popup);
+            //if (Content is Grid root)
+            //    root.Children.Add(popup);
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -447,7 +447,6 @@ namespace ArchiveSystem.Views.Pages
             };
 
             WireListBoxSelection(listBox, popup, tb);
-            container.Children.Add(popup);
             return container;
         }
 
