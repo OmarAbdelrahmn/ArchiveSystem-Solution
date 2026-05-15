@@ -345,6 +345,22 @@
                                    TextWrapping="Wrap" MaxWidth="460"
                                    LineHeight="26" TextAlignment="Center"
                                    HorizontalAlignment="Center"/>
+
+                        <!-- Credits Section -->
+                        <TextBlock Text="تصميم وإعداد :"
+                           FontSize="12" Foreground="#8A9BB8"
+                           TextWrapping="Wrap" MaxWidth="460"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Margin="0,24,0,0"/>
+
+                        <TextBlock Text="مشرفة مركز الوثائق والمحفوظات&#10;عبير ناصر الشهري"
+                           FontSize="13" Foreground="#C9956A"
+                           TextWrapping="Wrap" MaxWidth="460"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           FontWeight="SemiBold"
+                           Margin="0,4,0,0"/>
                     </StackPanel>
 
                     <!-- Bottom Stats Bar — glassmorphism cards -->

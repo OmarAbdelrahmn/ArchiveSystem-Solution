@@ -171,7 +171,7 @@ namespace ArchiveSystem.Core.Services
             [Permissions.PrintDossierFace] = "طباعة واجهة الدوسية",
             [Permissions.ImportExcel] = "استيراد Excel",
             [Permissions.ApproveExcelImport] = "اعتماد استيراد Excel",
-            [Permissions.ViewStatistics] = "عرض الإحصاءات",
+            [Permissions.ViewStatistics] = "عرض الإحصائيات",
             [Permissions.ManageArchiveStructure] = "إدارة هيكل الأرشيف",
             [Permissions.ManageCustomFields] = "إدارة الحقول المخصصة",
             [Permissions.ManageUsers] = "إدارة المستخدمين",

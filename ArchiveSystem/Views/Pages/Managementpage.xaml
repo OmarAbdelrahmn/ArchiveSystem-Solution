@@ -2,7 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-      Title="الإدارة"
+      Title="الإدارات"
       Background="{StaticResource MidnightBase}"
       FontFamily="Noto Kufi Arabic, Segoe UI"
       FlowDirection="RightToLeft">
@@ -31,7 +31,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0"
-                           Text="🏢  الإدارة"
+                           Text="🏢  الإدارات"
                            FontSize="22" FontWeight="Bold"
                            Foreground="{StaticResource RoseGold}"
                            VerticalAlignment="Center"/>
@@ -55,7 +55,7 @@
 
                 <Button x:Name="EditManagementBtn"
                         Grid.Column="3"
-                        Content="✏️ تعديل الإدارة"
+                        Content="✏️ تعديل الإدارات"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Foreground="{StaticResource TextSecondary}"
                         Height="36"
@@ -196,7 +196,7 @@
                             <SolidColorBrush Color="#1E3050" Opacity="0.80"/>
                         </Border.BorderBrush>
                         <Button x:Name="DeleteManagementBtn"
-                                Content="🗑 حذف الإدارة المحددة"
+                                Content="🗑 حذف الإدارات المحددة"
                                 Style="{StaticResource MaterialDesignFlatButton}"
                                 Foreground="{StaticResource DangerRed}"
                                 Height="32"
@@ -456,7 +456,7 @@
                 <!-- Empty-state placeholder -->
                 <TextBlock Grid.Row="4"
                            x:Name="EmptyHint"
-                           Text="لا توجد دوسيات لهذه الإدارة."
+                           Text="لا توجد دوسيات لهذه الإدارات."
                            FontSize="14" Foreground="#4A5A7A"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"

@@ -67,7 +67,7 @@ namespace ArchiveSystem.Core.Services
 
         public string? CreateManagement(string name, int? parentId, string? description)
         {
-            if (string.IsNullOrWhiteSpace(name)) return "اسم الإدارة مطلوب.";
+            if (string.IsNullOrWhiteSpace(name)) return "اسم الإدارات مطلوب.";
 
             using var conn = _db.CreateConnection();
             int dup = conn.ExecuteScalar<int>(@"
@@ -75,7 +75,7 @@ namespace ArchiveSystem.Core.Services
                 WHERE Name = @Name
                 AND COALESCE(ParentManagementId,-1) = COALESCE(@ParentId,-1)",
                 new { Name = name.Trim(), ParentId = parentId });
-            if (dup > 0) return "هذه الإدارة موجودة مسبقاً.";
+            if (dup > 0) return "هذه الإدارات موجودة مسبقاً.";
 
             string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
             conn.Execute(@"
@@ -97,7 +97,7 @@ namespace ArchiveSystem.Core.Services
 
         public string? UpdateManagement(int managementId, string name, string? description)
         {
-            if (string.IsNullOrWhiteSpace(name)) return "اسم الإدارة مطلوب.";
+            if (string.IsNullOrWhiteSpace(name)) return "اسم الإدارات مطلوب.";
 
             using var conn = _db.CreateConnection();
             conn.Execute(@"
@@ -247,7 +247,7 @@ namespace ArchiveSystem.Core.Services
                 SELECT COUNT(*) FROM ManagementDossiers
                 WHERE ManagementId = @MId AND DossierNumber = @Num AND DeletedAt IS NULL",
                 new { MId = managementId, Num = dossierNumber });
-            if (dup > 0) return ($"رقم الدوسية {dossierNumber} موجود مسبقاً في هذه الإدارة.", 0);
+            if (dup > 0) return ($"رقم الدوسية {dossierNumber} موجود مسبقاً في هذه الإدارات.", 0);
 
             string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
             int id = conn.ExecuteScalar<int>(@"
@@ -293,7 +293,7 @@ namespace ArchiveSystem.Core.Services
                 WHERE ManagementId = @MId AND DossierNumber = @Num
                 AND DeletedAt IS NULL AND ManagementDossierId != @Self",
                 new { MId = managementId, Num = dossierNumber, Self = dossierId });
-            if (dup > 0) return $"رقم الدوسية {dossierNumber} موجود مسبقاً في هذه الإدارة.";
+            if (dup > 0) return $"رقم الدوسية {dossierNumber} موجود مسبقاً في هذه الإدارات.";
 
             conn.Execute(@"
                 UPDATE ManagementDossiers

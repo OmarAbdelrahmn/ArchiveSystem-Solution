@@ -77,14 +77,14 @@ namespace ArchiveSystem
         //{
         //    "NavEntryButton" => "➕   إدخال بيانات",
         //    "NavAllDataButton" => "📋   كل البيانات",
-        //    "NavStatsButton" => "📊   الإحصاءات",
+        //    "NavStatsButton" => "📊   الإحصائيات",
         //    "NavImportButton" => "📥   استيراد Excel",
         //    "NavReportsButton" => "🖨️   التقارير",
         //    "NavSuggestionsButton" => "💡   الاقتراحات",
         //    "NavAuditLogButton" => "📜   سجل الاحداث",
         //    "NavBulkHistoryButton" => "📝   التعبئة الجماعية",
         //    "NavSettingsButton" => "⚙️   الإعدادات",
-        //    "NavManagementButton" => "🏢   الإدارة",
+        //    "NavManagementButton" => "🏢   الإدارات",
         //    _ => name
         //};
 

@@ -179,10 +179,10 @@ namespace ArchiveSystem.Views.Pages
 
         private void AddRootManagement_Click(object sender, RoutedEventArgs e)
         {
-            string? name = ShowInputDialog("أدخل اسم الإدارة الجديدة:", "إضافة إدارة");
+            string? name = ShowInputDialog("أدخل اسم الإدارات الجديدة:", "إضافة إدارة");
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            string? desc = ShowInputDialog("وصف الإدارة (اختياري)", "وصف الإدارة");
+            string? desc = ShowInputDialog("وصف الإدارات (اختياري)", "وصف الإدارات");
 
             var err = _service.CreateManagement(name, null, desc);
             if (err != null) { ShowError(err); return; }
@@ -209,11 +209,11 @@ namespace ArchiveSystem.Views.Pages
         {
             if (_selectedManagement == null) return;
 
-            string? name = ShowInputDialog("تعديل اسم الإدارة:", "تعديل الإدارة",
+            string? name = ShowInputDialog("تعديل اسم الإدارات:", "تعديل الإدارات",
                 defaultValue: _selectedManagement.Name);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            string? desc = ShowInputDialog("وصف الإدارة (اختياري)", "وصف الإدارة",
+            string? desc = ShowInputDialog("وصف الإدارات (اختياري)", "وصف الإدارات",
                 defaultValue: _selectedManagement.Description ?? "");
 
             var err = _service.UpdateManagement(_selectedManagement.ManagementId, name, desc);
@@ -227,7 +227,7 @@ namespace ArchiveSystem.Views.Pages
             if (_selectedManagement == null) return;
 
             var confirm = MessageBox.Show(
-                $"هل تريد حذف الإدارة '{_selectedManagement.Name}'؟\n\nلا يمكن حذفها إذا كانت تحتوي على شعبة أو قسم أو دوسيات.",
+                $"هل تريد حذف الإدارات '{_selectedManagement.Name}'؟\n\nلا يمكن حذفها إذا كانت تحتوي على شعبة أو قسم أو دوسيات.",
                 "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirm != MessageBoxResult.Yes) return;
 
