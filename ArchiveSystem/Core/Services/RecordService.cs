@@ -253,23 +253,20 @@ namespace ArchiveSystem.Core.Services
 
             string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
             conn.Execute(@"
-                UPDATE Records
-                SET PersonName      = @PersonName,
-                    PrisonerNumber  = @PrisonerNumber,
-                    Notes           = @Notes,
-                    UpdatedAt       = @Now,
-                    UpdatedByUserId = @UserId
-                WHERE RecordId = @RecordId",
-                new
-                {
-                    PersonName = personName.Trim(),
-                    PrisonerNumber = prisonerNumber,
-                    Notes = notes,
-                    Now = now,
-                    UserId = UserSession.CurrentUser?.UserId,
-                    RecordId = recordId
-                });
-
+    UPDATE Records
+    SET PersonName      = @PersonName,
+        PrisonerNumber  = @PrisonerNumber,
+        Notes           = @Notes,
+        UpdatedAt       = @Now
+    WHERE RecordId = @RecordId",
+           new
+           {
+               PersonName = personName.Trim(),
+               PrisonerNumber = prisonerNumber,
+               Notes = notes,
+               Now = now,
+               RecordId = recordId
+           });
             // ── Serialize old / new snapshots ─────────────────────────────────
             string? oldJson = old == null ? null : System.Text.Json.JsonSerializer.Serialize(new
             {

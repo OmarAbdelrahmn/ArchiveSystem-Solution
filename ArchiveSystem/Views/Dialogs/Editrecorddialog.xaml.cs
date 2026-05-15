@@ -81,7 +81,7 @@ namespace ArchiveSystem.Views.Dialogs
                             Content = cf.ArabicLabel,
                             Margin = new Thickness(0, 0, 0, 14),
                             FontSize = 13,
-                            Foreground = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33)),
+                            Foreground = (Brush)FindResource("TextPrimary"), // ← was hardcoded #333333
                             IsChecked = currentValue == "true"
                         };
                         _customInputs[cf.CustomFieldId] = cb;
@@ -358,7 +358,10 @@ namespace ArchiveSystem.Views.Dialogs
         {
             var tb = new TextBox();
             MaterialDesignThemes.Wpf.HintAssist.SetHint(tb, hint);
-            tb.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(tb,
+                new SolidColorBrush(Color.FromRgb(0x4A, 0x5A, 0x7A)));
+            tb.Style = (Style)FindResource("DarkOutlinedTextBox"); // ← was MaterialDesignOutlinedTextBox
+            tb.Margin = new Thickness(0, 0, 0, 14);
             if (!string.IsNullOrEmpty(value)) tb.Text = value;
             return tb;
         }

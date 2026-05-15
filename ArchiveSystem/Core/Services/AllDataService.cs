@@ -235,28 +235,27 @@ namespace ArchiveSystem.Core.Services
         {
             using var conn = _db.CreateConnection();
             return conn.Query<BulkFillBatchRow>(@"
-                    SELECT
-                        b.BatchId,
-                        COALESCE(cf.ArabicLabel, CAST(b.CustomFieldId AS TEXT)) AS FieldLabel,
-                        b.NewValue,
-                        b.RecordCount,
-                        b.FilterSummary,                          -- ← ADD
-                        u.FullName AS ExecutedByName,
-                        b.ExecutedAt
-                    FROM BulkFieldUpdateBatches b
-                    LEFT JOIN CustomFields cf ON cf.CustomFieldId = b.CustomFieldId
-                    LEFT JOIN Users        u  ON u.UserId          = b.ExecutedByUserId
-                    ORDER BY b.ExecutedAt DESC
-                    LIMIT @Limit",
+        SELECT
+            b.BatchId,
+            COALESCE(cf.ArabicLabel, CAST(b.CustomFieldId AS TEXT)) AS FieldLabel,
+            b.NewValue,
+            b.RecordCount,
+            u.FullName AS ExecutedByName,
+            b.ExecutedAt
+        FROM BulkFieldUpdateBatches b
+        LEFT JOIN CustomFields cf ON cf.CustomFieldId = b.CustomFieldId
+        LEFT JOIN Users        u  ON u.UserId         = b.ExecutedByUserId
+        ORDER BY b.ExecutedAt DESC
+        LIMIT @Limit",
                 new { Limit = limit }).AsList();
         }
 
         // ── Bulk fill custom field ─────────────────────────────────────────────
         public (string? Error, int Count) BulkFillCustomField(
-            List<int> recordIds,
-            int customFieldId,
-            string? value,
-            string? filterSummary = null)
+     List<int> recordIds,
+     int customFieldId,
+     string? value,
+     string? filterSummary = null)
         {
             if (recordIds.Count == 0)
                 return ("لم يتم اختيار أي سجل.", 0);
@@ -268,54 +267,65 @@ namespace ArchiveSystem.Core.Services
                 string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
                 int userId = UserSession.CurrentUser?.UserId ?? 0;
 
+                // ── 1. Actually update the field values ──────────────────────────
+                int count = 0;
                 foreach (var rid in recordIds)
                 {
-                    conn.Execute(@"
-                    INSERT INTO BulkFieldUpdateBatches
-                        (CustomFieldId, NewValue, RecordCount, ExecutedByUserId, ExecutedAt, FilterSummary)
-                    VALUES (@FieldId, @Value, @Count, @UserId, @Now, @FilterSummary)",  // ← ADD column
-                        new
-                        {
-                            FieldId = customFieldId,
-                            Value = value,
-                            Count = recordIds.Count,
-                            UserId = userId,
-                            Now = now,
-                            FilterSummary = filterSummary      // ← ADD
-                        }, tx);
+                    int exists = conn.ExecuteScalar<int>(
+                        "SELECT COUNT(*) FROM RecordCustomFieldValues WHERE RecordId = @R AND CustomFieldId = @F",
+                        new { R = rid, F = customFieldId }, tx);
+
+                    if (exists > 0)
+                    {
+                        conn.Execute(@"
+                    UPDATE RecordCustomFieldValues
+                    SET ValueText = @Value, UpdatedAt = @Now
+                    WHERE RecordId = @R AND CustomFieldId = @F",
+                            new { Value = value, Now = now, R = rid, F = customFieldId }, tx);
+                    }
+                    else
+                    {
+                        conn.Execute(@"
+                    INSERT INTO RecordCustomFieldValues (RecordId, CustomFieldId, ValueText, UpdatedAt)
+                    VALUES (@R, @F, @Value, @Now)",
+                            new { R = rid, F = customFieldId, Value = value, Now = now }, tx);
+                    }
+                    count++;
                 }
 
+                // ── 2. Insert ONE batch row ──────────────────────────────────────
+                conn.Execute(@"
+            INSERT INTO BulkFieldUpdateBatches
+                (CustomFieldId, NewValue, RecordCount, ExecutedByUserId, ExecutedAt)
+            VALUES (@FieldId, @Value, @Count, @UserId, @Now)",
+                    new
+                    {
+                        FieldId = customFieldId,
+                        Value = value,
+                        Count = count,
+                        UserId = userId,
+                        Now = now
+                    }, tx);
+
+                // ── 3. Audit log ─────────────────────────────────────────────────
                 var fieldLabel = conn.ExecuteScalar<string>(
                     "SELECT ArabicLabel FROM CustomFields WHERE CustomFieldId = @Id",
                     new { Id = customFieldId }, tx) ?? customFieldId.ToString();
 
                 conn.Execute(@"
-                    INSERT INTO AuditLog
-                        (UserId, ActionType, EntityType, Description, CreatedAt)
-                    VALUES (@UserId, @ActionType, 'Record', @Desc, @Now)",
+            INSERT INTO AuditLog
+                (UserId, ActionType, EntityType, Description, CreatedAt)
+            VALUES (@UserId, @ActionType, 'Record', @Desc, @Now)",
                     new
                     {
                         UserId = userId,
                         ActionType = AuditActions.BulkFieldUpdate,
-                        Desc = $"تعبئة جماعية لحقل '{fieldLabel}' = '{value}' على {recordIds.Count} سجل",
-                        Now = now
-                    }, tx);
-
-                conn.Execute(@"
-                    INSERT INTO BulkFieldUpdateBatches
-                        (CustomFieldId, NewValue, RecordCount, ExecutedByUserId, ExecutedAt)
-                    VALUES (@FieldId, @Value, @Count, @UserId, @Now)",
-                    new
-                    {
-                        FieldId = customFieldId,
-                        Value = value,
-                        Count = recordIds.Count,
-                        UserId = userId,
+                        Desc = $"تعبئة جماعية لحقل '{fieldLabel}' = '{value}' على {count} سجل",
                         Now = now
                     }, tx);
 
                 tx.Commit();
-                return (null, recordIds.Count);
+                return (null, count);
             }
             catch (Exception ex)
             {
@@ -323,7 +333,6 @@ namespace ArchiveSystem.Core.Services
                 return ($"خطأ أثناء التعبئة: {ex.Message}", 0);
             }
         }
-
         public List<string> GetRecentSuggestions(int customFieldId, int limit = 8)
         {
             using var conn = _db.CreateConnection();
