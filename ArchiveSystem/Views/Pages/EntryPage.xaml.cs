@@ -340,7 +340,7 @@ namespace ArchiveSystem.Views.Pages
                             Content = cf.ArabicLabel,
                             Margin = new Thickness(0, 0, 0, 14),
                             FontSize = 13,
-                            Foreground = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33))
+                            Foreground = Brushes.White  // ← was Color.FromRgb(0x33, 0x33, 0x33)
                         };
                         _customInputs[cf.CustomFieldId] = cb;
                         return cb;
@@ -456,7 +456,10 @@ namespace ArchiveSystem.Views.Pages
         {
             var tb = new TextBox();
             MaterialDesignThemes.Wpf.HintAssist.SetHint(tb, hint);
-            tb.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(tb,
+                new SolidColorBrush(Color.FromRgb(0x4A, 0x5A, 0x7A)));
+            tb.Style = (Style)FindResource("DarkOutlinedTextBox"); // ← was MaterialDesignOutlinedTextBox
+            tb.Foreground = Brushes.White;                         // ← add this
             return tb;
         }
 
@@ -759,7 +762,7 @@ namespace ArchiveSystem.Views.Pages
             ErrorBorder.Visibility = Visibility.Visible;
             SuccessBorder.Visibility = Visibility.Collapsed;
         }
-
+        hMakeOutlinedTextBox
         private void ShowSuccess(string msg)
         {
             SuccessText.Text = msg;

@@ -519,7 +519,7 @@
                                                     <TextBlock Text="{Binding RecordCount}"
                                                                FontSize="11" Foreground="#4A5A7A"/>
                                                     <TextBlock Text=" ملف  ·  "
-                                                               FontSize="11" Foreground="#1E3050"/>
+                                                               FontSize="11" Foreground="#4A5A7A"/>
                                                     <TextBlock Text="{Binding LocationDisplay}"
                                                                FontSize="11" Foreground="#4A5A7A"
                                                                TextTrimming="CharacterEllipsis"
