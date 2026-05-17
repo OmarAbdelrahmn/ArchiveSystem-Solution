@@ -357,40 +357,210 @@ namespace ArchiveSystem.Views.Pages
 
             var activeRecords = _recordService.GetRecordsByDossier(_dossierId);
 
-            string? reason = InputDialog.Show(
-                $"أدخل سبب حذف الدوسية رقم {_dossier.DossierNumber}:\n\n" +
-                $"⚠️ سيتم حذف {activeRecords.Count} سجل داخلها أيضاً.",
-                "حذف الدوسية",
-                owner: Window.GetWindow(this));
+            // ── Theme helpers (same as MoveRecord_Click) ─────────────────────────
+            static SolidColorBrush B(string hex, double opacity = 1) =>
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)) { Opacity = opacity };
 
-            if (string.IsNullOrWhiteSpace(reason))
+            var MidnightBase = B("#0A1628");
+            var NavyPanel = B("#0D1F3C");
+            var BorderColor = B("#1E3050", 0.80);
+            var EmeraldMid = B("#1a7a60");
+            var RoseGold = B("#C9966E");
+            var DangerRed = B("#C62828");
+            var TextSecondary = B("#8A9BB5");
+            var SubText = B("#4A5A7A");
+
+            // ── Window ────────────────────────────────────────────────────────────
+            var win = new Window
             {
-                MessageBox.Show("سبب الحذف مطلوب. تم إلغاء العملية.",
-                    "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+                Title = "حذف الدوسية",
+                Width = 460,
+                Height = 380,
+                MinWidth = 380,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                FlowDirection = FlowDirection.RightToLeft,
+                Background = MidnightBase,
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(1),
+                FontFamily = new FontFamily("Noto Kufi Arabic, Segoe UI"),
+            };
 
-            var confirm = MessageBox.Show(
-                $"⚠️ سيتم حذف الدوسية رقم {_dossier.DossierNumber} " +
-                $"و{activeRecords.Count} سجل بداخلها.\n\nالسبب: {reason}\n\nهل تريد المتابعة؟",
-                "تأكيد الحذف",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            // ── Root grid ─────────────────────────────────────────────────────────
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            if (confirm != MessageBoxResult.Yes) return;
-
-            var (error, deleted) = _dossierService.DeleteDossier(_dossierId, reason);
-
-            if (error != null)
+            // ── Header ────────────────────────────────────────────────────────────
+            var headerPanel = new StackPanel { Margin = new Thickness(20, 14, 20, 14) };
+            headerPanel.Children.Add(new TextBlock
             {
-                MessageBox.Show(error, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                Text = $"🗑 حذف الدوسية رقم {_dossier.DossierNumber}",
+                FontSize = 17,
+                FontWeight = FontWeights.Bold,
+                Foreground = RoseGold,
+            });
+            headerPanel.Children.Add(new TextBlock
+            {
+                Text = $"سيتم حذف {activeRecords.Count} سجل داخلها أيضاً",
+                FontSize = 11,
+                Foreground = DangerRed,
+                Margin = new Thickness(0, 3, 0, 0),
+            });
 
-            MessageBox.Show(
-                $"✅ تم حذف الدوسية و{deleted} سجل بنجاح.",
-                "تم الحذف", MessageBoxButton.OK, MessageBoxImage.Information);
+            var header = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D1F3C")) { Opacity = 0.90 },
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Child = headerPanel,
+            };
+            Grid.SetRow(header, 0);
+            root.Children.Add(header);
 
-            NavigationService?.GoBack();
+            // ── Body ──────────────────────────────────────────────────────────────
+            var bodyBorder = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D1F3C")) { Opacity = 0.50 },
+                Padding = new Thickness(24, 18, 24, 12),
+            };
+            Grid.SetRow(bodyBorder, 1);
+
+            var body = new StackPanel();
+
+            body.Children.Add(new TextBlock
+            {
+                Text = "يرجى إدخال سبب الحذف:",
+                FontSize = 13,
+                Foreground = TextSecondary,
+                Margin = new Thickness(0, 0, 0, 10),
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+            var reasonBox = new TextBox
+            {
+                Height = 50,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Foreground = TextSecondary,
+                CaretBrush = EmeraldMid,
+            };
+            MaterialDesignThemes.Wpf.HintAssist.SetHint(reasonBox, "سبب الحذف *");
+            MaterialDesignThemes.Wpf.HintAssist.SetForeground(reasonBox, SubText);
+            reasonBox.Style = (Style)FindResource("MaterialDesignOutlinedTextBox");
+            reasonBox.GotFocus += (_, _) => reasonBox.SelectAll();
+            body.Children.Add(reasonBox);
+
+            body.Children.Add(new TextBlock
+            {
+                Text = "⚠️ هذا الإجراء لا يمكن التراجع عنه. ستُحذف الدوسية وجميع سجلاتها نهائياً.",
+                FontSize = 11,
+                Foreground = DangerRed,
+                Margin = new Thickness(0, 10, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+            var errorBlock = new TextBlock
+            {
+                Foreground = DangerRed,
+                FontSize = 12,
+                Visibility = Visibility.Collapsed,
+                Margin = new Thickness(0, 8, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+            };
+            body.Children.Add(errorBlock);
+
+            bodyBorder.Child = body;
+            root.Children.Add(bodyBorder);
+
+            // ── Footer ────────────────────────────────────────────────────────────
+            var footerBorder = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0D1F3C")) { Opacity = 0.90 },
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                Padding = new Thickness(20, 12, 20, 12),
+            };
+            Grid.SetRow(footerBorder, 2);
+
+            var btnRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                FlowDirection = FlowDirection.RightToLeft,
+            };
+
+            var confirmBtn = new Button
+            {
+                Content = "🗑 حذف",
+                Width = 110,
+                Height = 38,
+                Margin = new Thickness(0, 0, 10, 0),
+                Style = (Style)FindResource("MaterialDesignRaisedButton"),
+                Background = DangerRed,
+                Foreground = Brushes.White,
+                IsDefault = true,
+            };
+
+            var cancelBtn = new Button
+            {
+                Content = "إلغاء",
+                Width = 100,
+                Height = 38,
+                Style = (Style)FindResource("MaterialDesignOutlinedButton"),
+                Foreground = TextSecondary,
+                BorderBrush = BorderColor,
+                IsCancel = true,
+            };
+            cancelBtn.Click += (_, _) => win.Close();
+
+            confirmBtn.Click += (_, _) =>
+            {
+                errorBlock.Visibility = Visibility.Collapsed;
+
+                if (string.IsNullOrWhiteSpace(reasonBox.Text))
+                {
+                    errorBlock.Text = "سبب الحذف مطلوب.";
+                    errorBlock.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                string reason = reasonBox.Text.Trim();
+
+                var confirm = MessageBox.Show(
+                    $"⚠️ سيتم حذف الدوسية رقم {_dossier.DossierNumber} " +
+                    $"و{activeRecords.Count} سجل بداخلها.\n\nالسبب: {reason}\n\nهل تريد المتابعة؟",
+                    "تأكيد الحذف",
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (confirm != MessageBoxResult.Yes) return;
+
+                var (error, deleted) = _dossierService.DeleteDossier(_dossierId, reason);
+
+                if (error != null)
+                {
+                    errorBlock.Text = error;
+                    errorBlock.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                win.Close();
+
+                MessageBox.Show(
+                    $"✅ تم حذف الدوسية و{deleted} سجل بنجاح.",
+                    "تم الحذف", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                NavigationService?.GoBack();
+            };
+
+            btnRow.Children.Add(confirmBtn);
+            btnRow.Children.Add(cancelBtn);
+            footerBorder.Child = btnRow;
+            root.Children.Add(footerBorder);
+
+            win.Content = root;
+            win.Loaded += (_, _) => reasonBox.Focus();
+            win.ShowDialog();
         }
 
         private void DeleteRecord_Click(object sender, RoutedEventArgs e)
